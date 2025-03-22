@@ -8,11 +8,15 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dmitrovia/passkeeper/internal/server/models/procattrs/serverpa"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
+
+//go:embed db/migrations/*.sql
+var MigrationsFS embed.FS
 
 // Migrator - describing the struct migrator.
 type Migrator struct {
@@ -58,6 +62,28 @@ func (m *Migrator) ApplyMigrations(db *sql.DB) error {
 	err = migrator.Up()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("unable to apply migrations: %w", err)
+	}
+
+	return nil
+}
+
+func UseMigrations(attr *serverpa.ServerProcAttr) error {
+	migrator, err := MustGetNewMigrator(
+		MigrationsFS, attr.GetmigrationsDir())
+	if err != nil {
+		return fmt.Errorf("useMigrations->MustGetNewMig: %w", err)
+	}
+
+	conn, err := sql.Open("postgres", *attr.GetDBDSN())
+	if err != nil {
+		return fmt.Errorf("useMigrations->sql.Open: %w", err)
+	}
+
+	defer conn.Close()
+
+	err = migrator.ApplyMigrations(conn)
+	if err != nil {
+		return fmt.Errorf("useMigrations->ApplyMigratio: %w", err)
 	}
 
 	return nil
