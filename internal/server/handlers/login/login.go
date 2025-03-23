@@ -40,8 +40,7 @@ func (h *Login) LoginHandler(
 	err := getReqData(req, reqAttr)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		logger.DoInfoLogFromErr("login->getReqData",
-			err, h.attr.GetLogger())
+		logger.LogE("login->getReqData", err, h.attr.GetLogger())
 
 		return
 	}
@@ -53,13 +52,14 @@ func (h *Login) LoginHandler(
 		return
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(
+		req.Context(), h.attr.GetDbtimeout())
+	defer cancel()
 
-	exist, user, err := h.serv.UserIsExist(&ctx, reqAttr.Login)
+	exist, user, err := h.serv.UserIsExist(ctx, reqAttr.Login)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		logger.DoInfoLogFromErr("login->UserIsExist",
-			err, h.attr.GetLogger())
+		logger.LogE("login->UserIsExist", err, h.attr.GetLogger())
 
 		return
 	}
@@ -73,8 +73,7 @@ func (h *Login) LoginHandler(
 	err = checkPass(*user.GetPassword(), reqAttr.Password)
 	if err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
-		logger.DoInfoLogFromErr("login->checkPass",
-			err, h.attr.GetLogger())
+		logger.LogE("login->checkPass", err, h.attr.GetLogger())
 
 		return
 	}
@@ -82,8 +81,7 @@ func (h *Login) LoginHandler(
 	token, err := generateToken(reqAttr.Login, h.attr)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		logger.DoInfoLogFromErr("login->generateToken",
-			err, h.attr.GetLogger())
+		logger.LogE("login->GT", err, h.attr.GetLogger())
 
 		return
 	}

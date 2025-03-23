@@ -7,7 +7,7 @@ import (
 )
 
 type AuthService interface {
-	UserIsExist(ctx *context.Context,
+	UserIsExist(ctx context.Context,
 		login string) (bool, *userm.User, error)
-	CreateUser(ctx *context.Context, user *userm.User) error
+	CreateUser(ctx context.Context, user *userm.User) error
 }

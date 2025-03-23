@@ -43,7 +43,7 @@ type ServerProcAttr struct {
 	loginAttr       *loginattr.LoginAttr
 	rigsterAttr     *registerattr.RegisterAttr
 	authMidAttr     *authmiddlewareattr.AuthMiddlewareAttr
-	DBtimeout       time.Duration
+	dbtimeout       time.Duration
 	defReadTimeout  time.Duration
 	defWriteTimeout time.Duration
 	defIdleTimeout  time.Duration
@@ -56,6 +56,8 @@ type ServerProcAttr struct {
 	defConfigPath   string
 	migrationsDir   string
 	apiURL          string
+	secretAuth      string
+	tokenExpHour    int
 }
 
 func (p *ServerProcAttr) GetServer() *http.Server {
@@ -63,7 +65,7 @@ func (p *ServerProcAttr) GetServer() *http.Server {
 }
 
 func (p *ServerProcAttr) GetDBtimeout() time.Duration {
-	return p.DBtimeout
+	return p.dbtimeout
 }
 
 func (p *ServerProcAttr) GetLogger() *zap.Logger {
@@ -108,6 +110,8 @@ func (p *ServerProcAttr) GetmigrationsDir() string {
 
 func (p *ServerProcAttr) Init() error {
 	p.sessionUser = &userm.User{}
+	p.secretAuth = "qwerty"
+	p.tokenExpHour = 24
 	p.zapLogInfoLevel = "info"
 	p.defServerAddr = ""
 	p.defDBDSN = ""
@@ -115,7 +119,7 @@ func (p *ServerProcAttr) Init() error {
 		"server.json"
 	p.apiURL = "/api/user/"
 	p.migrationsDir = "db/migrations"
-	p.DBtimeout = DBtimeout * time.Second
+	p.dbtimeout = DBtimeout * time.Second
 	p.defReadTimeout = initReadTimeout * time.Second
 	p.defWriteTimeout = initWriteTimeout * time.Second
 	p.defIdleTimeout = initIdleTimeout * time.Second
@@ -127,7 +131,7 @@ func (p *ServerProcAttr) Init() error {
 	p.initHandlersAttr()
 	p.authMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
 	p.authMidAttr.Init(p.zapLogger,
-		p.authService, p.sessionUser)
+		p.authService, p.sessionUser, p.dbtimeout, p.secretAuth)
 
 	logger, err := logger.Initialize(p.zapLogInfoLevel)
 	if err != nil {
@@ -237,8 +241,10 @@ func (p *ServerProcAttr) initHandlersAttr() {
 	p.loginAttr = &loginattr.LoginAttr{}
 	p.rigsterAttr = &registerattr.RegisterAttr{}
 
-	p.loginAttr.Init(p.zapLogger)
-	p.rigsterAttr.Init(p.zapLogger)
+	p.loginAttr.Init(p.zapLogger, p.secretAuth,
+		p.tokenExpHour, p.dbtimeout)
+	p.rigsterAttr.Init(p.zapLogger, p.secretAuth,
+		p.tokenExpHour, p.dbtimeout)
 }
 
 func (p *ServerProcAttr) SetPgxConn(

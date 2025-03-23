@@ -1,17 +1,28 @@
 package registerattr
 
-import "go.uber.org/zap"
+import (
+	"time"
+
+	"go.uber.org/zap"
+)
 
 type RegisterAttr struct {
+	zapLogger    *zap.Logger
+	dbtimeout    time.Duration
 	secret       string
 	tokenExpHour int
-	zapLogger    *zap.Logger
 }
 
-func (p *RegisterAttr) Init(logger *zap.Logger) {
-	p.secret = "qwerty"
-	p.tokenExpHour = 24
+func (p *RegisterAttr) Init(
+	logger *zap.Logger,
+	secret string,
+	tokenExpHour int,
+	dbt time.Duration,
+) {
+	p.secret = secret
+	p.tokenExpHour = tokenExpHour
 	p.zapLogger = logger
+	p.dbtimeout = dbt
 }
 
 func (p *RegisterAttr) GetSecret() string {
@@ -24,4 +35,8 @@ func (p *RegisterAttr) GetTokenExpHour() int {
 
 func (p *RegisterAttr) GetLogger() *zap.Logger {
 	return p.zapLogger
+}
+
+func (p *RegisterAttr) GetDbtimeout() time.Duration {
+	return p.dbtimeout
 }

@@ -1,17 +1,28 @@
 package loginattr
 
-import "go.uber.org/zap"
+import (
+	"time"
+
+	"go.uber.org/zap"
+)
 
 type LoginAttr struct {
+	zapLogger    *zap.Logger
+	dbtimeout    time.Duration
 	secret       string
 	tokenExpHour int
-	zapLogger    *zap.Logger
 }
 
-func (p *LoginAttr) Init(logger *zap.Logger) {
-	p.secret = "qwerty"
-	p.tokenExpHour = 24
+func (p *LoginAttr) Init(
+	logger *zap.Logger,
+	secret string,
+	tokenExpHour int,
+	dbt time.Duration,
+) {
+	p.secret = secret
+	p.tokenExpHour = tokenExpHour
 	p.zapLogger = logger
+	p.dbtimeout = dbt
 }
 
 func (p *LoginAttr) GetSecret() string {
@@ -24,4 +35,8 @@ func (p *LoginAttr) GetTokenExpHour() int {
 
 func (p *LoginAttr) GetLogger() *zap.Logger {
 	return p.zapLogger
+}
+
+func (p *LoginAttr) GetDbtimeout() time.Duration {
+	return p.dbtimeout
 }

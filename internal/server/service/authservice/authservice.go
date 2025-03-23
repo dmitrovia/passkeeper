@@ -22,7 +22,7 @@ func NewAuthService(
 	}
 }
 
-func (s *AuthService) UserIsExist(ctx *context.Context,
+func (s *AuthService) UserIsExist(ctx context.Context,
 	login string) (
 	bool, *userm.User, error,
 ) {
@@ -39,7 +39,7 @@ func (s *AuthService) UserIsExist(ctx *context.Context,
 }
 
 func (s *AuthService) CreateUser(
-	ctx *context.Context,
+	ctx context.Context,
 	user *userm.User,
 ) error {
 	err := s.repository.CreateUser(ctx, user)

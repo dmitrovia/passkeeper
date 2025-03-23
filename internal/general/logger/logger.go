@@ -27,7 +27,7 @@ func Initialize(level string) (*zap.Logger, error) {
 	return zl, nil
 }
 
-func DoInfoLogFromErr(
+func LogE(
 	method string,
 	err error,
 	logger *zap.Logger,
@@ -37,7 +37,7 @@ func DoInfoLogFromErr(
 	)
 }
 
-func DoInfoLogFromStr(
+func Log(
 	method string,
 	txt string,
 	logger *zap.Logger,

@@ -8,10 +8,10 @@ import (
 
 type UserStorage interface {
 	GetUser(
-		ctx *context.Context,
+		ctx context.Context,
 		login string) (*userm.User, error)
 
 	CreateUser(
-		ctx *context.Context,
+		ctx context.Context,
 		user *userm.User) error
 }

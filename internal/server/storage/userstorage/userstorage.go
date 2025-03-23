@@ -24,13 +24,13 @@ func (m *UserStorage) Initiate(
 const defUserData = "u.id,u.login,u.password,u.createddate"
 
 func (m *UserStorage) CreateUser(
-	ctx *context.Context,
+	ctx context.Context,
 	user *userm.User,
 ) error {
 	var lastInsertID *int32
 
 	err := m.conn.QueryRow(
-		*ctx,
+		ctx,
 		"INSERT INTO users (login, password)"+
 			" VALUES ($1, $2) RETURNING id",
 		user.GetLogin(),
@@ -45,7 +45,7 @@ func (m *UserStorage) CreateUser(
 }
 
 func (m *UserStorage) GetUser(
-	ctx *context.Context,
+	ctx context.Context,
 	login string,
 ) (*userm.User, error) {
 	user := &userm.User{}
@@ -57,7 +57,7 @@ func (m *UserStorage) GetUser(
 	)
 
 	err := m.conn.QueryRow(
-		*ctx,
+		ctx,
 		"select "+defUserData+
 			" from users u"+
 			" where login=$1 LIMIT 1",
@@ -68,7 +68,7 @@ func (m *UserStorage) GetUser(
 			return nil, sql.ErrNoRows
 		}
 
-		return nil, fmt.Errorf("GetUser->m.conn.QueryRow %w", err)
+		return nil, fmt.Errorf("GetUser->m.conn.QR: %w", err)
 	}
 
 	user.SetUser(*outID,

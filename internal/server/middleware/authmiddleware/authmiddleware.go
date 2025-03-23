@@ -52,9 +52,12 @@ func AuthMiddleware(
 				return
 			}
 
-			ctx := context.Background()
+			ctx, cancel := context.WithTimeout(
+				req.Context(), attr.GetDbtimeout())
 
-			isValid, err := isValidToken(&ctx, token, attr)
+			defer cancel()
+
+			isValid, err := isValidToken(ctx, token, attr)
 			if err != nil {
 				setErr(writer, attr, err)
 
@@ -76,7 +79,7 @@ func AuthMiddleware(
 	return handler
 }
 
-func isValidToken(ctx *context.Context,
+func isValidToken(ctx context.Context,
 	token *jwt.Token,
 	attr *authmiddlewareattr.AuthMiddlewareAttr,
 ) (bool, error) {
@@ -145,9 +148,8 @@ func parseToken(inToken string,
 					return nil, errUnexpectedMethod
 				}
 
-				logger.DoInfoLogFromStr("AuthMiddleware",
-					"Unexpected signing method "+headerAlg,
-					attr.GetLogger())
+				msg := "Unexpected signing method " + headerAlg
+				logger.Log("AuthMiddleware", msg, attr.GetLogger())
 
 				return nil, errUnexpectedMethod
 			}
@@ -166,7 +168,7 @@ func setErrStr(writer http.ResponseWriter,
 	txt string,
 ) {
 	writer.WriteHeader(http.StatusUnauthorized)
-	logger.DoInfoLogFromStr("AuthMiddleware",
+	logger.Log("AuthMiddleware",
 		txt, attr.GetLogger())
 }
 
@@ -175,6 +177,5 @@ func setErr(writer http.ResponseWriter,
 	err error,
 ) {
 	writer.WriteHeader(http.StatusUnauthorized)
-	logger.DoInfoLogFromErr("AuthMiddleware",
-		err, attr.GetLogger())
+	logger.LogE("AuthMiddleware", err, attr.GetLogger())
 }

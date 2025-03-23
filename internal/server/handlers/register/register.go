@@ -59,9 +59,11 @@ func (h *Register) RegisterHandler(
 		return
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(
+		req.Context(), h.attr.GetDbtimeout())
+	defer cancel()
 
-	exist, _, err := h.authService.UserIsExist(&ctx,
+	exist, _, err := h.authService.UserIsExist(ctx,
 		reqAttr.Login)
 	if err != nil {
 		setErr(writer, h.attr, err, "UserIsExist")
@@ -75,7 +77,7 @@ func (h *Register) RegisterHandler(
 		return
 	}
 
-	err = createUser(&ctx, h, reqAttr)
+	err = createUser(ctx, h, reqAttr)
 	if err != nil {
 		setErr(writer, h.attr, err, "CreateUser")
 
@@ -93,7 +95,7 @@ func (h *Register) RegisterHandler(
 	writer.WriteHeader(http.StatusOK)
 }
 
-func createUser(ctx *context.Context,
+func createUser(ctx context.Context,
 	handler *Register,
 	reqAttr *apim.InRegisterUser,
 ) error {
@@ -120,8 +122,7 @@ func setErr(writer http.ResponseWriter,
 	method string,
 ) {
 	writer.WriteHeader(statusISE)
-	logger.DoInfoLogFromErr("register->"+method,
-		err, inAttr.GetLogger())
+	logger.LogE("register->"+method, err, inAttr.GetLogger())
 }
 
 func validate(reqAttr *apim.InRegisterUser) bool {
@@ -183,9 +184,7 @@ func generateToken(
 	token, err := generateToken.SignedString(
 		[]byte(attr.GetSecret()))
 	if err != nil {
-		return token, fmt.Errorf(
-			"generateToken->SignedString: %w",
-			errEmptyData)
+		return token, fmt.Errorf("generateToken->SS: %w", err)
 	}
 
 	return token, nil

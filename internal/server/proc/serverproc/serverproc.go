@@ -16,6 +16,9 @@ import (
 )
 
 func RunProcess() error {
+	fmt.Println("ServerProc run")
+	defer fmt.Println("ServerProc end")
+
 	attr := &serverpa.ServerProcAttr{}
 
 	err := attr.Init()
@@ -25,7 +28,7 @@ func RunProcess() error {
 
 	waitGroup := new(sync.WaitGroup)
 	ctxDB, cancel := context.WithTimeout(
-		context.Background(), attr.DBtimeout)
+		context.Background(), attr.GetDBtimeout())
 
 	defer cancel()
 
