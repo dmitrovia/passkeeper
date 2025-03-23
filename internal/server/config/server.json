@@ -1,4 +1,4 @@
 {
-    "dbdsn": "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable",
+    "dbdsn": "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable",
     "address" : "localhost:8080"
 } 

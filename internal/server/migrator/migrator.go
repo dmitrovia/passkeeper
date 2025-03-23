@@ -31,7 +31,7 @@ func MustGetNewMigrator(
 ) (*Migrator, error) {
 	driver, err := iofs.New(sqlFiles, dirName)
 	if err != nil {
-		return nil, fmt.Errorf("MustGetNewMigr->iofs.N: %w", err)
+		return nil, fmt.Errorf("MustGetNewMigrator->ION: %w", err)
 	}
 
 	return &Migrator{

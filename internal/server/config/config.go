@@ -7,28 +7,17 @@ import (
 	"os"
 
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
-	"github.com/dmitrovia/passkeeper/internal/server/models/procattrs/serverpa"
 )
 
 const fmd os.FileMode = 0o666
 
-func GetAttrs(
-	attr *serverpa.ServerProcAttr,
-) error {
-	cfg, err := loadCFGServer(*attr.GetConfigPath())
+func GetAttrs(path string) (*apim.CfgServer, error) {
+	cfg, err := loadCFGServer(path)
 	if err != nil {
-		return fmt.Errorf("GetAttrs->loadConfigServer: %w", err)
+		return nil, fmt.Errorf("GetAttrs->LCS: %w", err)
 	}
 
-	if *attr.GetDBDSN() == "" {
-		attr.SetdBDSN(cfg.DBDSN)
-	}
-
-	if *attr.GetServerAddr() == "" {
-		attr.SetServerAddr(cfg.ServerAddr)
-	}
-
-	return nil
+	return cfg, nil
 }
 
 func loadCFGServer(

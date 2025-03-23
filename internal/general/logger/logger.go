@@ -27,9 +27,22 @@ func Initialize(level string) (*zap.Logger, error) {
 	return zl, nil
 }
 
-func DoInfoLog(
-	msg string,
+func DoInfoLogFromErr(
+	method string,
+	err error,
 	logger *zap.Logger,
 ) {
-	logger.Info(msg)
+	logger.Info(method,
+		zap.String("err:", err.Error()),
+	)
+}
+
+func DoInfoLogFromStr(
+	method string,
+	txt string,
+	logger *zap.Logger,
+) {
+	logger.Info(method,
+		zap.String("err:", txt),
+	)
 }

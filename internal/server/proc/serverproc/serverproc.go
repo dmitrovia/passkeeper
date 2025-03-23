@@ -10,9 +10,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/dmitrovia/passkeeper/internal/general/flags"
 	"github.com/dmitrovia/passkeeper/internal/general/functions/loggerf"
-	"github.com/dmitrovia/passkeeper/internal/server/config"
 	"github.com/dmitrovia/passkeeper/internal/server/migrator"
 	"github.com/dmitrovia/passkeeper/internal/server/models/procattrs/serverpa"
 )
@@ -23,13 +21,6 @@ func RunProcess() error {
 	err := attr.Init()
 	if err != nil {
 		return fmt.Errorf("RP->Init: %w", err)
-	}
-
-	flags.InitFlags(attr)
-
-	err = config.GetAttrs(attr)
-	if err != nil {
-		return fmt.Errorf("RP->GetAttrs: %w", err)
 	}
 
 	waitGroup := new(sync.WaitGroup)
