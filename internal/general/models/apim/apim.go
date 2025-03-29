@@ -1,8 +1,14 @@
 package apim
 
 type CfgServer struct {
-	ServerAddr string `json:"address"`
-	DBDSN      string `json:"dbdsn"`
+	ServerAddr       string `json:"address"`
+	DBDSN            string `json:"dbdsn"`
+	FilesStoragePath string `json:"filesStoragePath"`
+}
+
+type CfgClient struct {
+	ServerAddr           string `json:"address"`
+	FilesSynchronizePath string `json:"filesSynchronizePath"`
 }
 
 type InRegisterUser struct {

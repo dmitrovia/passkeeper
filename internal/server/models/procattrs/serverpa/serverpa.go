@@ -34,30 +34,32 @@ const initWriteTimeout = 15
 const initIdleTimeout = 60
 
 type ServerProcAttr struct {
-	zapLogger       *zap.Logger
-	pgxConn         *pgxpool.Pool
-	server          *http.Server
-	sessionUser     *userm.User
-	userStorage     *userstorage.UserStorage
-	authService     *authservice.AuthService
-	loginAttr       *loginattr.LoginAttr
-	rigsterAttr     *registerattr.RegisterAttr
-	authMidAttr     *authmiddlewareattr.AuthMiddlewareAttr
-	dbtimeout       time.Duration
-	defReadTimeout  time.Duration
-	defWriteTimeout time.Duration
-	defIdleTimeout  time.Duration
-	zapLogInfoLevel string
-	defDBDSN        string
-	defServerAddr   string
-	serverAddr      string
-	dBDSN           string
-	configPath      string
-	defConfigPath   string
-	migrationsDir   string
-	apiURL          string
-	secretAuth      string
-	tokenExpHour    int
+	zapLogger           *zap.Logger
+	pgxConn             *pgxpool.Pool
+	server              *http.Server
+	sessionUser         *userm.User
+	userStorage         *userstorage.UserStorage
+	authService         *authservice.AuthService
+	loginAttr           *loginattr.LoginAttr
+	rigsterAttr         *registerattr.RegisterAttr
+	authMidAttr         *authmiddlewareattr.AuthMiddlewareAttr
+	dbtimeout           time.Duration
+	defReadTimeout      time.Duration
+	defWriteTimeout     time.Duration
+	defIdleTimeout      time.Duration
+	zapLogInfoLevel     string
+	defDBDSN            string
+	defServerAddr       string
+	serverAddr          string
+	dBDSN               string
+	configPath          string
+	defConfigPath       string
+	migrationsDir       string
+	apiUsersURL         string
+	secretAuth          string
+	filesStoragePath    string
+	defFilesStoragePath string
+	tokenExpHour        int
 }
 
 func (p *ServerProcAttr) GetServer() *http.Server {
@@ -78,14 +80,6 @@ func (p *ServerProcAttr) GetDefConfigPath() string {
 
 func (p *ServerProcAttr) GetConfigPath() *string {
 	return &p.configPath
-}
-
-func (p *ServerProcAttr) SetServerAddr(addr string) {
-	p.serverAddr = addr
-}
-
-func (p *ServerProcAttr) SetdBDSN(dsn string) {
-	p.dBDSN = dsn
 }
 
 func (p *ServerProcAttr) GetDefDBDSN() string {
@@ -115,9 +109,10 @@ func (p *ServerProcAttr) Init() error {
 	p.zapLogInfoLevel = "info"
 	p.defServerAddr = ""
 	p.defDBDSN = ""
+	p.defFilesStoragePath = ""
 	p.defConfigPath = "../../internal/server/config/" +
 		"server.json"
-	p.apiURL = "/api/user/"
+	p.apiUsersURL = "/api/user/"
 	p.migrationsDir = "db/migrations"
 	p.dbtimeout = DBtimeout * time.Second
 	p.defReadTimeout = initReadTimeout * time.Second
@@ -163,17 +158,21 @@ func (p *ServerProcAttr) Init() error {
 }
 
 func (p *ServerProcAttr) GetAttrsCFG() error {
-	cfg, err := config.GetAttrs(*p.GetConfigPath())
+	cfg, err := config.GetAttrsS(p.configPath)
 	if err != nil {
 		return fmt.Errorf("RP->GetAttrs: %w", err)
 	}
 
 	if p.dBDSN == "" {
-		p.SetdBDSN(cfg.DBDSN)
+		p.dBDSN = cfg.DBDSN
 	}
 
 	if p.serverAddr == "" {
-		p.SetServerAddr(cfg.ServerAddr)
+		p.serverAddr = cfg.ServerAddr
+	}
+
+	if p.filesStoragePath == "" {
+		p.filesStoragePath = cfg.FilesStoragePath
 	}
 
 	return nil
@@ -183,7 +182,7 @@ func (p *ServerProcAttr) InitFlags() {
 	flag.StringVar(
 		&p.dBDSN,
 		"db", p.defDBDSN,
-		"database connection address.",
+		"Database connection address.",
 	)
 	flag.StringVar(
 		&p.serverAddr,
@@ -193,7 +192,12 @@ func (p *ServerProcAttr) InitFlags() {
 	flag.StringVar(
 		&p.configPath,
 		"cfgpath", p.defConfigPath,
-		"Port to listen on.",
+		"CFG path.",
+	)
+	flag.StringVar(
+		&p.filesStoragePath,
+		"fspath", p.defFilesStoragePath,
+		"Directory where user files are stored.",
 	)
 	flag.Parse()
 }
@@ -226,7 +230,7 @@ func setMethod(
 	onlyAuth bool,
 ) {
 	subRouter := mux.Methods(method).Subrouter()
-	subRouter.HandleFunc(attr.apiURL+url,
+	subRouter.HandleFunc(attr.apiUsersURL+url,
 		handler)
 	subRouter.Use(
 		loggermiddleware.RequestLogger(attr.zapLogger))

@@ -11,8 +11,8 @@ import (
 
 const fmd os.FileMode = 0o666
 
-func GetAttrs(path string) (*apim.CfgServer, error) {
-	cfg, err := loadCFGServer(path)
+func GetAttrsS(path string) (*apim.CfgServer, error) {
+	cfg, err := loadCFGServerS(path)
 	if err != nil {
 		return nil, fmt.Errorf("GetAttrs->LCS: %w", err)
 	}
@@ -20,12 +20,12 @@ func GetAttrs(path string) (*apim.CfgServer, error) {
 	return cfg, nil
 }
 
-func loadCFGServer(
+func loadCFGServerS(
 	pth string,
 ) (*apim.CfgServer, error) {
 	file, err := os.OpenFile(pth, os.O_RDONLY|os.O_EXCL, fmd)
 	if err != nil {
-		return nil, fmt.Errorf("LoadConfigServer->OF: %w", err)
+		return nil, fmt.Errorf("loadCFGServerS->OF: %w", err)
 	}
 
 	defer file.Close()
@@ -36,7 +36,38 @@ func loadCFGServer(
 
 	err = json.Unmarshal(byteValue, &attr)
 	if err != nil {
-		return nil, fmt.Errorf("loadCFGServer->Unmarsha: %w", err)
+		return nil, fmt.Errorf("loadCFGServerS->Unmarsh: %w", err)
+	}
+
+	return attr, nil
+}
+
+func GetAttrsC(path string) (*apim.CfgClient, error) {
+	cfg, err := loadCFGServerC(path)
+	if err != nil {
+		return nil, fmt.Errorf("GetAttrs->LCS: %w", err)
+	}
+
+	return cfg, nil
+}
+
+func loadCFGServerC(
+	pth string,
+) (*apim.CfgClient, error) {
+	file, err := os.OpenFile(pth, os.O_RDONLY|os.O_EXCL, fmd)
+	if err != nil {
+		return nil, fmt.Errorf("loadCFGServerC->OF: %w", err)
+	}
+
+	defer file.Close()
+
+	attr := &apim.CfgClient{}
+
+	byteValue, _ := io.ReadAll(file)
+
+	err = json.Unmarshal(byteValue, &attr)
+	if err != nil {
+		return nil, fmt.Errorf("loadCFGServerC->Unmarsh: %w", err)
 	}
 
 	return attr, nil

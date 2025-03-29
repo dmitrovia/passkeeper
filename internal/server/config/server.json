@@ -1,4 +1,5 @@
 {
     "dbdsn": "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable",
-    "address" : "localhost:8080"
+    "address" : "localhost:8080",
+    "filesStoragePath" : "internal/server/files"
 } 
