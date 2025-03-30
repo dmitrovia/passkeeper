@@ -53,7 +53,7 @@ func AuthMiddleware(
 			}
 
 			ctx, cancel := context.WithTimeout(
-				req.Context(), attr.GetDbtimeout())
+				req.Context(), attr.Dbtimeout)
 
 			defer cancel()
 
@@ -108,7 +108,7 @@ func isValidToken(ctx context.Context,
 		return false, nil
 	}
 
-	exist, user, err := attr.GetAuthService().UserIsExist(ctx,
+	exist, user, err := attr.AuthService.UserIsExist(ctx,
 		login)
 	if err != nil {
 		return false, fmt.Errorf("isValidToken->UIE: %w", err)
@@ -126,12 +126,12 @@ func isValidToken(ctx context.Context,
 func setSessionUserData(user *userm.User,
 	attr *authmiddlewareattr.AuthMiddlewareAttr,
 ) {
-	sessionUser := attr.GetSessionUser()
+	sessionUser := attr.SessionUser
 	sessionUser.SetUser(
-		user.GetID(),
-		user.GetLogin(),
-		user.GetPassword(),
-		user.GetCreateddate())
+		user.ID,
+		user.Login,
+		user.Password,
+		user.Createddate)
 }
 
 func parseToken(inToken string,
@@ -149,12 +149,12 @@ func parseToken(inToken string,
 				}
 
 				msg := "Unexpected signing method " + headerAlg
-				logger.Log("AuthMiddleware", msg, attr.GetLogger())
+				logger.Log("AuthMiddleware", msg, attr.ZapLogger)
 
 				return nil, errUnexpectedMethod
 			}
 
-			return []byte(attr.GetSecret()), nil
+			return []byte(attr.Secret), nil
 		})
 	if err != nil {
 		return nil, fmt.Errorf("parseToken>jwt.Parse: %w", err)
@@ -169,7 +169,7 @@ func setErrStr(writer http.ResponseWriter,
 ) {
 	writer.WriteHeader(http.StatusUnauthorized)
 	logger.Log("AuthMiddleware",
-		txt, attr.GetLogger())
+		txt, attr.ZapLogger)
 }
 
 func setErr(writer http.ResponseWriter,
@@ -177,5 +177,5 @@ func setErr(writer http.ResponseWriter,
 	err error,
 ) {
 	writer.WriteHeader(http.StatusUnauthorized)
-	logger.LogE("AuthMiddleware", err, attr.GetLogger())
+	logger.LogE("AuthMiddleware", err, attr.ZapLogger)
 }

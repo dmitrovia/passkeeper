@@ -69,12 +69,12 @@ func (m *Migrator) ApplyMigrations(db *sql.DB) error {
 
 func UseMigrations(attr *serverpa.ServerProcAttr) error {
 	migrator, err := MustGetNewMigrator(
-		MigrationsFS, attr.GetmigrationsDir())
+		MigrationsFS, attr.MigrationsDir)
 	if err != nil {
 		return fmt.Errorf("useMigrations->MustGetNewMig: %w", err)
 	}
 
-	conn, err := sql.Open("postgres", *attr.GetDBDSN())
+	conn, err := sql.Open("postgres", attr.DBDSN)
 	if err != nil {
 		return fmt.Errorf("useMigrations->sql.Open: %w", err)
 	}

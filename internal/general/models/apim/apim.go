@@ -9,6 +9,7 @@ type CfgServer struct {
 type CfgClient struct {
 	ServerAddr           string `json:"address"`
 	FilesSynchronizePath string `json:"filesSynchronizePath"`
+	MetaPath             string `json:"metaPath"`
 }
 
 type InRegisterUser struct {

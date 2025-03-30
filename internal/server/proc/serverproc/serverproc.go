@@ -28,7 +28,7 @@ func RunProcess() error {
 
 	waitGroup := new(sync.WaitGroup)
 	ctxDB, cancel := context.WithTimeout(
-		context.Background(), attr.GetDBtimeout())
+		context.Background(), attr.Dbtimeout)
 
 	defer cancel()
 
@@ -65,7 +65,7 @@ func waitClose(
 	for {
 		_, ok := <-channelCancel
 		if ok {
-			err := attr.GetServer().Shutdown(context.TODO())
+			err := attr.Server.Shutdown(context.TODO())
 			if err != nil {
 				loggerf.Log("waitClose->Shutdown", err)
 			}
@@ -78,7 +78,7 @@ func waitClose(
 }
 
 func runServer(attr *serverpa.ServerProcAttr) {
-	err := attr.GetServer().ListenAndServe()
+	err := attr.Server.ListenAndServe()
 
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		loggerf.Log("runServer->GetServer.LAS", err)

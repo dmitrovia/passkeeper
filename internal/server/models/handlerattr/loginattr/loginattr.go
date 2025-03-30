@@ -7,10 +7,10 @@ import (
 )
 
 type LoginAttr struct {
-	zapLogger    *zap.Logger
-	dbtimeout    time.Duration
-	secret       string
-	tokenExpHour int
+	ZapLogger    *zap.Logger
+	Dbtimeout    time.Duration
+	Secret       string
+	TokenExpHour int
 }
 
 func (p *LoginAttr) Init(
@@ -19,24 +19,8 @@ func (p *LoginAttr) Init(
 	tokenExpHour int,
 	dbt time.Duration,
 ) {
-	p.secret = secret
-	p.tokenExpHour = tokenExpHour
-	p.zapLogger = logger
-	p.dbtimeout = dbt
-}
-
-func (p *LoginAttr) GetSecret() string {
-	return p.secret
-}
-
-func (p *LoginAttr) GetTokenExpHour() int {
-	return p.tokenExpHour
-}
-
-func (p *LoginAttr) GetLogger() *zap.Logger {
-	return p.zapLogger
-}
-
-func (p *LoginAttr) GetDbtimeout() time.Duration {
-	return p.dbtimeout
+	p.Secret = secret
+	p.TokenExpHour = tokenExpHour
+	p.ZapLogger = logger
+	p.Dbtimeout = dbt
 }

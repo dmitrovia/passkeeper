@@ -40,7 +40,7 @@ func (h *Login) LoginHandler(
 	err := getReqData(req, reqAttr)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		logger.LogE("login->getReqData", err, h.attr.GetLogger())
+		logger.LogE("login->getReqData", err, h.attr.ZapLogger)
 
 		return
 	}
@@ -53,13 +53,13 @@ func (h *Login) LoginHandler(
 	}
 
 	ctx, cancel := context.WithTimeout(
-		req.Context(), h.attr.GetDbtimeout())
+		req.Context(), h.attr.Dbtimeout)
 	defer cancel()
 
 	exist, user, err := h.serv.UserIsExist(ctx, reqAttr.Login)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		logger.LogE("login->UserIsExist", err, h.attr.GetLogger())
+		logger.LogE("login->UserIsExist", err, h.attr.ZapLogger)
 
 		return
 	}
@@ -70,10 +70,10 @@ func (h *Login) LoginHandler(
 		return
 	}
 
-	err = checkPass(*user.GetPassword(), reqAttr.Password)
+	err = checkPass(*user.Password, reqAttr.Password)
 	if err != nil {
 		writer.WriteHeader(http.StatusUnauthorized)
-		logger.LogE("login->checkPass", err, h.attr.GetLogger())
+		logger.LogE("login->checkPass", err, h.attr.ZapLogger)
 
 		return
 	}
@@ -81,7 +81,7 @@ func (h *Login) LoginHandler(
 	token, err := generateToken(reqAttr.Login, h.attr)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		logger.LogE("login->GT", err, h.attr.GetLogger())
+		logger.LogE("login->GT", err, h.attr.ZapLogger)
 
 		return
 	}
@@ -99,11 +99,11 @@ func generateToken(
 			"id": id,
 			"exp": time.Now().Add(
 				time.Hour * time.Duration(
-					attr.GetTokenExpHour())).Unix(),
+					attr.TokenExpHour)).Unix(),
 		})
 
 	token, err := generateToken.SignedString(
-		[]byte(attr.GetSecret()))
+		[]byte(attr.Secret))
 	if err != nil {
 		return token, fmt.Errorf("generateToken->SS: %w", err)
 	}

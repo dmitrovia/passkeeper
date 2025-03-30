@@ -9,11 +9,11 @@ import (
 )
 
 type AuthMiddlewareAttr struct {
-	zapLogger   *zap.Logger
-	authService *as.AuthService
-	sessionUser *userm.User
-	dbtimeout   time.Duration
-	secret      string
+	ZapLogger   *zap.Logger
+	AuthService *as.AuthService
+	SessionUser *userm.User
+	Dbtimeout   time.Duration
+	Secret      string
 }
 
 func (p *AuthMiddlewareAttr) Init(logger *zap.Logger,
@@ -22,31 +22,9 @@ func (p *AuthMiddlewareAttr) Init(logger *zap.Logger,
 	dbt time.Duration,
 	secret string,
 ) {
-	p.secret = secret
-	p.zapLogger = logger
-	p.authService = authService
-	p.sessionUser = user
-	p.dbtimeout = dbt
-}
-
-func (
-	p *AuthMiddlewareAttr) GetSessionUser() *userm.User {
-	return p.sessionUser
-}
-
-func (p *AuthMiddlewareAttr) GetSecret() string {
-	return p.secret
-}
-
-func (p *AuthMiddlewareAttr) GetLogger() *zap.Logger {
-	return p.zapLogger
-}
-
-func (
-	p *AuthMiddlewareAttr) GetAuthService() *as.AuthService {
-	return p.authService
-}
-
-func (p *AuthMiddlewareAttr) GetDbtimeout() time.Duration {
-	return p.dbtimeout
+	p.Secret = secret
+	p.ZapLogger = logger
+	p.AuthService = authService
+	p.SessionUser = user
+	p.Dbtimeout = dbt
 }

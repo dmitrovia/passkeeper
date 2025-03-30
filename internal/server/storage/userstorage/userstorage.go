@@ -33,13 +33,13 @@ func (m *UserStorage) CreateUser(
 		ctx,
 		"INSERT INTO users (login, password)"+
 			" VALUES ($1, $2) RETURNING id",
-		user.GetLogin(),
-		user.GetPassword()).Scan(&lastInsertID)
+		user.Login,
+		user.Password).Scan(&lastInsertID)
 	if err != nil {
 		return fmt.Errorf("CreateUser->Scan: %w", err)
 	}
 
-	user.SetID(*lastInsertID)
+	user.ID = *lastInsertID
 
 	return nil
 }

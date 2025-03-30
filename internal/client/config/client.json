@@ -1,4 +1,5 @@
 {
-    "filesSynchronizePath" : "synchronize",
-    "server_address" : "localhost:8080"
+    "filesSynchronizePath" : "files_client",
+    "server_address" : "localhost:8080",
+    "metaPath" : "meta_client/meta.json"
 } 

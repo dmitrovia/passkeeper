@@ -26,7 +26,7 @@ func RunProcess() error {
 
 	waitGroup := new(sync.WaitGroup)
 	_, cancel := context.WithTimeout(
-		context.Background(), attr.GetReqtimeout())
+		context.Background(), attr.ReqTimeout)
 
 	defer cancel()
 

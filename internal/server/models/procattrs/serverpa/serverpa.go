@@ -34,106 +34,66 @@ const initWriteTimeout = 15
 const initIdleTimeout = 60
 
 type ServerProcAttr struct {
-	zapLogger           *zap.Logger
-	pgxConn             *pgxpool.Pool
-	server              *http.Server
-	sessionUser         *userm.User
-	userStorage         *userstorage.UserStorage
-	authService         *authservice.AuthService
-	loginAttr           *loginattr.LoginAttr
-	rigsterAttr         *registerattr.RegisterAttr
-	authMidAttr         *authmiddlewareattr.AuthMiddlewareAttr
-	dbtimeout           time.Duration
-	defReadTimeout      time.Duration
-	defWriteTimeout     time.Duration
-	defIdleTimeout      time.Duration
-	zapLogInfoLevel     string
-	defDBDSN            string
-	defServerAddr       string
-	serverAddr          string
-	dBDSN               string
-	configPath          string
-	defConfigPath       string
-	migrationsDir       string
-	apiUsersURL         string
-	secretAuth          string
-	filesStoragePath    string
-	defFilesStoragePath string
-	tokenExpHour        int
-}
-
-func (p *ServerProcAttr) GetServer() *http.Server {
-	return p.server
-}
-
-func (p *ServerProcAttr) GetDBtimeout() time.Duration {
-	return p.dbtimeout
-}
-
-func (p *ServerProcAttr) GetLogger() *zap.Logger {
-	return p.zapLogger
-}
-
-func (p *ServerProcAttr) GetDefConfigPath() string {
-	return p.defConfigPath
-}
-
-func (p *ServerProcAttr) GetConfigPath() *string {
-	return &p.configPath
-}
-
-func (p *ServerProcAttr) GetDefDBDSN() string {
-	return p.defDBDSN
-}
-
-func (p *ServerProcAttr) GetDBDSN() *string {
-	return &p.dBDSN
-}
-
-func (p *ServerProcAttr) GetDefServerAddr() string {
-	return p.defServerAddr
-}
-
-func (p *ServerProcAttr) GetServerAddr() *string {
-	return &p.serverAddr
-}
-
-func (p *ServerProcAttr) GetmigrationsDir() string {
-	return p.migrationsDir
+	ZapLogger           *zap.Logger
+	PgxConn             *pgxpool.Pool
+	Server              *http.Server
+	SessionUser         *userm.User
+	UserStorage         *userstorage.UserStorage
+	AuthService         *authservice.AuthService
+	LoginAttr           *loginattr.LoginAttr
+	RigsterAttr         *registerattr.RegisterAttr
+	AuthMidAttr         *authmiddlewareattr.AuthMiddlewareAttr
+	Dbtimeout           time.Duration
+	DefReadTimeout      time.Duration
+	DefWriteTimeout     time.Duration
+	DefIdleTimeout      time.Duration
+	ZapLogInfoLevel     string
+	DefDBDSN            string
+	DefServerAddr       string
+	ServerAddr          string
+	DBDSN               string
+	ConfigPath          string
+	DefConfigPath       string
+	MigrationsDir       string
+	APIUsersURL         string
+	SecretAuth          string
+	FilesStoragePath    string
+	DefFilesStoragePath string
+	TokenExpHour        int
 }
 
 func (p *ServerProcAttr) Init() error {
-	p.sessionUser = &userm.User{}
-	p.secretAuth = "qwerty"
-	p.tokenExpHour = 24
-	p.zapLogInfoLevel = "info"
-	p.defServerAddr = ""
-	p.defDBDSN = ""
-	p.defFilesStoragePath = ""
-	p.defConfigPath = "../../internal/server/config/" +
+	p.SessionUser = &userm.User{}
+	p.SecretAuth = "qwerty"
+	p.TokenExpHour = 24
+	p.ZapLogInfoLevel = "info"
+	p.DefServerAddr = ""
+	p.DefDBDSN = ""
+	p.DefFilesStoragePath = ""
+	p.DefConfigPath = "../../internal/server/config/" +
 		"server.json"
-	p.apiUsersURL = "/api/user/"
-	p.migrationsDir = "db/migrations"
-	p.dbtimeout = DBtimeout * time.Second
-	p.defReadTimeout = initReadTimeout * time.Second
-	p.defWriteTimeout = initWriteTimeout * time.Second
-	p.defIdleTimeout = initIdleTimeout * time.Second
-	p.userStorage = &userstorage.UserStorage{}
-	p.userStorage.Initiate(p.pgxConn)
-	p.authService = authservice.NewAuthService(
-		p.userStorage)
+	p.APIUsersURL = "/api/user/"
+	p.MigrationsDir = "db/migrations"
+	p.Dbtimeout = DBtimeout * time.Second
+	p.DefReadTimeout = initReadTimeout * time.Second
+	p.DefWriteTimeout = initWriteTimeout * time.Second
+	p.DefIdleTimeout = initIdleTimeout * time.Second
+	p.UserStorage = &userstorage.UserStorage{}
+	p.UserStorage.Initiate(p.PgxConn)
+	p.AuthService = authservice.NewAuthService(
+		p.UserStorage)
 
 	p.initHandlersAttr()
-	p.authMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
-	p.authMidAttr.Init(p.zapLogger,
-		p.authService, p.sessionUser, p.dbtimeout, p.secretAuth)
+	p.AuthMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
+	p.AuthMidAttr.Init(p.ZapLogger,
+		p.AuthService, p.SessionUser, p.Dbtimeout, p.SecretAuth)
 
-	logger, err := logger.Initialize(p.zapLogInfoLevel)
+	logger, err := logger.Initialize(p.ZapLogInfoLevel)
 	if err != nil {
 		return fmt.Errorf("Init->logger.Initialize: %w", err)
 	}
 
-	p.zapLogger = logger
+	p.ZapLogger = logger
 
 	p.InitFlags()
 
@@ -145,34 +105,34 @@ func (p *ServerProcAttr) Init() error {
 	mux := mux.NewRouter()
 	initAPIMethods(mux, p)
 
-	p.server = &http.Server{
-		Addr:         p.serverAddr,
+	p.Server = &http.Server{
+		Addr:         p.ServerAddr,
 		Handler:      mux,
 		ErrorLog:     nil,
-		ReadTimeout:  p.defReadTimeout,
-		WriteTimeout: p.defWriteTimeout,
-		IdleTimeout:  p.defIdleTimeout,
+		ReadTimeout:  p.DefReadTimeout,
+		WriteTimeout: p.DefWriteTimeout,
+		IdleTimeout:  p.DefIdleTimeout,
 	}
 
 	return nil
 }
 
 func (p *ServerProcAttr) GetAttrsCFG() error {
-	cfg, err := config.GetAttrsS(p.configPath)
+	cfg, err := config.GetAttrsS(p.ConfigPath)
 	if err != nil {
 		return fmt.Errorf("RP->GetAttrs: %w", err)
 	}
 
-	if p.dBDSN == "" {
-		p.dBDSN = cfg.DBDSN
+	if p.DBDSN == "" {
+		p.DBDSN = cfg.DBDSN
 	}
 
-	if p.serverAddr == "" {
-		p.serverAddr = cfg.ServerAddr
+	if p.ServerAddr == "" {
+		p.ServerAddr = cfg.ServerAddr
 	}
 
-	if p.filesStoragePath == "" {
-		p.filesStoragePath = cfg.FilesStoragePath
+	if p.FilesStoragePath == "" {
+		p.FilesStoragePath = cfg.FilesStoragePath
 	}
 
 	return nil
@@ -180,23 +140,23 @@ func (p *ServerProcAttr) GetAttrsCFG() error {
 
 func (p *ServerProcAttr) InitFlags() {
 	flag.StringVar(
-		&p.dBDSN,
-		"db", p.defDBDSN,
+		&p.DBDSN,
+		"db", p.DefDBDSN,
 		"Database connection address.",
 	)
 	flag.StringVar(
-		&p.serverAddr,
-		"saddr", p.defServerAddr,
+		&p.ServerAddr,
+		"saddr", p.DefServerAddr,
 		"Port to listen on.",
 	)
 	flag.StringVar(
-		&p.configPath,
-		"cfgpath", p.defConfigPath,
+		&p.ConfigPath,
+		"cfgpath", p.DefConfigPath,
 		"CFG path.",
 	)
 	flag.StringVar(
-		&p.filesStoragePath,
-		"fspath", p.defFilesStoragePath,
+		&p.FilesStoragePath,
+		"fspath", p.DefFilesStoragePath,
 		"Directory where user files are stored.",
 	)
 	flag.Parse()
@@ -211,9 +171,9 @@ func initAPIMethods(
 
 	hNotAllowed := notallowed.NotAllowed{}
 	register := register.NewRegisterHandler(
-		attr.authService, attr.rigsterAttr).RegisterHandler
+		attr.AuthService, attr.RigsterAttr).RegisterHandler
 	login := login.NewLoginHandler(
-		attr.authService, attr.loginAttr).LoginHandler
+		attr.AuthService, attr.LoginAttr).LoginHandler
 
 	setMethod(post, "register", mux, attr, register, false)
 	setMethod(post, "login", mux, attr, login, false)
@@ -230,36 +190,36 @@ func setMethod(
 	onlyAuth bool,
 ) {
 	subRouter := mux.Methods(method).Subrouter()
-	subRouter.HandleFunc(attr.apiUsersURL+url,
+	subRouter.HandleFunc(attr.APIUsersURL+url,
 		handler)
 	subRouter.Use(
-		loggermiddleware.RequestLogger(attr.zapLogger))
+		loggermiddleware.RequestLogger(attr.ZapLogger))
 
 	if onlyAuth {
 		subRouter.Use(
-			authmiddleware.AuthMiddleware(attr.authMidAttr))
+			authmiddleware.AuthMiddleware(attr.AuthMidAttr))
 	}
 }
 
 func (p *ServerProcAttr) initHandlersAttr() {
-	p.loginAttr = &loginattr.LoginAttr{}
-	p.rigsterAttr = &registerattr.RegisterAttr{}
+	p.LoginAttr = &loginattr.LoginAttr{}
+	p.RigsterAttr = &registerattr.RegisterAttr{}
 
-	p.loginAttr.Init(p.zapLogger, p.secretAuth,
-		p.tokenExpHour, p.dbtimeout)
-	p.rigsterAttr.Init(p.zapLogger, p.secretAuth,
-		p.tokenExpHour, p.dbtimeout)
+	p.LoginAttr.Init(p.ZapLogger, p.SecretAuth,
+		p.TokenExpHour, p.Dbtimeout)
+	p.RigsterAttr.Init(p.ZapLogger, p.SecretAuth,
+		p.TokenExpHour, p.Dbtimeout)
 }
 
 func (p *ServerProcAttr) SetPgxConn(
 	ctxDB context.Context,
 ) error {
-	dbConn, err := pgxpool.New(ctxDB, p.dBDSN)
+	dbConn, err := pgxpool.New(ctxDB, p.DBDSN)
 	if err != nil {
 		return fmt.Errorf("SetPgxConn->pgxpool.New: %w", err)
 	}
 
-	p.pgxConn = dbConn
+	p.PgxConn = dbConn
 
 	return nil
 }
