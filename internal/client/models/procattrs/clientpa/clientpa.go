@@ -10,7 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const ReqTimeout = 10
+const (
+	ReqTimeout   = 10
+	defChunkSize = 1024 * 1024
+)
 
 type ClientProcAttr struct {
 	ZapLogger           *zap.Logger
@@ -24,6 +27,8 @@ type ClientProcAttr struct {
 	DefServerAddr       string
 	MetaPath            string
 	DefMetaPath         string
+	DefChunkSize        int
+	MaxRetries          int
 	ReqTimeout          time.Duration
 }
 
@@ -33,6 +38,8 @@ func (p *ClientProcAttr) Init() error {
 	p.DefConfigPath = "../../internal/client/config/" +
 		"client.json"
 	p.DefMetaPath = "meta_client/meta.json"
+	p.DefChunkSize = defChunkSize
+	p.MaxRetries = 3
 
 	logger, err := logger.Initialize(p.ZapLogInfoLevel)
 	if err != nil {
@@ -85,7 +92,7 @@ func (p *ClientProcAttr) InitFlags() {
 	)
 	flag.StringVar(
 		&p.MetaPath,
-		"cfgpath", p.DefMetaPath,
+		"metapath", p.DefMetaPath,
 		"Meta files path.",
 	)
 	flag.StringVar(
