@@ -15,44 +15,54 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/server/models/procattrs/serverpa"
 )
 
-func RunProcess() error {
+type ServerProc struct {
+	attr *serverpa.ServerProcAttr
+}
+
+func NewProc(attr *serverpa.ServerProcAttr) *ServerProc {
+	return &ServerProc{attr: attr}
+}
+
+func (sp *ServerProc) RunProcess() error {
 	fmt.Println("ServerProc run")
 	defer fmt.Println("ServerProc end")
 
-	attr := &serverpa.ServerProcAttr{}
+	if sp.attr == nil {
+		sp.attr = &serverpa.ServerProcAttr{}
+	}
 
-	err := attr.Init()
+	err := sp.attr.Init()
 	if err != nil {
 		return fmt.Errorf("RP->Init: %w", err)
 	}
 
 	waitGroup := new(sync.WaitGroup)
 	ctxDB, cancel := context.WithTimeout(
-		context.Background(), attr.Dbtimeout)
+		context.Background(), sp.attr.Dbtimeout)
 
 	defer cancel()
 
-	err = attr.SetPgxConn(ctxDB)
+	err = sp.attr.SetPgxConn(ctxDB)
 	if err != nil {
 		return fmt.Errorf("RP->SetPgxConn: %w", err)
 	}
 
-	err = migrator.UseMigrations(attr)
+	err = migrator.UseMigrations(sp.attr)
 	if err != nil {
 		return fmt.Errorf("RP->UseMigrations: %w", err)
 	}
 
 	waitGroup.Add(1)
 
-	go runServer(attr)
-	go waitClose(attr, waitGroup)
+	go sp.runServer(sp.attr)
+	go sp.waitClose(sp.attr, waitGroup)
 
 	waitGroup.Wait()
 
 	return nil
 }
 
-func waitClose(
+func (sp *ServerProc) waitClose(
 	attr *serverpa.ServerProcAttr,
 	waitG *sync.WaitGroup,
 ) {
@@ -77,7 +87,9 @@ func waitClose(
 	}
 }
 
-func runServer(attr *serverpa.ServerProcAttr) {
+func (sp *ServerProc) runServer(
+	attr *serverpa.ServerProcAttr,
+) {
 	err := attr.Server.ListenAndServe()
 
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {

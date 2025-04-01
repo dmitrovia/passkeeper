@@ -1,4 +1,3 @@
-// Main agent application package.
 package main
 
 import (
@@ -7,7 +6,9 @@ import (
 )
 
 func main() {
-	err := serverproc.RunProcess()
+	sp := serverproc.NewProc(nil)
+
+	err := sp.RunProcess()
 	if err != nil {
 		loggerf.Log("serverproc.RunProcess", err)
 

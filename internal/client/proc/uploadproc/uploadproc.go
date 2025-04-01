@@ -14,26 +14,37 @@ import (
 
 var errSNOK = errors.New("status is not OK")
 
-func RunProcess(attr *uploadpa.UploadProcAttr) error {
+type UploadProc struct {
+	attr *uploadpa.UploadProcAttr
+}
+
+func NewProc(attr *uploadpa.UploadProcAttr,
+) *UploadProc {
+	return &UploadProc{
+		attr: attr,
+	}
+}
+
+func (up *UploadProc) RunProcess() error {
 	fmt.Println("UploadProc run")
 	defer fmt.Println("UploadProc end")
 
 	ctx, cancel := context.WithTimeout(
-		context.Background(), attr.ReqTimeout)
+		context.Background(), up.attr.ReqTimeout)
 	defer cancel()
 
-	cnt := len(attr.Chunks)
+	cnt := len(up.attr.Chunks)
 	chunkChan := make(chan chunckmeta.ChunkMeta, cnt)
 	errChan := make(chan error, cnt)
 
-	for _, chunk := range attr.Chunks {
-		attr.Wgroup.Add(1)
+	for _, chunk := range up.attr.Chunks {
+		up.attr.Wgroup.Add(1)
 		chunkChan <- chunk
 	}
 
-	runWorkerPool(ctx, chunkChan, errChan, attr)
+	up.runWorkerPool(ctx, chunkChan, errChan, up.attr)
 
-	attr.Wgroup.Wait()
+	up.attr.Wgroup.Wait()
 
 	for err := range errChan {
 		if err != nil {
@@ -44,7 +55,7 @@ func RunProcess(attr *uploadpa.UploadProcAttr) error {
 	return nil
 }
 
-func runWorkerPool(ctx context.Context,
+func (up *UploadProc) runWorkerPool(ctx context.Context,
 	chunkChan chan chunckmeta.ChunkMeta,
 	errChan chan error,
 	attr *uploadpa.UploadProcAttr,
