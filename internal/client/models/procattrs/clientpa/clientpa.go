@@ -27,6 +27,8 @@ type ClientProcAttr struct {
 	DefServerAddr       string
 	MetaPath            string
 	DefMetaPath         string
+	CountWorkersChunker int
+	CountWorkersUpload  int
 	DefChunkSize        int
 	MaxRetries          int
 	ReqTimeout          time.Duration
@@ -40,6 +42,8 @@ func (p *ClientProcAttr) Init() error {
 	p.DefMetaPath = "meta_client/meta.json"
 	p.DefChunkSize = defChunkSize
 	p.MaxRetries = 3
+	p.CountWorkersChunker = 5
+	p.CountWorkersUpload = 5
 
 	logger, err := logger.Initialize(p.ZapLogInfoLevel)
 	if err != nil {

@@ -1,10 +1,20 @@
 package chunkerpa
 
-import "github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
+import (
+	"sync"
+	"time"
+
+	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
+)
 
 type ChunkerProcAttr struct {
-	CountWorkers    int
-	ChunkSize       int
-	FilePath        string
-	CurrentMetadata map[string]chunckmeta.ChunkMeta
+	CountWorkersUpload  int
+	CountWorkersChunker int
+	ChunkSize           int
+	FilePath            string
+	ServerURL           string
+	CurrentMetadata     map[string]chunckmeta.ChunkMeta
+	ReqTimeout          time.Duration
+	Wgroup              *sync.WaitGroup
+	Mutex               *sync.Mutex
 }

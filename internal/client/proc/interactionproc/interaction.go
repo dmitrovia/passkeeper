@@ -2,6 +2,7 @@ package interactionproc
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/dmitrovia/passkeeper/internal/client/metamanager"
 	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/chunkerpa"
@@ -44,6 +45,12 @@ func (ip *InteractionProc) RunProcess() error {
 	chpa.ChunkSize = ip.attrClintProc.DefChunkSize
 	chpa.FilePath = ip.attrClintProc.FileSynchronizePath
 	chpa.CurrentMetadata = metadata
+	chpa.CountWorkersChunker = ip.attrClintProc.CountWorkersChunker
+	chpa.CountWorkersUpload = ip.attrClintProc.CountWorkersUpload
+	chpa.FilePath = ip.attrClintProc.FileSynchronizePath
+	chpa.ServerURL = ip.attrClintProc.ServerAddr
+	chpa.Wgroup = &sync.WaitGroup{}
+	chpa.Mutex = &sync.Mutex{}
 
 	chproc := chunkerproc.NewProc(chpa)
 

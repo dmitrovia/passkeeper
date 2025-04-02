@@ -1,17 +1,22 @@
 package chunkerproc
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
-	"sync"
 
+	"github.com/dmitrovia/passkeeper/internal/client/endpoints/uploader"
+	"github.com/dmitrovia/passkeeper/internal/client/models/endpointsattrs/uploaderattrs"
 	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
+
+var errSNOK = errors.New("status is not OK")
 
 type ChunkerProc struct {
 	attr *chunkerpa.ChunkerProcAttr
@@ -28,11 +33,9 @@ func (cp *ChunkerProc) RunProcess() error {
 		cp.attr = &chunkerpa.ChunkerProcAttr{}
 	}
 
-	var waitGroup sync.WaitGroup
-
-	var mutex sync.Mutex
-
-	var chunks []chunckmeta.ChunkMeta
+	ctx, cancel := context.WithTimeout(
+		context.Background(), cp.attr.ReqTimeout)
+	defer cancel()
 
 	file, err := os.Open(cp.attr.FilePath)
 	if err != nil {
@@ -53,19 +56,44 @@ func (cp *ChunkerProc) RunProcess() error {
 
 	chunkChan := make(chan chunckmeta.ChunkMeta, numChunks)
 	errChan := make(chan error, numChunks)
+
+	go cp.runWorkerPoolUpload(ctx, chunkChan, errChan)
+	go cp.runWorkerPoolChunker(errChan,
+		chunkChan, numChunks, file)
+
+	go func() {
+		cp.attr.Wgroup.Wait()
+		close(chunkChan)
+		close(errChan)
+	}()
+
+	for err := range errChan {
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (cp *ChunkerProc) runWorkerPoolChunker(
+	errChan chan error,
+	chunkChan chan chunckmeta.ChunkMeta,
+	numChunks int,
+	file *os.File,
+) {
 	indexChan := make(chan int, numChunks)
+	defer close(indexChan)
 
 	for i := range numChunks {
 		indexChan <- i
 	}
 
-	close(indexChan)
-
-	for range cp.attr.CountWorkers {
-		waitGroup.Add(1)
+	for range cp.attr.CountWorkersChunker {
+		cp.attr.Wgroup.Add(1)
 
 		go func() {
-			defer waitGroup.Done()
+			defer cp.attr.Wgroup.Done()
 
 			for index := range indexChan {
 				offset := int64(index) * int64(cp.attr.ChunkSize)
@@ -113,10 +141,6 @@ func (cp *ChunkerProc) RunProcess() error {
 						Index:    &index,
 					}
 
-					mutex.Lock()
-					chunks = append(chunks, chunk)
-					mutex.Unlock()
-
 					chunkFile.Close()
 
 					chunkChan <- chunk
@@ -124,18 +148,57 @@ func (cp *ChunkerProc) RunProcess() error {
 			}
 		}()
 	}
+}
 
-	go func() {
-		waitGroup.Wait()
-		close(chunkChan)
-		close(errChan)
-	}()
+func (cp *ChunkerProc) runWorkerPoolUpload(
+	ctx context.Context,
+	chunkChan chan chunckmeta.ChunkMeta,
+	errChan chan error,
+) {
+	client := &http.Client{}
+	uploaderAttr := &uploaderattrs.UploaderAttr{}
+	uploaderAttr.Init(cp.attr.ServerURL, client)
+	upl := uploader.NewUploader(uploaderAttr)
 
-	for err := range errChan {
-		if err != nil {
-			return err
-		}
+	for range cp.attr.CountWorkersUpload {
+		go func() {
+			for chunk := range chunkChan {
+				defer cp.attr.Wgroup.Done()
+
+				newHash := chunk.Hash
+
+				// attr.Mutex.Lock()
+				oldChunk,
+					exists := cp.attr.CurrentMetadata[*chunk.FileName]
+				// attr.Mutex.Unlock()
+
+				if exists || oldChunk.Hash == newHash {
+					return
+				}
+
+				resp, err := upl.UploadChunk(ctx, chunk)
+				if err != nil {
+					errChan <- err
+
+					return
+				}
+
+				if resp.StatusCode != http.StatusOK {
+					err := fmt.Errorf("RWP->UploadChunk: %w", errSNOK)
+					errChan <- err
+
+					return
+				}
+
+				resp.Body.Close()
+
+				cp.attr.Mutex.Lock()
+				cp.attr.CurrentMetadata[*chunk.FileName] = chunk
+				cp.attr.Mutex.Unlock()
+			}
+		}()
 	}
 
-	return nil
+	close(chunkChan)
+	close(errChan)
 }
