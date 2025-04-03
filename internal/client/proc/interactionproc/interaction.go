@@ -45,8 +45,10 @@ func (ip *InteractionProc) RunProcess() error {
 	chpa.ChunkSize = ip.attrClintProc.DefChunkSize
 	chpa.FilePath = ip.attrClintProc.FileSynchronizePath
 	chpa.CurrentMetadata = metadata
-	chpa.CountWorkersChunker = ip.attrClintProc.CountWorkersChunker
-	chpa.CountWorkersUpload = ip.attrClintProc.CountWorkersUpload
+	chpa.CountWorkersChunker = ip.
+		attrClintProc.CountWorkersChunker
+	chpa.CountWorkersUpload = ip.
+		attrClintProc.CountWorkersUpload
 	chpa.FilePath = ip.attrClintProc.FileSynchronizePath
 	chpa.ServerURL = ip.attrClintProc.ServerAddr
 	chpa.Wgroup = &sync.WaitGroup{}

@@ -5,10 +5,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/dmitrovia/passkeeper/internal/client/models/endpointsattrs/uploaderattrs"
-	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
 type Uploader struct {
@@ -23,21 +21,15 @@ func NewUploader(
 
 func (u *Uploader) UploadChunk(
 	ctx context.Context,
-	chunk chunckmeta.ChunkMeta,
 ) (
 	*http.Response,
 	error,
 ) {
-	data, err := os.ReadFile(*chunk.FileName)
-	if err != nil {
-		return nil, fmt.Errorf("UploadChunk->ReadFile: %w", err)
-	}
-
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
 		u.attr.ServerURL,
-		bytes.NewReader(data))
+		bytes.NewReader(*u.attr.Data))
 	if err != nil {
 		return nil, fmt.Errorf("UploadChunk->NRWC: %w", err)
 	}

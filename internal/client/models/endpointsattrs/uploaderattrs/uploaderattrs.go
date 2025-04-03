@@ -5,6 +5,7 @@ import "net/http"
 type UploaderAttr struct {
 	ServerURL string
 	Client    *http.Client
+	Data      *[]byte
 }
 
 func (p *UploaderAttr) Init(
