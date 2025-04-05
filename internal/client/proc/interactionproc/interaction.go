@@ -23,21 +23,31 @@ func (ip *InteractionProc) RunProcess() error {
 	fmt.Println("InteractionProc run")
 	defer fmt.Println("InteractionProc end")
 
-	if ip.attr == nil {
-		ip.attr = &interactionpa.InteractionProcAttr{}
-	}
-
 	err := ip.attr.InitChunkAndUpload()
 	if err != nil {
 		return fmt.Errorf("RP->initChunkAndUpload: %w", err)
 	}
 
+	ip.attr.Wgroup.Add(ip.attr.Chunkerpa.CountWorkersChunker)
+	ip.attr.Wgroup.Add(ip.attr.Uploadpa.CountWorkersUpload)
+
 	go ip.RunChunker()
 	go ip.RunUploader()
 
 	ip.attr.Wgroup.Wait()
-	close(ip.attr.Uploadpa.UploadChan)
-	close(ip.attr.Uploadpa.ErrChan)
+
+	err = ip.endProc()
+	if err != nil {
+		return fmt.Errorf("RP->endProc: %w", err)
+	}
+
+	return nil
+}
+
+func (ip *InteractionProc) endProc() error {
+	ip.attr.Chunkerpa.ChFile.Close()
+	close(ip.attr.UploadChan)
+	close(ip.attr.ErrChan)
 
 	for err := range ip.attr.Uploadpa.ErrChan {
 		if err != nil {

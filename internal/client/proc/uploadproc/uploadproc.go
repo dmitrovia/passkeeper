@@ -26,10 +26,6 @@ func (up *UploadProc) RunProcess() error {
 	fmt.Println("UploadProc run")
 	defer fmt.Println("UploadProc end")
 
-	if up.attr == nil {
-		up.attr = &uploadpa.UploadProcAttr{}
-	}
-
 	up.runWorkerPoolUpload()
 
 	return nil
@@ -42,9 +38,9 @@ func (up *UploadProc) runWorkerPoolUpload() {
 }
 
 func (up *UploadProc) toUpload() {
-	for chunk := range up.attr.UploadChan {
-		defer up.attr.Wgroup.Done()
+	defer up.attr.Wgroup.Done()
 
+	for chunk := range up.attr.UploadChan {
 		ctx, cancel := context.WithTimeout(
 			context.Background(), up.attr.ReqTimeout)
 		defer cancel()

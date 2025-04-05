@@ -211,12 +211,12 @@ func (p *ServerProcAttr) initHandlersAttr() {
 		p.TokenExpHour, p.Dbtimeout)
 }
 
-func (p *ServerProcAttr) SetPgxConn(
+func (p *ServerProcAttr) SetPgxPool(
 	ctxDB context.Context,
 ) error {
 	dbConn, err := pgxpool.New(ctxDB, p.DBDSN)
 	if err != nil {
-		return fmt.Errorf("SetPgxConn->pgxpool.New: %w", err)
+		return fmt.Errorf("SetPgxPool->pgxpool.New: %w", err)
 	}
 
 	p.PgxConn = dbConn

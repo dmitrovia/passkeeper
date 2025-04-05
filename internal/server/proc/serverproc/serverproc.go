@@ -42,9 +42,9 @@ func (sp *ServerProc) RunProcess() error {
 
 	defer cancel()
 
-	err = sp.attr.SetPgxConn(ctxDB)
+	err = sp.attr.SetPgxPool(ctxDB)
 	if err != nil {
-		return fmt.Errorf("RP->SetPgxConn: %w", err)
+		return fmt.Errorf("RP->SetPgxPool: %w", err)
 	}
 
 	err = migrator.UseMigrations(sp.attr)

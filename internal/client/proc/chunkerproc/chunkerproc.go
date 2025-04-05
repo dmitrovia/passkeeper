@@ -25,24 +25,19 @@ func (cp *ChunkerProc) RunProcess() error {
 	fmt.Println("ChunkerProc run")
 	defer fmt.Println("ChunkerProc end")
 
-	if cp.attr == nil {
-		cp.attr = &chunkerpa.ChunkerProcAttr{}
-	}
-
 	cp.runWorkerPoolChunker()
 
 	return nil
 }
 
 func (cp *ChunkerProc) runWorkerPoolChunker() {
-	defer cp.attr.ChFile.Close()
-
 	indexChan := make(chan int, cp.attr.CntChunks)
-	defer close(indexChan)
 
 	for i := range cp.attr.CntChunks {
 		indexChan <- i
 	}
+
+	close(indexChan)
 
 	for range cp.attr.CountWorkersChunker {
 		go cp.toChuck(indexChan,
@@ -56,7 +51,7 @@ func (cp *ChunkerProc) toChuck(
 	uploadChan chan chunckmeta.ChunkMeta,
 	errChan chan error,
 ) {
-	defer cp.attr.Wgroup.Add(-1)
+	defer cp.attr.Wgroup.Done()
 
 	for index := range indexChan {
 		offset := int64(index) * int64(cp.attr.ChunkSize)
@@ -67,16 +62,12 @@ func (cp *ChunkerProc) toChuck(
 		if err != nil {
 			errChan <- err
 
-			cp.attr.Wgroup.Add(-1)
-
 			return
 		}
 
 		bytesRead, err := cp.attr.ChFile.Read(buffer)
 		if err != nil && errors.Is(err, io.EOF) {
 			errChan <- err
-
-			cp.attr.Wgroup.Add(-1)
 
 			return
 		}
@@ -94,7 +85,6 @@ func (cp *ChunkerProc) toChuck(
 			index,
 			&chBytes,
 		)
-
 		uploadChan <- *chunk
 	}
 }

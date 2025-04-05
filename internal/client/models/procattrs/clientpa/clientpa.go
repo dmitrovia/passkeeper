@@ -39,7 +39,6 @@ func (p *ClientProcAttr) Init() error {
 	p.ZapLogInfoLevel = "info"
 	p.DefConfigPath = "../../internal/client/config/" +
 		"client.json"
-	p.DefMetaPath = "meta_client/meta.json"
 	p.DefChunkSize = defChunkSize
 	p.MaxRetries = 3
 	p.CountWorkersChunker = 5

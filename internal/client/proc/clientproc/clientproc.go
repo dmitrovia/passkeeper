@@ -1,7 +1,6 @@
 package clientproc
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -36,10 +35,6 @@ func (sp *ClientProc) RunProcess() error {
 	}
 
 	waitGroup := new(sync.WaitGroup)
-	_, cancel := context.WithTimeout(
-		context.Background(), sp.attr.ReqTimeout)
-
-	defer cancel()
 
 	waitGroup.Add(1)
 

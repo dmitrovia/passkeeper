@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
@@ -19,7 +20,13 @@ type ChunkerProcAttr struct {
 	ErrChan             chan error
 }
 
-func (cpa *ChunkerProcAttr) Init() error {
+func (cpa *ChunkerProcAttr) Init(
+	attr *clientpa.ClientProcAttr,
+) error {
+	cpa.ChunkSize = attr.DefChunkSize
+	cpa.FilePath = attr.
+		FileSynchronizePath
+
 	file, err := os.Open(cpa.FilePath)
 	if err != nil {
 		return fmt.Errorf("RP->os.Open: %w", err)
@@ -40,6 +47,8 @@ func (cpa *ChunkerProcAttr) Init() error {
 	}
 
 	cpa.CntChunks = cntChunks
+
+	cpa.CountWorkersChunker = attr.CountWorkersChunker
 
 	return nil
 }
