@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
-	"github.com/dmitrovia/passkeeper/internal/server/models/middlewareattr/authmiddlewareattr"
+	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware/authmiddlewareattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/golang-jwt/jwt/v4"
 )

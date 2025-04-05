@@ -44,7 +44,8 @@ func (upa *UploadProcAttr) Init(
 	upa.ServerURL = attr.ServerAddr
 	upa.CurrentMetadata = metadata
 	upa.UploaderAttr = &uploaderattrs.UploaderAttr{}
-	upa.UploaderAttr.Init(upa.ServerURL, upa.Client)
+	url := upa.ServerURL + "/upload"
+	upa.UploaderAttr.Init(url, upa.Client)
 	upa.Uploader = uploader.NewUploader(upa.UploaderAttr)
 
 	upa.CountWorkersUpload = attr.CountWorkersUpload

@@ -10,15 +10,19 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/server/config"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/login"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/login/loginattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/notallowed"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/register"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/register/registerattr"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/upload"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/upload/uploadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware"
+	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware/authmiddlewareattr"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/loggermiddleware"
-	"github.com/dmitrovia/passkeeper/internal/server/models/handlerattr/loginattr"
-	"github.com/dmitrovia/passkeeper/internal/server/models/handlerattr/registerattr"
-	"github.com/dmitrovia/passkeeper/internal/server/models/middlewareattr/authmiddlewareattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/dmitrovia/passkeeper/internal/server/service/authservice"
+	"github.com/dmitrovia/passkeeper/internal/server/service/metaservice"
+	"github.com/dmitrovia/passkeeper/internal/server/storage/metastorage"
 	"github.com/dmitrovia/passkeeper/internal/server/storage/userstorage"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -40,8 +44,11 @@ type ServerProcAttr struct {
 	SessionUser         *userm.User
 	UserStorage         *userstorage.UserStorage
 	AuthService         *authservice.AuthService
+	MetaStorage         *metastorage.MetaStorage
+	MetaService         *metaservice.MetaService
 	LoginAttr           *loginattr.LoginAttr
 	RigsterAttr         *registerattr.RegisterAttr
+	UploadAttr          *uploadattr.UploadAttr
 	AuthMidAttr         *authmiddlewareattr.AuthMiddlewareAttr
 	Dbtimeout           time.Duration
 	DefReadTimeout      time.Duration
@@ -103,7 +110,7 @@ func (p *ServerProcAttr) Init() error {
 	}
 
 	mux := mux.NewRouter()
-	initAPIMethods(mux, p)
+	p.initAPIMethods(mux)
 
 	p.Server = &http.Server{
 		Addr:         p.ServerAddr,
@@ -162,49 +169,52 @@ func (p *ServerProcAttr) InitFlags() {
 	flag.Parse()
 }
 
-func initAPIMethods(
+func (p *ServerProcAttr) initAPIMethods(
 	mux *mux.Router,
-	attr *ServerProcAttr,
 ) {
 	// get := http.MethodGet
 	post := http.MethodPost
 
 	hNotAllowed := notallowed.NotAllowed{}
 	register := register.NewRegisterHandler(
-		attr.AuthService, attr.RigsterAttr).RegisterHandler
+		p.AuthService, p.RigsterAttr).RegisterHandler
 	login := login.NewLoginHandler(
-		attr.AuthService, attr.LoginAttr).LoginHandler
+		p.AuthService, p.LoginAttr).LoginHandler
+	uploadH := upload.NewUploadHandler(p.MetaService,
+		p.UploadAttr).UploadHandler
 
-	setMethod(post, "register", mux, attr, register, false)
-	setMethod(post, "login", mux, attr, login, false)
+	p.setMethod(post, "register", mux, register, false)
+	p.setMethod(post, "login", mux, login, false)
+	p.setMethod(post, "upload", mux, uploadH, true)
 
 	mux.MethodNotAllowedHandler = hNotAllowed
 }
 
-func setMethod(
+func (p *ServerProcAttr) setMethod(
 	method string,
 	url string,
 	mux *mux.Router,
-	attr *ServerProcAttr,
 	handler func(http.ResponseWriter, *http.Request),
 	onlyAuth bool,
 ) {
 	subRouter := mux.Methods(method).Subrouter()
-	subRouter.HandleFunc(attr.APIUsersURL+url,
+	subRouter.HandleFunc(p.APIUsersURL+url,
 		handler)
 	subRouter.Use(
-		loggermiddleware.RequestLogger(attr.ZapLogger))
+		loggermiddleware.RequestLogger(p.ZapLogger))
 
 	if onlyAuth {
 		subRouter.Use(
-			authmiddleware.AuthMiddleware(attr.AuthMidAttr))
+			authmiddleware.AuthMiddleware(p.AuthMidAttr))
 	}
 }
 
 func (p *ServerProcAttr) initHandlersAttr() {
 	p.LoginAttr = &loginattr.LoginAttr{}
 	p.RigsterAttr = &registerattr.RegisterAttr{}
+	p.UploadAttr = &uploadattr.UploadAttr{}
 
+	p.UploadAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.LoginAttr.Init(p.ZapLogger, p.SecretAuth,
 		p.TokenExpHour, p.Dbtimeout)
 	p.RigsterAttr.Init(p.ZapLogger, p.SecretAuth,

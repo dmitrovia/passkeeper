@@ -11,7 +11,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
-	"github.com/dmitrovia/passkeeper/internal/server/models/handlerattr/loginattr"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/login/loginattr"
 	"github.com/dmitrovia/passkeeper/internal/server/service"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"

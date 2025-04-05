@@ -11,3 +11,7 @@ type AuthService interface {
 		login string) (bool, *userm.User, error)
 	CreateUser(ctx context.Context, user *userm.User) error
 }
+
+type MetaService interface{}
+
+type FileService interface{}

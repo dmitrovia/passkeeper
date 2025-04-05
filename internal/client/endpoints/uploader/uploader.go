@@ -14,9 +14,9 @@ type Uploader struct {
 }
 
 func NewUploader(
-	inAttr *uploaderattrs.UploaderAttr,
+	attr *uploaderattrs.UploaderAttr,
 ) *Uploader {
-	return &Uploader{attr: inAttr}
+	return &Uploader{attr: attr}
 }
 
 func (u *Uploader) UploadChunk(

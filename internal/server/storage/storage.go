@@ -15,3 +15,7 @@ type UserStorage interface {
 		ctx context.Context,
 		user *userm.User) error
 }
+
+type MetaStorage interface{}
+
+type FileStorage interface{}

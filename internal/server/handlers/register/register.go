@@ -11,7 +11,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
-	"github.com/dmitrovia/passkeeper/internal/server/models/handlerattr/registerattr"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/register/registerattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/dmitrovia/passkeeper/internal/server/service"
 	"github.com/golang-jwt/jwt/v4"
