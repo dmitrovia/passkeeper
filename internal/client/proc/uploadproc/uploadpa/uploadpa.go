@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/uploader"
+	"github.com/dmitrovia/passkeeper/internal/client/endpoints/uploader/uploaderattrs"
 	"github.com/dmitrovia/passkeeper/internal/client/metamanager"
-	"github.com/dmitrovia/passkeeper/internal/client/models/endpointsattrs/uploaderattrs"
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dmitrovia/passkeeper/internal/client/models/endpointsattrs/uploaderattrs"
+	"github.com/dmitrovia/passkeeper/internal/client/endpoints/uploader/uploaderattrs"
 )
 
 type Uploader struct {

@@ -7,9 +7,9 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/clientpa"
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/interactionpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc/interactionpa"
 	"github.com/dmitrovia/passkeeper/internal/general/functions/loggerf"
 )
 

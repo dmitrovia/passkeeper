@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/chunkerpa"
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/clientpa"
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/uploadpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc/uploadpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 

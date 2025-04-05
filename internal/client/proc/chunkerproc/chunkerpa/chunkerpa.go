@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 

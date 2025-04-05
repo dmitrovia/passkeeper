@@ -12,7 +12,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/functions/loggerf"
 	"github.com/dmitrovia/passkeeper/internal/server/migrator"
-	"github.com/dmitrovia/passkeeper/internal/server/models/procattrs/serverpa"
+	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
 )
 
 type ServerProc struct {

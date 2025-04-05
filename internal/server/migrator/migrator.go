@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dmitrovia/passkeeper/internal/server/models/procattrs/serverpa"
+	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source"

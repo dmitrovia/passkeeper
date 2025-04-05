@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/chunkerpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 

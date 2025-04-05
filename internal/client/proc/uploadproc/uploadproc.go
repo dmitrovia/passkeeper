@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/uploadpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc/uploadpa"
 )
 
 var errSNOK = errors.New("status is not OK")

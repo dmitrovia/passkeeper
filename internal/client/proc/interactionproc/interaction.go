@@ -3,7 +3,7 @@ package interactionproc
 import (
 	"fmt"
 
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/interactionpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc/interactionpa"
 	"github.com/dmitrovia/passkeeper/internal/general/functions/loggerf"
 )
 
