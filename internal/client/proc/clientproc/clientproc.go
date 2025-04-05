@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/interactionpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc"
 	"github.com/dmitrovia/passkeeper/internal/general/functions/loggerf"
 )
@@ -53,7 +54,9 @@ func (sp *ClientProc) RunProcess() error {
 func (sp *ClientProc) runInteraction(
 	attr *clientpa.ClientProcAttr,
 ) {
-	ip := interactionproc.NewProc(attr, nil)
+	newAttr := &interactionpa.InteractionProcAttr{}
+	newAttr.AttrClintProc = attr
+	ip := interactionproc.NewProc(newAttr)
 
 	err := ip.RunProcess()
 	if err != nil {

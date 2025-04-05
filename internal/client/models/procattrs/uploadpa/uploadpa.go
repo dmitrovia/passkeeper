@@ -1,3 +1,33 @@
 package uploadpa
 
-type UploadProcAttr struct{}
+import (
+	"net/http"
+	"sync"
+	"time"
+
+	"github.com/dmitrovia/passkeeper/internal/client/endpoints/uploader"
+	"github.com/dmitrovia/passkeeper/internal/client/models/endpointsattrs/uploaderattrs"
+	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
+)
+
+type UploadProcAttr struct {
+	CountWorkersUpload int
+	Wgroup             *sync.WaitGroup
+	ReqTimeout         time.Duration
+	UploadChan         chan chunckmeta.ChunkMeta
+	CurrentMetadata    map[string]chunckmeta.ChunkMeta
+	UploaderAttr       *uploaderattrs.UploaderAttr
+	Uploader           *uploader.Uploader
+	Mutex              *sync.Mutex
+	ErrChan            chan error
+	Client             *http.Client
+	ServerURL          string
+}
+
+func (upa *UploadProcAttr) Init() {
+	upa.Client = &http.Client{}
+
+	upa.UploaderAttr = &uploaderattrs.UploaderAttr{}
+	upa.UploaderAttr.Init(upa.ServerURL, upa.Client)
+	upa.Uploader = uploader.NewUploader(upa.UploaderAttr)
+}

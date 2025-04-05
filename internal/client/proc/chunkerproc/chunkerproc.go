@@ -1,21 +1,15 @@
 package chunkerproc
 
 import (
-	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 
 	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
-
-var errSNOK = errors.New("status is not OK")
-
-const wgCount int = 2
 
 type ChunkerProc struct {
 	attr *chunkerpa.ChunkerProcAttr
@@ -28,41 +22,19 @@ func NewProc(attr *chunkerpa.ChunkerProcAttr) *ChunkerProc {
 }
 
 func (cp *ChunkerProc) RunProcess() error {
+	fmt.Println("ChunkerProc run")
+	defer fmt.Println("ChunkerProc end")
+
 	if cp.attr == nil {
 		cp.attr = &chunkerpa.ChunkerProcAttr{}
 	}
 
-	err := cp.attr.Init()
-	if err != nil {
-		return fmt.Errorf("RP->attr.Init: %w", err)
-	}
-
-	uploadChan := make(chan chunckmeta.ChunkMeta,
-		cp.attr.CntChunks)
-	errChan := make(chan error, cp.attr.CntChunks)
-
-	cp.attr.Wgroup.Add(cp.attr.CntChunks * wgCount)
-
-	go cp.runWorkerPoolChunker(errChan, uploadChan)
-	go cp.runWorkerPoolUpload(uploadChan, errChan)
-
-	cp.attr.Wgroup.Wait()
-	close(uploadChan)
-	close(errChan)
-
-	for err := range errChan {
-		if err != nil {
-			return err
-		}
-	}
+	cp.runWorkerPoolChunker()
 
 	return nil
 }
 
-func (cp *ChunkerProc) runWorkerPoolChunker(
-	errChan chan error,
-	uploadChan chan chunckmeta.ChunkMeta,
-) {
+func (cp *ChunkerProc) runWorkerPoolChunker() {
 	defer cp.attr.ChFile.Close()
 
 	indexChan := make(chan int, cp.attr.CntChunks)
@@ -73,7 +45,9 @@ func (cp *ChunkerProc) runWorkerPoolChunker(
 	}
 
 	for range cp.attr.CountWorkersChunker {
-		go cp.toChuck(indexChan, uploadChan, errChan)
+		go cp.toChuck(indexChan,
+			cp.attr.UploadChan,
+			cp.attr.ErrChan)
 	}
 }
 
@@ -122,61 +96,5 @@ func (cp *ChunkerProc) toChuck(
 		)
 
 		uploadChan <- *chunk
-	}
-}
-
-func (cp *ChunkerProc) runWorkerPoolUpload(
-	uploadChan chan chunckmeta.ChunkMeta,
-	errChan chan error,
-) {
-	for range cp.attr.CountWorkersUpload {
-		go cp.toUpload(uploadChan, errChan)
-	}
-}
-
-func (cp *ChunkerProc) toUpload(
-	uploadChan chan chunckmeta.ChunkMeta,
-	errChan chan error,
-) {
-	for chunk := range uploadChan {
-		defer cp.attr.Wgroup.Done()
-
-		ctx, cancel := context.WithTimeout(
-			context.Background(), cp.attr.ReqTimeout)
-		defer cancel()
-
-		newHash := chunk.Hash
-
-		cp.attr.Mutex.Lock()
-		oldChunk,
-			exists := cp.attr.CurrentMetadata[*chunk.FileName]
-		cp.attr.Mutex.Unlock()
-
-		if exists || oldChunk.Hash == newHash {
-			return
-		}
-
-		cp.attr.UploaderAttr.Data = chunk.Data
-		defer chunk.ClearData()
-
-		resp, err := cp.attr.Uploader.UploadChunk(ctx)
-		if err != nil {
-			errChan <- err
-
-			return
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			err := fmt.Errorf("RWP->UploadChunk: %w", errSNOK)
-			errChan <- err
-
-			return
-		}
-
-		resp.Body.Close()
-
-		cp.attr.Mutex.Lock()
-		cp.attr.CurrentMetadata[*chunk.FileName] = chunk
-		cp.attr.Mutex.Unlock()
 	}
 }

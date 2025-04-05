@@ -2,26 +2,20 @@ package interactionproc
 
 import (
 	"fmt"
-	"sync"
 
-	"github.com/dmitrovia/passkeeper/internal/client/metamanager"
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/chunkerpa"
-	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/client/models/procattrs/interactionpa"
-	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc"
+	"github.com/dmitrovia/passkeeper/internal/general/functions/loggerf"
 )
 
 type InteractionProc struct {
-	attr          *interactionpa.InteractionProcAttr
-	attrClintProc *clientpa.ClientProcAttr
+	attr *interactionpa.InteractionProcAttr
 }
 
-func NewProc(attrClintProc *clientpa.ClientProcAttr,
+func NewProc(
 	attr *interactionpa.InteractionProcAttr,
 ) *InteractionProc {
 	return &InteractionProc{
-		attrClintProc: attrClintProc,
-		attr:          attr,
+		attr: attr,
 	}
 }
 
@@ -33,33 +27,41 @@ func (ip *InteractionProc) RunProcess() error {
 		ip.attr = &interactionpa.InteractionProcAttr{}
 	}
 
-	metaManager := metamanager.NewMetaManager(
-		ip.attrClintProc.MetaPath)
-
-	metadata, err := metaManager.LoadMetadata()
+	err := ip.attr.InitChunkAndUpload()
 	if err != nil {
-		return fmt.Errorf("RP->LoadMetadata: %w", err)
+		return fmt.Errorf("RP->initChunkAndUpload: %w", err)
 	}
 
-	chpa := &chunkerpa.ChunkerProcAttr{}
-	chpa.ChunkSize = ip.attrClintProc.DefChunkSize
-	chpa.FilePath = ip.attrClintProc.FileSynchronizePath
-	chpa.CurrentMetadata = metadata
-	chpa.CountWorkersChunker = ip.
-		attrClintProc.CountWorkersChunker
-	chpa.CountWorkersUpload = ip.
-		attrClintProc.CountWorkersUpload
-	chpa.FilePath = ip.attrClintProc.FileSynchronizePath
-	chpa.ServerURL = ip.attrClintProc.ServerAddr
-	chpa.Wgroup = &sync.WaitGroup{}
-	chpa.Mutex = &sync.Mutex{}
+	go ip.RunChunker()
+	go ip.RunUploader()
 
-	chproc := chunkerproc.NewProc(chpa)
+	ip.attr.Wgroup.Wait()
+	close(ip.attr.Uploadpa.UploadChan)
+	close(ip.attr.Uploadpa.ErrChan)
 
-	err = chproc.RunProcess()
-	if err != nil {
-		return fmt.Errorf("RP->chproc.RP: %w", err)
+	for err := range ip.attr.Uploadpa.ErrChan {
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func (ip *InteractionProc) RunChunker() {
+	err := ip.attr.Chproc.RunProcess()
+	if err != nil {
+		loggerf.Log("RunChunker->RP", err)
+
+		return
+	}
+}
+
+func (ip *InteractionProc) RunUploader() {
+	err := ip.attr.Uploadproc.RunProcess()
+	if err != nil {
+		loggerf.Log("RunUploader->RP", err)
+
+		return
+	}
 }
