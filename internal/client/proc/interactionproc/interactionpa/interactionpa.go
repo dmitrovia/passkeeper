@@ -17,10 +17,10 @@ type InteractionProcAttr struct {
 	Chunkerpa     *chunkerpa.ChunkerProcAttr
 	Chproc        *chunkerproc.ChunkerProc
 	Uploadproc    *uploadproc.UploadProc
-	Wgroup        *sync.WaitGroup
 	AttrClintProc *clientpa.ClientProcAttr
 	UploadChan    chan chunckmeta.ChunkMeta
 	ErrChan       chan error
+	WGsubprocess  *sync.WaitGroup
 }
 
 func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
@@ -38,16 +38,15 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 		return fmt.Errorf("InitChunkAndUpload->Init: %w", err)
 	}
 
-	ipa.Wgroup = &sync.WaitGroup{}
 	ipa.UploadChan = make(chan chunckmeta.ChunkMeta,
 		ipa.Chunkerpa.CntChunks)
 	ipa.ErrChan = make(chan error, ipa.Chunkerpa.CntChunks)
 
-	ipa.Chunkerpa.Wgroup = ipa.Wgroup
+	ipa.Chunkerpa.Wgroup = ipa.WGsubprocess
 	ipa.Chunkerpa.UploadChan = ipa.UploadChan
 	ipa.Chunkerpa.ErrChan = ipa.ErrChan
 	ipa.Chproc = chunkerproc.NewProc(ipa.Chunkerpa)
-	ipa.Uploadpa.Wgroup = ipa.Wgroup
+	ipa.Uploadpa.Wgroup = ipa.WGsubprocess
 	ipa.Uploadpa.UploadChan = ipa.UploadChan
 	ipa.Uploadpa.ErrChan = ipa.ErrChan
 	ipa.Uploadproc = uploadproc.NewProc(ipa.Uploadpa)

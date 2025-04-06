@@ -3,8 +3,10 @@ package clientpa
 import (
 	"flag"
 	"fmt"
+	"sync"
 	"time"
 
+	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/server/config"
 	"go.uber.org/zap"
@@ -19,7 +21,10 @@ type ClientProcAttr struct {
 	ZapLogger           *zap.Logger
 	FileSynchronizePath string
 	DefSynchronizePath  string
+	IsAuth              bool
 	AuthToken           string
+	AuthTokenPath       string
+	AuthTokenDefPath    string
 	ZapLogInfoLevel     string
 	ConfigPath          string
 	DefConfigPath       string
@@ -31,6 +36,9 @@ type ClientProcAttr struct {
 	CountWorkersUpload  int
 	DefChunkSize        int
 	MaxRetries          int
+	SelectedProc        *int
+	WGsubprocess        *sync.WaitGroup
+	WGMainProc          *sync.WaitGroup
 	ReqTimeout          time.Duration
 }
 
@@ -43,6 +51,8 @@ func (p *ClientProcAttr) Init() error {
 	p.MaxRetries = 3
 	p.CountWorkersChunker = 5
 	p.CountWorkersUpload = 5
+	p.WGsubprocess = &sync.WaitGroup{}
+	p.WGMainProc = &sync.WaitGroup{}
 
 	logger, err := logger.Initialize(p.ZapLogInfoLevel)
 	if err != nil {
@@ -64,7 +74,7 @@ func (p *ClientProcAttr) Init() error {
 func (p *ClientProcAttr) GetAttrsCFG() error {
 	cfg, err := config.GetAttrsC(p.ConfigPath)
 	if err != nil {
-		return fmt.Errorf("RP->GetAttrs: %w", err)
+		return fmt.Errorf("GetAttrsCFG->GetAttrs: %w", err)
 	}
 
 	if p.FileSynchronizePath == "" {
@@ -78,6 +88,18 @@ func (p *ClientProcAttr) GetAttrsCFG() error {
 	if p.MetaPath == "" {
 		p.MetaPath = cfg.MetaPath
 	}
+
+	if p.AuthTokenPath == "" {
+		p.AuthTokenPath = cfg.TokenPath
+	}
+
+	token, err := authcfg.GetToken(p.AuthTokenPath)
+	if err != nil {
+		return fmt.Errorf("GetAttrsCFG->GetToken: %w", err)
+	}
+
+	p.AuthToken = token
+	p.IsAuth = (p.AuthToken != "")
 
 	return nil
 }
@@ -102,6 +124,11 @@ func (p *ClientProcAttr) InitFlags() {
 		&p.FileSynchronizePath,
 		"fspath", p.DefSynchronizePath,
 		"Directory for synchronizing files from the server.",
+	)
+	flag.StringVar(
+		&p.AuthTokenPath,
+		"tokenpath", p.AuthTokenDefPath,
+		"auth token path.",
 	)
 	flag.Parse()
 }

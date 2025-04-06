@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
@@ -34,14 +33,14 @@ func (sp *ClientProc) RunProcess() error {
 		return fmt.Errorf("RP->Init: %w", err)
 	}
 
-	waitGroup := new(sync.WaitGroup)
+	sp.attr.WGMainProc.Add(1)
 
-	waitGroup.Add(1)
-
+	go sp.waitClose()
 	go sp.runInteraction(sp.attr)
-	go sp.waitClose(waitGroup)
 
-	waitGroup.Wait()
+	sp.attr.WGMainProc.Wait()
+	fmt.Println("Wait for processes to complete")
+	sp.attr.WGsubprocess.Wait()
 
 	return nil
 }
@@ -51,6 +50,8 @@ func (sp *ClientProc) runInteraction(
 ) {
 	newAttr := &interactionpa.InteractionProcAttr{}
 	newAttr.AttrClintProc = attr
+	newAttr.WGsubprocess = sp.attr.WGsubprocess
+
 	ip := interactionproc.NewProc(newAttr)
 
 	err := ip.RunProcess()
@@ -59,9 +60,7 @@ func (sp *ClientProc) runInteraction(
 	}
 }
 
-func (sp *ClientProc) waitClose(
-	waitG *sync.WaitGroup,
-) {
+func (sp *ClientProc) waitClose() {
 	channelCancel := make(chan os.Signal, 1)
 	signal.Notify(channelCancel,
 		os.Interrupt,
@@ -71,7 +70,10 @@ func (sp *ClientProc) waitClose(
 	for {
 		_, ok := <-channelCancel
 		if ok {
-			waitG.Done()
+			exitV := 99
+			sp.attr.SelectedProc = &exitV
+
+			sp.attr.WGMainProc.Done()
 
 			return
 		}

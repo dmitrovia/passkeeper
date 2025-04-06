@@ -1,5 +1,6 @@
 {
     "filesSynchronizePath" : "../../files_client/go.gz",
     "address" : "http://localhost:8080",
-    "metaPath" : "../../meta_client/meta.json"
+    "metaPath" : "../../meta_client/meta.json",
+    "tokenPath" : "../../internal/client/auth/token.json"
 } 

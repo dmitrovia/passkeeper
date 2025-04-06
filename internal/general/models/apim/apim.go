@@ -10,6 +10,7 @@ type CfgClient struct {
 	ServerAddr           string `json:"address"`
 	FilesSynchronizePath string `json:"filesSynchronizePath"`
 	MetaPath             string `json:"metaPath"`
+	TokenPath            string `json:"tokenPath"`
 }
 
 type InRegisterUser struct {
@@ -20,4 +21,8 @@ type InRegisterUser struct {
 type InLoginUser struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
+}
+
+type CfgToken struct {
+	Token string `json:"token"`
 }
