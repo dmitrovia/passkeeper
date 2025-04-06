@@ -7,20 +7,39 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/registerproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/registerproc/registerprocpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc/uploadpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
 type InteractionProcAttr struct {
-	Uploadpa      *uploadpa.UploadProcAttr
-	Chunkerpa     *chunkerpa.ChunkerProcAttr
 	Chproc        *chunkerproc.ChunkerProc
+	Chunkerpa     *chunkerpa.ChunkerProcAttr
 	Uploadproc    *uploadproc.UploadProc
+	Uploadpa      *uploadpa.UploadProcAttr
 	AttrClintProc *clientpa.ClientProcAttr
+	Registerproc  *registerproc.RegisterProc
+	Registerpa    *registerprocpa.RegisterProcAttr
 	UploadChan    chan chunckmeta.ChunkMeta
 	ErrChan       chan error
 	WGsubprocess  *sync.WaitGroup
+}
+
+func (ipa *InteractionProcAttr) InitRegister() error {
+	ipa.Registerpa = &registerprocpa.RegisterProcAttr{}
+
+	err := ipa.Registerpa.Init(ipa.AttrClintProc)
+	if err != nil {
+		return fmt.Errorf("InitRegister->Init: %w", err)
+	}
+
+	ipa.Registerpa.Wgroup = ipa.WGsubprocess
+
+	ipa.Registerproc = registerproc.NewProc(ipa.Registerpa)
+
+	return nil
 }
 
 func (ipa *InteractionProcAttr) InitChunkAndUpload() error {

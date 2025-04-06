@@ -77,6 +77,11 @@ func (ip *InteractionProc) chooseProc() error {
 		switch *ip.attr.AttrClintProc.SelectedProc {
 		case registerOption:
 			fmt.Println("Register")
+
+			err := ip.RunRegister()
+			if err != nil {
+				loggerf.Log("chooseProc->RunRegister", err)
+			}
 		case loginOption:
 			fmt.Println("Login")
 		case exitOption:
@@ -141,4 +146,20 @@ func (ip *InteractionProc) RunUploader() {
 
 		return
 	}
+}
+
+func (ip *InteractionProc) RunRegister() error {
+	ip.attr.WGsubprocess.Add(1)
+
+	err := ip.attr.InitRegister()
+	if err != nil {
+		return fmt.Errorf("RunRegister->IR: %w", err)
+	}
+
+	err = ip.attr.Registerproc.RunProcess()
+	if err != nil {
+		return fmt.Errorf("RunRegister->RP: %w", err)
+	}
+
+	return nil
 }

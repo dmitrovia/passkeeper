@@ -85,6 +85,24 @@ func (p *ServerProcAttr) Init() error {
 	p.DefReadTimeout = initReadTimeout * time.Second
 	p.DefWriteTimeout = initWriteTimeout * time.Second
 	p.DefIdleTimeout = initIdleTimeout * time.Second
+
+	logger, err := logger.Initialize(p.ZapLogInfoLevel)
+	if err != nil {
+		return fmt.Errorf("Init->logger.Initialize: %w", err)
+	}
+
+	p.ZapLogger = logger
+
+	ctxDB, cancel := context.WithTimeout(
+		context.Background(), p.Dbtimeout)
+
+	defer cancel()
+
+	err = p.SetPgxPool(ctxDB)
+	if err != nil {
+		return fmt.Errorf("Init->SetPgxPool: %w", err)
+	}
+
 	p.UserStorage = &userstorage.UserStorage{}
 	p.UserStorage.Initiate(p.PgxConn)
 	p.AuthService = authservice.NewAuthService(
@@ -94,13 +112,6 @@ func (p *ServerProcAttr) Init() error {
 	p.AuthMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
 	p.AuthMidAttr.Init(p.ZapLogger,
 		p.AuthService, p.SessionUser, p.Dbtimeout, p.SecretAuth)
-
-	logger, err := logger.Initialize(p.ZapLogInfoLevel)
-	if err != nil {
-		return fmt.Errorf("Init->logger.Initialize: %w", err)
-	}
-
-	p.ZapLogger = logger
 
 	p.InitFlags()
 

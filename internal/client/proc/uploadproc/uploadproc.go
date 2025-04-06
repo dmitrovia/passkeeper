@@ -66,14 +66,14 @@ func (up *UploadProc) toUpload() {
 			return
 		}
 
+		defer resp.Body.Close()
+
 		if resp.StatusCode != http.StatusOK {
 			err := fmt.Errorf("RWP->UploadChunk: %w", errSNOK)
 			up.attr.ErrChan <- err
 
 			return
 		}
-
-		resp.Body.Close()
 
 		up.attr.Mutex.Lock()
 		up.attr.CurrentMetadata[*chunk.FileName] = chunk

@@ -1,4 +1,4 @@
-package uploader
+package euploader
 
 import (
 	"bytes"
@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dmitrovia/passkeeper/internal/client/endpoints/uploader/uploaderattrs"
+	"github.com/dmitrovia/passkeeper/internal/client/endpoints/euploader/euploaderattr"
 )
 
 type Uploader struct {
-	attr *uploaderattrs.UploaderAttr
+	attr *euploaderattr.UploaderAttr
 }
 
 func NewUploader(
-	attr *uploaderattrs.UploaderAttr,
+	attr *euploaderattr.UploaderAttr,
 ) *Uploader {
 	return &Uploader{attr: attr}
 }
@@ -28,7 +28,7 @@ func (u *Uploader) UploadChunk(
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
-		u.attr.ServerURL,
+		u.attr.URL,
 		bytes.NewReader(*u.attr.Data))
 	if err != nil {
 		return nil, fmt.Errorf("UploadChunk->NRWC: %w", err)

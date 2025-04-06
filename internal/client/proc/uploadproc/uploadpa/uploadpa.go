@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dmitrovia/passkeeper/internal/client/endpoints/uploader"
-	"github.com/dmitrovia/passkeeper/internal/client/endpoints/uploader/uploaderattrs"
+	"github.com/dmitrovia/passkeeper/internal/client/endpoints/euploader"
+	"github.com/dmitrovia/passkeeper/internal/client/endpoints/euploader/euploaderattr"
 	"github.com/dmitrovia/passkeeper/internal/client/metamanager"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
@@ -19,8 +19,8 @@ type UploadProcAttr struct {
 	ReqTimeout         time.Duration
 	UploadChan         chan chunckmeta.ChunkMeta
 	CurrentMetadata    map[string]chunckmeta.ChunkMeta
-	UploaderAttr       *uploaderattrs.UploaderAttr
-	Uploader           *uploader.Uploader
+	UploaderAttr       *euploaderattr.UploaderAttr
+	Uploader           *euploader.Uploader
 	Mutex              *sync.Mutex
 	ErrChan            chan error
 	Client             *http.Client
@@ -41,12 +41,13 @@ func (upa *UploadProcAttr) Init(
 		return fmt.Errorf("Init->LoadMetadata: %w", err)
 	}
 
+	upa.ReqTimeout = attr.ReqTimeout
 	upa.ServerURL = attr.ServerAddr
 	upa.CurrentMetadata = metadata
-	upa.UploaderAttr = &uploaderattrs.UploaderAttr{}
+	upa.UploaderAttr = &euploaderattr.UploaderAttr{}
 	url := upa.ServerURL + "/upload"
 	upa.UploaderAttr.Init(url, upa.Client)
-	upa.Uploader = uploader.NewUploader(upa.UploaderAttr)
+	upa.Uploader = euploader.NewUploader(upa.UploaderAttr)
 
 	upa.CountWorkersUpload = attr.CountWorkersUpload
 

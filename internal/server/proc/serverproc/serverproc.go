@@ -37,15 +37,6 @@ func (sp *ServerProc) RunProcess() error {
 	}
 
 	waitGroup := new(sync.WaitGroup)
-	ctxDB, cancel := context.WithTimeout(
-		context.Background(), sp.attr.Dbtimeout)
-
-	defer cancel()
-
-	err = sp.attr.SetPgxPool(ctxDB)
-	if err != nil {
-		return fmt.Errorf("RP->SetPgxPool: %w", err)
-	}
 
 	err = migrator.UseMigrations(sp.attr)
 	if err != nil {
