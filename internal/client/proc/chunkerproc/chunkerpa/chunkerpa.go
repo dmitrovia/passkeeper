@@ -49,6 +49,7 @@ func (cpa *ChunkerProcAttr) Init(
 	cpa.CntChunks = cntChunks
 
 	cpa.CountWorkersChunker = attr.CountWorkersChunker
+	cpa.Wgroup = attr.WGsubprocess
 
 	return nil
 }

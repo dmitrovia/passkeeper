@@ -1,4 +1,4 @@
-package registerproc
+package loginproc
 
 import (
 	"context"
@@ -8,58 +8,69 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dmitrovia/passkeeper/internal/client/proc/registerproc/registerprocpattr"
+	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/loginproc/loginprocattr"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 )
 
 var errSNOK = errors.New("status is not OK")
 
-type RegisterProc struct {
-	attr *registerprocpattr.RegisterProcAttr
+type LoginProc struct {
+	attr *loginprocattr.LoginProcAttr
 }
 
 func NewProc(
-	attr *registerprocpattr.RegisterProcAttr,
-) *RegisterProc {
-	return &RegisterProc{
+	attr *loginprocattr.LoginProcAttr,
+) *LoginProc {
+	return &LoginProc{
 		attr: attr,
 	}
 }
 
-func (rp *RegisterProc) RunProcess() error {
-	defer rp.attr.Wgroup.Done()
-	fmt.Println("RegisterProc run")
+func (lp *LoginProc) RunProcess() error {
+	defer lp.attr.Wgroup.Done()
+	fmt.Println("LoginProc run")
 
-	defer fmt.Println("RegisterProc end")
+	defer fmt.Println("LoginProc end")
 
 	ctx, cancel := context.WithTimeout(
-		context.Background(), rp.attr.ReqTimeout)
+		context.Background(), lp.attr.ReqTimeout)
+
 	defer cancel()
 
-	err := rp.Input()
+	err := lp.Input()
 	if err != nil {
 		return fmt.Errorf("RP->Input: %w", err)
 	}
 
-	resp, err := rp.attr.Register.RegisterUser(ctx)
+	resp, err := lp.attr.Login.LoginUser(ctx)
 	if err != nil {
-		return fmt.Errorf("RP->RegisterUser: %w", err)
+		return fmt.Errorf("RP->LoginUser: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("RP->Register: %w", errSNOK)
+		err := fmt.Errorf("RP->Login: %w", errSNOK)
 
 		return err
 	}
 
-	fmt.Println("Successfully registered")
+	token := resp.Header.Get("Authorization")
+
+	err = authcfg.SaveToken(lp.attr.TokenSavePath, token)
+	if err != nil {
+		return fmt.Errorf("RP->SaveToken: %w", err)
+	}
+
+	lp.attr.AttrClintProc.SetAuth(token)
+
+	fmt.Println("Successfully login")
 
 	return nil
 }
 
-func (rp *RegisterProc) Input() error {
+func (lp *LoginProc) Input() error {
 	var inLogin string
 
 	var inPass string
@@ -87,7 +98,7 @@ func (rp *RegisterProc) Input() error {
 		return fmt.Errorf("RP->Marshal: %w", err)
 	}
 
-	rp.attr.RegisterAttr.Data = &marshal
+	lp.attr.LoginAttr.Data = &marshal
 
 	return nil
 }

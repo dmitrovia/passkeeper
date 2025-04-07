@@ -40,16 +40,12 @@ func (cp *ChunkerProc) runWorkerPoolChunker() {
 	close(indexChan)
 
 	for range cp.attr.CountWorkersChunker {
-		go cp.toChuck(indexChan,
-			cp.attr.UploadChan,
-			cp.attr.ErrChan)
+		go cp.toChuck(indexChan)
 	}
 }
 
 func (cp *ChunkerProc) toChuck(
 	indexChan chan int,
-	uploadChan chan chunckmeta.ChunkMeta,
-	errChan chan error,
 ) {
 	defer cp.attr.Wgroup.Done()
 
@@ -60,14 +56,14 @@ func (cp *ChunkerProc) toChuck(
 
 		_, err := cp.attr.ChFile.Seek(offset, 0)
 		if err != nil {
-			errChan <- err
+			cp.attr.ErrChan <- err
 
 			return
 		}
 
 		bytesRead, err := cp.attr.ChFile.Read(buffer)
 		if err != nil && errors.Is(err, io.EOF) {
-			errChan <- err
+			cp.attr.ErrChan <- err
 
 			return
 		}
@@ -85,6 +81,6 @@ func (cp *ChunkerProc) toChuck(
 			index,
 			&chBytes,
 		)
-		uploadChan <- *chunk
+		cp.attr.UploadChan <- *chunk
 	}
 }

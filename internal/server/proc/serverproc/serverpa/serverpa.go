@@ -92,7 +92,6 @@ func (p *ServerProcAttr) Init() error {
 	}
 
 	p.ZapLogger = logger
-
 	p.InitFlags()
 
 	err = p.GetAttrsCFG()
@@ -102,7 +101,6 @@ func (p *ServerProcAttr) Init() error {
 
 	ctxDB, cancel := context.WithTimeout(
 		context.Background(), p.Dbtimeout)
-
 	defer cancel()
 
 	err = p.SetPgxPool(ctxDB)
@@ -114,7 +112,6 @@ func (p *ServerProcAttr) Init() error {
 	p.UserStorage.Initiate(p.PgxConn)
 	p.AuthService = authservice.NewAuthService(
 		p.UserStorage)
-
 	p.initHandlersAttr()
 	p.AuthMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
 	p.AuthMidAttr.Init(p.ZapLogger,
@@ -122,7 +119,6 @@ func (p *ServerProcAttr) Init() error {
 
 	mux := mux.NewRouter()
 	p.initAPIMethods(mux)
-
 	p.Server = &http.Server{
 		Addr:         p.ServerAddr,
 		Handler:      mux,

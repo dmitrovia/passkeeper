@@ -7,37 +7,74 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/loginproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/loginproc/loginprocattr"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/logoutproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/logoutproc/logoutprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/registerproc"
-	"github.com/dmitrovia/passkeeper/internal/client/proc/registerproc/registerprocpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/registerproc/registerprocpattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc/uploadpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
 type InteractionProcAttr struct {
-	Chproc        *chunkerproc.ChunkerProc
-	Chunkerpa     *chunkerpa.ChunkerProcAttr
-	Uploadproc    *uploadproc.UploadProc
-	Uploadpa      *uploadpa.UploadProcAttr
+	// upload and chunk
+	Chproc     *chunkerproc.ChunkerProc
+	Chunkerpa  *chunkerpa.ChunkerProcAttr
+	Uploadproc *uploadproc.UploadProc
+	Uploadpa   *uploadpa.UploadProcAttr
+	UploadChan chan chunckmeta.ChunkMeta
+	ErrChan    chan error
+	// register
+	Registerproc *registerproc.RegisterProc
+	Registerpa   *registerprocpattr.RegisterProcAttr
+	// login
+	Loginproc *loginproc.LoginProc
+	Loginpa   *loginprocattr.LoginProcAttr
+	// logout
+	Logoutproc *logoutproc.LogoutProc
+	Logoutpa   *logoutprocattr.LogoutProcAttr
+	// general
 	AttrClintProc *clientpa.ClientProcAttr
-	Registerproc  *registerproc.RegisterProc
-	Registerpa    *registerprocpa.RegisterProcAttr
-	UploadChan    chan chunckmeta.ChunkMeta
-	ErrChan       chan error
 	WGsubprocess  *sync.WaitGroup
 }
 
 func (ipa *InteractionProcAttr) InitRegister() error {
-	ipa.Registerpa = &registerprocpa.RegisterProcAttr{}
+	ipa.Registerpa = &registerprocpattr.RegisterProcAttr{}
 
 	err := ipa.Registerpa.Init(ipa.AttrClintProc)
 	if err != nil {
 		return fmt.Errorf("InitRegister->Init: %w", err)
 	}
 
-	ipa.Registerpa.Wgroup = ipa.WGsubprocess
-
 	ipa.Registerproc = registerproc.NewProc(ipa.Registerpa)
+
+	return nil
+}
+
+func (ipa *InteractionProcAttr) InitLogin() error {
+	ipa.Loginpa = &loginprocattr.LoginProcAttr{}
+
+	err := ipa.Loginpa.Init(ipa.AttrClintProc)
+	if err != nil {
+		return fmt.Errorf("InitLogin->Init: %w", err)
+	}
+
+	ipa.Loginproc = loginproc.NewProc(ipa.Loginpa)
+
+	return nil
+}
+
+func (ipa *InteractionProcAttr) InitLogout() error {
+	ipa.Logoutpa = &logoutprocattr.LogoutProcAttr{}
+
+	err := ipa.Logoutpa.Init(ipa.AttrClintProc)
+	if err != nil {
+		return fmt.Errorf("InitLogout->Init: %w", err)
+	}
+
+	ipa.Logoutproc = logoutproc.NewProc(ipa.Logoutpa)
 
 	return nil
 }
@@ -61,13 +98,12 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 		ipa.Chunkerpa.CntChunks)
 	ipa.ErrChan = make(chan error, ipa.Chunkerpa.CntChunks)
 
-	ipa.Chunkerpa.Wgroup = ipa.WGsubprocess
 	ipa.Chunkerpa.UploadChan = ipa.UploadChan
 	ipa.Chunkerpa.ErrChan = ipa.ErrChan
 	ipa.Chproc = chunkerproc.NewProc(ipa.Chunkerpa)
-	ipa.Uploadpa.Wgroup = ipa.WGsubprocess
 	ipa.Uploadpa.UploadChan = ipa.UploadChan
 	ipa.Uploadpa.ErrChan = ipa.ErrChan
+	ipa.Uploadpa.CountChunk = ipa.Chunkerpa.CntChunks
 	ipa.Uploadproc = uploadproc.NewProc(ipa.Uploadpa)
 
 	return nil

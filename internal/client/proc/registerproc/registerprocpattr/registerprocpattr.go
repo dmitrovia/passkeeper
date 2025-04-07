@@ -1,4 +1,4 @@
-package registerprocpa
+package registerprocpattr
 
 import (
 	"net/http"
@@ -30,6 +30,7 @@ func (rpa *RegisterProcAttr) Init(
 	url := rpa.ServerURL + "/api/user/register"
 	rpa.RegisterAttr.Init(url, rpa.Client)
 	rpa.Register = eregister.NewRegister(rpa.RegisterAttr)
+	rpa.Wgroup = attr.WGsubprocess
 
 	return nil
 }

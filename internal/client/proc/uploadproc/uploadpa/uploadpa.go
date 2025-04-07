@@ -16,6 +16,7 @@ import (
 type UploadProcAttr struct {
 	CountWorkersUpload int
 	Wgroup             *sync.WaitGroup
+	WorkEndWg          *sync.WaitGroup
 	ReqTimeout         time.Duration
 	UploadChan         chan chunckmeta.ChunkMeta
 	CurrentMetadata    map[string]chunckmeta.ChunkMeta
@@ -25,6 +26,7 @@ type UploadProcAttr struct {
 	ErrChan            chan error
 	Client             *http.Client
 	ServerURL          string
+	CountChunk         int
 }
 
 func (upa *UploadProcAttr) Init(
@@ -45,11 +47,12 @@ func (upa *UploadProcAttr) Init(
 	upa.ServerURL = attr.ServerAddr
 	upa.CurrentMetadata = metadata
 	upa.UploaderAttr = &euploaderattr.UploaderAttr{}
-	url := upa.ServerURL + "/upload"
-	upa.UploaderAttr.Init(url, upa.Client)
+	url := upa.ServerURL + "/api/user/upload"
+	upa.UploaderAttr.Init(url, upa.Client, attr.AuthToken)
 	upa.Uploader = euploader.NewUploader(upa.UploaderAttr)
-
 	upa.CountWorkersUpload = attr.CountWorkersUpload
+	upa.Wgroup = attr.WGsubprocess
+	upa.WorkEndWg = &sync.WaitGroup{}
 
 	return nil
 }

@@ -9,10 +9,12 @@ import (
 )
 
 const (
-	registerOption int = 1
-	loginOption    int = 2
-	uploadOption   int = 3
-	exitOption     int = 99
+	registerOption    int = 1
+	loginOption       int = 2
+	uploadOption      int = 3
+	logoutOption      int = 4
+	exitOption        int = 99
+	nonExistentOption     = 999
 )
 
 type InteractionProc struct {
@@ -42,13 +44,16 @@ func (ip *InteractionProc) RunProcess() error {
 func (ip *InteractionProc) printOptions() {
 	fmt.Println("--------------------------------------------")
 	fmt.Println("")
-	fmt.Println("1.Register")
 
 	if !ip.attr.AttrClintProc.IsAuth {
+		fmt.Println("1.Register")
 		fmt.Println("2.Login")
+
+		return
 	}
 
 	fmt.Println("3.Send data to server")
+	fmt.Println("4.Logout")
 	fmt.Println("99.Exit")
 	fmt.Println("")
 	fmt.Println("--------------------------------------------")
@@ -72,7 +77,17 @@ func (ip *InteractionProc) chooseProc() error {
 			return fmt.Errorf("chooseProc->Fscan: %w", err1)
 		}
 
-		ip.attr.AttrClintProc.SelectedProc = &inValue
+		checkBan := ip.attr.AttrClintProc.IsAuth &&
+			(inValue == registerOption || inValue == loginOption)
+		checkBan1 := !ip.attr.AttrClintProc.IsAuth &&
+			(inValue == uploadOption)
+
+		if checkBan || checkBan1 {
+			notOption := nonExistentOption
+			ip.attr.AttrClintProc.SelectedProc = &notOption
+		} else {
+			ip.attr.AttrClintProc.SelectedProc = &inValue
+		}
 
 		switch *ip.attr.AttrClintProc.SelectedProc {
 		case registerOption:
@@ -84,8 +99,20 @@ func (ip *InteractionProc) chooseProc() error {
 			}
 		case loginOption:
 			fmt.Println("Login")
+
+			err := ip.RunLogin()
+			if err != nil {
+				loggerf.Log("chooseProc->RunLogin", err)
+			}
+		case logoutOption:
+			fmt.Println("Logout")
+
+			err := ip.RunLogout()
+			if err != nil {
+				loggerf.Log("chooseProc->RunLogout", err)
+			}
 		case exitOption:
-			fmt.Println("Press ctrl+f to exit")
+			fmt.Println("Press ctrl+c to exit")
 
 			return nil
 		case uploadOption:
@@ -118,7 +145,6 @@ func (ip *InteractionProc) uploadAndChunk() error {
 	ip.attr.WGsubprocess.Wait()
 
 	ip.attr.Chunkerpa.ChFile.Close()
-	close(ip.attr.UploadChan)
 	close(ip.attr.ErrChan)
 
 	for err := range ip.attr.Uploadpa.ErrChan {
@@ -159,6 +185,38 @@ func (ip *InteractionProc) RunRegister() error {
 	err = ip.attr.Registerproc.RunProcess()
 	if err != nil {
 		return fmt.Errorf("RunRegister->RP: %w", err)
+	}
+
+	return nil
+}
+
+func (ip *InteractionProc) RunLogin() error {
+	ip.attr.WGsubprocess.Add(1)
+
+	err := ip.attr.InitLogin()
+	if err != nil {
+		return fmt.Errorf("RunLogin->IL: %w", err)
+	}
+
+	err = ip.attr.Loginproc.RunProcess()
+	if err != nil {
+		return fmt.Errorf("RunLogin->RP: %w", err)
+	}
+
+	return nil
+}
+
+func (ip *InteractionProc) RunLogout() error {
+	ip.attr.WGsubprocess.Add(1)
+
+	err := ip.attr.InitLogout()
+	if err != nil {
+		return fmt.Errorf("RunLogout->IL: %w", err)
+	}
+
+	err = ip.attr.Logoutproc.RunProcess()
+	if err != nil {
+		return fmt.Errorf("RunLogout->RP: %w", err)
 	}
 
 	return nil

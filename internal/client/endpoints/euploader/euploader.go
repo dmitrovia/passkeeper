@@ -34,6 +34,8 @@ func (u *Uploader) UploadChunk(
 		return nil, fmt.Errorf("UploadChunk->NRWC: %w", err)
 	}
 
+	req.Header.Set("Authorization", u.attr.Token)
+
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("UploadChunk->Do: %w", err)

@@ -98,10 +98,14 @@ func (p *ClientProcAttr) GetAttrsCFG() error {
 		return fmt.Errorf("GetAttrsCFG->GetToken: %w", err)
 	}
 
-	p.AuthToken = token
-	p.IsAuth = (p.AuthToken != "")
+	p.SetAuth(token)
 
 	return nil
+}
+
+func (p *ClientProcAttr) SetAuth(token string) {
+	p.AuthToken = token
+	p.IsAuth = (p.AuthToken != "")
 }
 
 func (p *ClientProcAttr) InitFlags() {
