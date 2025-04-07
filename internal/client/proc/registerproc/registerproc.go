@@ -54,6 +54,8 @@ func (rp *RegisterProc) RunProcess() error {
 		return err
 	}
 
+	fmt.Println("Successfully registered")
+
 	return nil
 }
 

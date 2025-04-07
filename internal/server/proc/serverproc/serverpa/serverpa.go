@@ -93,6 +93,13 @@ func (p *ServerProcAttr) Init() error {
 
 	p.ZapLogger = logger
 
+	p.InitFlags()
+
+	err = p.GetAttrsCFG()
+	if err != nil {
+		return fmt.Errorf("Init->GetAttrsCFG: %w", err)
+	}
+
 	ctxDB, cancel := context.WithTimeout(
 		context.Background(), p.Dbtimeout)
 
@@ -112,13 +119,6 @@ func (p *ServerProcAttr) Init() error {
 	p.AuthMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
 	p.AuthMidAttr.Init(p.ZapLogger,
 		p.AuthService, p.SessionUser, p.Dbtimeout, p.SecretAuth)
-
-	p.InitFlags()
-
-	err = p.GetAttrsCFG()
-	if err != nil {
-		return fmt.Errorf("Init->GetAttrsCFG: %w", err)
-	}
 
 	mux := mux.NewRouter()
 	p.initAPIMethods(mux)

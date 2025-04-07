@@ -2,12 +2,12 @@ package userstorage
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -64,8 +64,8 @@ func (m *UserStorage) GetUser(
 		login).Scan(&outID, &outLogin, &outPass,
 		&outCreateddate)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, sql.ErrNoRows
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, pgx.ErrNoRows
 		}
 
 		return nil, fmt.Errorf("GetUser->m.conn.QR: %w", err)

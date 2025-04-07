@@ -2,12 +2,12 @@ package authservice
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/dmitrovia/passkeeper/internal/server/storage"
+	"github.com/jackc/pgx/v5"
 )
 
 type AuthService struct {
@@ -28,7 +28,7 @@ func (s *AuthService) UserIsExist(ctx context.Context,
 ) {
 	user, err := s.repository.GetUser(ctx, login)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return false, nil, nil
 		}
 
