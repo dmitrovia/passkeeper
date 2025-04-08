@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/dmitrovia/passkeeper/internal/client/metamanager"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
@@ -39,6 +40,7 @@ type InteractionProcAttr struct {
 	AttrClintProc *clientpa.ClientProcAttr
 	WGsubprocess  *sync.WaitGroup
 	WorkerChunkWg *sync.WaitGroup
+	Metamanager   *metamanager.MetaManager
 }
 
 func (ipa *InteractionProcAttr) InitRegister() error {
@@ -82,8 +84,16 @@ func (ipa *InteractionProcAttr) InitLogout() error {
 
 func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	ipa.Chunkerpa = &chunkerpa.ChunkerProcAttr{}
+	ipa.Metamanager = metamanager.NewMetaManager(
+		ipa.AttrClintProc.MetaPath)
+	ipa.Chunkerpa.Metamanager = ipa.Metamanager
 
-	err := ipa.Chunkerpa.Init(ipa.AttrClintProc)
+	metadata, err := ipa.Metamanager.LoadMetadata()
+	if err != nil {
+		return fmt.Errorf("InitChunkAndUpload->LM: %w", err)
+	}
+
+	err = ipa.Chunkerpa.Init(ipa.AttrClintProc)
 	if err != nil {
 		return fmt.Errorf("InitChunkAndUpload->Init: %w", err)
 	}
@@ -104,8 +114,10 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	ipa.Chunkerpa.UploadChan = ipa.UploadChan
 	ipa.Chunkerpa.ErrChan = ipa.ErrChan
 	ipa.Chunkerpa.WorkerChunkWg = ipa.WorkerChunkWg
+	ipa.Chunkerpa.CurrentMetadata = metadata
 	ipa.Chproc = chunkerproc.NewProc(ipa.Chunkerpa)
 	ipa.Uploadpa.UploadChan = ipa.UploadChan
+	ipa.Uploadpa.CurrentMetadata = metadata
 	ipa.Uploadpa.ErrChan = ipa.ErrChan
 	ipa.Uploadpa.CountChunk = ipa.Chunkerpa.CntChunks
 	ipa.Uploadpa.WorkerChunkWg = ipa.WorkerChunkWg

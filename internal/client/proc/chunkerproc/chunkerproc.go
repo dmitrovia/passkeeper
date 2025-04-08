@@ -40,51 +40,70 @@ func (cp *ChunkerProc) runWorkerPoolChunker() {
 	close(indexChan)
 
 	for range cp.attr.CountWorkersChunker {
-		go cp.toChuck(indexChan)
+		go cp.runWorker(indexChan)
 	}
 }
 
-func (cp *ChunkerProc) toChuck(
+func (cp *ChunkerProc) runWorker(
 	indexChan chan int,
 ) {
 	defer cp.attr.Wgroup.Done()
 
 	for index := range indexChan {
-		offset := int64(index) * int64(cp.attr.ChunkSize)
-		buffer := make([]byte,
-			cp.attr.ChunkSize)
-
-		_, err := cp.attr.ChFile.Seek(offset, 0)
-		if err != nil {
-			cp.attr.ErrChan <- err
-			cp.attr.WorkerChunkWg.Done()
-
-			return
-		}
-
-		bytesRead, err := cp.attr.ChFile.Read(buffer)
-		if err != nil && !errors.Is(err, io.EOF) {
-			cp.attr.ErrChan <- err
-			cp.attr.WorkerChunkWg.Done()
-
-			return
-		}
-
-		if bytesRead == 0 {
-			cp.attr.WorkerChunkWg.Done()
-
-			return
-		}
-
-		chBytes := buffer[:bytesRead]
-		hash := md5.Sum(chBytes)
-
-		chunk := chunckmeta.NewChunkMeta(
-			fmt.Sprintf("%s.chunk.%d", cp.attr.FilePath, index),
-			hex.EncodeToString(hash[:]),
-			index,
-			&chBytes,
-		)
-		cp.attr.UploadChan <- *chunk
+		cp.toChunk(index)
 	}
+}
+
+func (cp *ChunkerProc) toChunk(
+	index int,
+) {
+	offset := int64(index) * int64(cp.attr.ChunkSize)
+	buffer := make([]byte,
+		cp.attr.ChunkSize)
+
+	_, err := cp.attr.ChFile.Seek(offset, 0)
+	if err != nil {
+		cp.attr.ErrChan <- err
+		cp.attr.WorkerChunkWg.Done()
+
+		return
+	}
+
+	bytesRead, err := cp.attr.ChFile.Read(buffer)
+	if err != nil && !errors.Is(err, io.EOF) {
+		cp.attr.ErrChan <- err
+		cp.attr.WorkerChunkWg.Done()
+
+		return
+	}
+
+	if bytesRead == 0 {
+		cp.attr.WorkerChunkWg.Done()
+
+		return
+	}
+
+	chBytes := buffer[:bytesRead]
+	hash := md5.Sum(chBytes)
+	fileName := fmt.Sprintf("%s.chunk.%d",
+		cp.attr.FilePath, index)
+	encodeHash := hex.EncodeToString(hash[:])
+
+	oldChunk,
+		exists := cp.attr.CurrentMetadata[fileName]
+
+	if exists || oldChunk.Hash == &encodeHash {
+		cp.attr.WorkerChunkWg.Done()
+
+		return
+	}
+
+	chunk := chunckmeta.NewChunkMeta(
+		fileName,
+		encodeHash,
+		index,
+		&chBytes,
+	)
+
+	cp.attr.UploadChan <- *chunk
 }

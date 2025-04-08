@@ -147,6 +147,8 @@ func (ip *InteractionProc) uploadAndChunk() error {
 		ip.attr.Chunkerpa.CountWorkersChunker)
 	ip.attr.WGsubprocess.Add(
 		ip.attr.Uploadpa.CountWorkersUpload)
+
+	fmt.Println(ip.attr.Chunkerpa.CntChunks)
 	ip.attr.WorkerChunkWg.Add(ip.attr.Chunkerpa.CntChunks)
 
 	go ip.RunChunker()
@@ -156,6 +158,12 @@ func (ip *InteractionProc) uploadAndChunk() error {
 
 	ip.attr.Chunkerpa.ChFile.Close()
 	close(ip.attr.ErrChan)
+
+	err = ip.attr.Metamanager.SaveMetadata(
+		ip.attr.Uploadpa.UploadedMetadata)
+	if err != nil {
+		return fmt.Errorf("uploadAndChunk->SaveMetadata: %w", err)
+	}
 
 	for err := range ip.attr.Uploadpa.ErrChan {
 		if err != nil {

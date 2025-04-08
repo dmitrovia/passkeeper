@@ -13,8 +13,10 @@ func (p *UploaderAttr) Init(
 	eURL string,
 	client *http.Client,
 	token string,
+	data *[]byte,
 ) {
 	p.URL = eURL
 	p.Client = client
 	p.Token = token
+	p.Data = data
 }
