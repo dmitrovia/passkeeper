@@ -15,6 +15,7 @@ type ChunkerProcAttr struct {
 	CntChunks           int
 	FilePath            string
 	Wgroup              *sync.WaitGroup
+	WorkerChunkWg       *sync.WaitGroup
 	ChFile              *os.File
 	UploadChan          chan chunckmeta.ChunkMeta
 	ErrChan             chan error

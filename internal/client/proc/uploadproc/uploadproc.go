@@ -27,10 +27,6 @@ func (up *UploadProc) RunProcess() error {
 	fmt.Println("UploadProc run")
 	defer fmt.Println("UploadProc end")
 
-	for range up.attr.CountChunk {
-		up.attr.WorkEndWg.Add(1)
-	}
-
 	go up.awaitClose()
 
 	up.runWorkerPoolUpload()
@@ -45,7 +41,7 @@ func (up *UploadProc) runWorkerPoolUpload() {
 }
 
 func (up *UploadProc) awaitClose() {
-	up.attr.WorkEndWg.Wait()
+	up.attr.WorkerChunkWg.Wait()
 	close(up.attr.UploadChan)
 }
 
@@ -60,7 +56,7 @@ func (up *UploadProc) toUpload() {
 func (up *UploadProc) UploadChunk(
 	chunk *chunckmeta.ChunkMeta,
 ) {
-	defer up.attr.WorkEndWg.Done()
+	defer up.attr.WorkerChunkWg.Done()
 
 	ctx, cancel := context.WithTimeout(
 		context.Background(), up.attr.ReqTimeout)

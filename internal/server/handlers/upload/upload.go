@@ -21,7 +21,7 @@ func NewUploadHandler(
 
 func (h *Upload) UploadHandler(
 	writer http.ResponseWriter,
-	req *http.Request,
+	_ *http.Request,
 ) {
 	writer.WriteHeader(http.StatusOK)
 }

@@ -38,6 +38,7 @@ type InteractionProcAttr struct {
 	// general
 	AttrClintProc *clientpa.ClientProcAttr
 	WGsubprocess  *sync.WaitGroup
+	WorkerChunkWg *sync.WaitGroup
 }
 
 func (ipa *InteractionProcAttr) InitRegister() error {
@@ -98,12 +99,16 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 		ipa.Chunkerpa.CntChunks)
 	ipa.ErrChan = make(chan error, ipa.Chunkerpa.CntChunks)
 
+	ipa.WorkerChunkWg = &sync.WaitGroup{}
+
 	ipa.Chunkerpa.UploadChan = ipa.UploadChan
 	ipa.Chunkerpa.ErrChan = ipa.ErrChan
+	ipa.Chunkerpa.WorkerChunkWg = ipa.WorkerChunkWg
 	ipa.Chproc = chunkerproc.NewProc(ipa.Chunkerpa)
 	ipa.Uploadpa.UploadChan = ipa.UploadChan
 	ipa.Uploadpa.ErrChan = ipa.ErrChan
 	ipa.Uploadpa.CountChunk = ipa.Chunkerpa.CntChunks
+	ipa.Uploadpa.WorkerChunkWg = ipa.WorkerChunkWg
 	ipa.Uploadproc = uploadproc.NewProc(ipa.Uploadpa)
 
 	return nil

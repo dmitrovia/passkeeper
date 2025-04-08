@@ -138,6 +138,7 @@ func (ip *InteractionProc) uploadAndChunk() error {
 		ip.attr.Chunkerpa.CountWorkersChunker)
 	ip.attr.WGsubprocess.Add(
 		ip.attr.Uploadpa.CountWorkersUpload)
+	ip.attr.WorkerChunkWg.Add(ip.attr.Chunkerpa.CntChunks)
 
 	go ip.RunChunker()
 	go ip.RunUploader()
@@ -152,6 +153,8 @@ func (ip *InteractionProc) uploadAndChunk() error {
 			return err
 		}
 	}
+
+	fmt.Println("Successfully uploaded")
 
 	return nil
 }

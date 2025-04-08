@@ -57,18 +57,22 @@ func (cp *ChunkerProc) toChuck(
 		_, err := cp.attr.ChFile.Seek(offset, 0)
 		if err != nil {
 			cp.attr.ErrChan <- err
+			cp.attr.WorkerChunkWg.Done()
 
 			return
 		}
 
 		bytesRead, err := cp.attr.ChFile.Read(buffer)
-		if err != nil && errors.Is(err, io.EOF) {
+		if err != nil && !errors.Is(err, io.EOF) {
 			cp.attr.ErrChan <- err
+			cp.attr.WorkerChunkWg.Done()
 
 			return
 		}
 
 		if bytesRead == 0 {
+			cp.attr.WorkerChunkWg.Done()
+
 			return
 		}
 
