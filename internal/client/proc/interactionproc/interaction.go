@@ -59,13 +59,29 @@ func (ip *InteractionProc) printOptions() {
 	fmt.Println("--------------------------------------------")
 }
 
+func (ip *InteractionProc) checkIncorrectOption(
+	option int,
+) {
+	checkBan := ip.attr.AttrClintProc.IsAuth &&
+		(option == registerOption || option == loginOption)
+	checkBan1 := !ip.attr.AttrClintProc.IsAuth &&
+		(option == uploadOption)
+
+	if checkBan || checkBan1 {
+		notOption := nonExistentOption
+		ip.attr.AttrClintProc.SelectedProc = &notOption
+	} else {
+		ip.attr.AttrClintProc.SelectedProc = &option
+	}
+}
+
 func (ip *InteractionProc) chooseProc() error {
 	for {
 		ip.printOptions()
 
 		if ip.attr.AttrClintProc.SelectedProc != nil &&
 			*ip.attr.AttrClintProc.SelectedProc == exitOption {
-			fmt.Println("Press ctrl+f to exit")
+			fmt.Println("Press ctrl+c to exit")
 
 			return nil
 		}
@@ -77,55 +93,48 @@ func (ip *InteractionProc) chooseProc() error {
 			return fmt.Errorf("chooseProc->Fscan: %w", err1)
 		}
 
-		checkBan := ip.attr.AttrClintProc.IsAuth &&
-			(inValue == registerOption || inValue == loginOption)
-		checkBan1 := !ip.attr.AttrClintProc.IsAuth &&
-			(inValue == uploadOption)
+		ip.checkIncorrectOption(inValue)
 
-		if checkBan || checkBan1 {
-			notOption := nonExistentOption
-			ip.attr.AttrClintProc.SelectedProc = &notOption
-		} else {
-			ip.attr.AttrClintProc.SelectedProc = &inValue
-		}
-
-		switch *ip.attr.AttrClintProc.SelectedProc {
-		case registerOption:
-			fmt.Println("Register")
-
-			err := ip.RunRegister()
-			if err != nil {
-				loggerf.Log("chooseProc->RunRegister", err)
-			}
-		case loginOption:
-			fmt.Println("Login")
-
-			err := ip.RunLogin()
-			if err != nil {
-				loggerf.Log("chooseProc->RunLogin", err)
-			}
-		case logoutOption:
-			fmt.Println("Logout")
-
-			err := ip.RunLogout()
-			if err != nil {
-				loggerf.Log("chooseProc->RunLogout", err)
-			}
-		case exitOption:
-			fmt.Println("Press ctrl+c to exit")
-
+		isExit := ip.selectOption()
+		if isExit {
 			return nil
-		case uploadOption:
-			fmt.Println("Send data to server")
-
-			err := ip.uploadAndChunk()
-			if err != nil {
-				loggerf.Log("chooseProc->uploadAndChunk", err)
-			}
-		default:
-			fmt.Println("No such option")
 		}
 	}
+}
+
+func (ip *InteractionProc) selectOption() bool {
+	var err error
+
+	switch *ip.attr.AttrClintProc.SelectedProc {
+	case registerOption:
+		fmt.Println("Register")
+
+		err = ip.RunRegister()
+	case loginOption:
+		fmt.Println("Login")
+
+		err = ip.RunLogin()
+	case logoutOption:
+		fmt.Println("Logout")
+
+		err = ip.RunLogout()
+	case exitOption:
+		fmt.Println("Press ctrl+c to exit")
+
+		return true
+	case uploadOption:
+		fmt.Println("Send data to server")
+
+		err = ip.uploadAndChunk()
+	default:
+		fmt.Println("No such option")
+	}
+
+	if err != nil {
+		loggerf.Log("selectOption", err)
+	}
+
+	return false
 }
 
 func (ip *InteractionProc) uploadAndChunk() error {
