@@ -17,6 +17,7 @@ type RegisterProcAttr struct {
 	RegisterAttr *eregisterattr.RegisterAttr
 	Register     *eregister.Register
 	Wgroup       *sync.WaitGroup
+	EncKey       *[]byte
 }
 
 func (rpa *RegisterProcAttr) Init(
@@ -31,6 +32,7 @@ func (rpa *RegisterProcAttr) Init(
 	rpa.RegisterAttr.Init(url, rpa.Client)
 	rpa.Register = eregister.NewRegister(rpa.RegisterAttr)
 	rpa.Wgroup = attr.WGsubprocess
+	rpa.EncKey = &attr.PrivateKey
 
 	return nil
 }

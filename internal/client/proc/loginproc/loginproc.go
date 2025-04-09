@@ -11,6 +11,7 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/loginproc/loginprocattr"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
+	"github.com/dmitrovia/passkeeper/internal/general/rsa"
 )
 
 var errSNOK = errors.New("status is not OK")
@@ -79,14 +80,14 @@ func (lp *LoginProc) Input() error {
 
 	_, err := fmt.Fscan(os.Stdin, &inLogin)
 	if err != nil {
-		return fmt.Errorf("RP->Fscan(login): %w", err)
+		return fmt.Errorf("Input->Fscan(login): %w", err)
 	}
 
 	fmt.Println("Enter password")
 
 	_, err = fmt.Fscan(os.Stdin, &inPass)
 	if err != nil {
-		return fmt.Errorf("RP->Fscan(pass): %w", err)
+		return fmt.Errorf("Input->Fscan(pass): %w", err)
 	}
 
 	data := apim.InLoginUser{}
@@ -95,10 +96,15 @@ func (lp *LoginProc) Input() error {
 
 	marshal, err := json.Marshal(data)
 	if err != nil {
-		return fmt.Errorf("RP->Marshal: %w", err)
+		return fmt.Errorf("Input->Marshal: %w", err)
 	}
 
-	lp.attr.LoginAttr.Data = &marshal
+	encrypt, err := rsa.Encrypt(&marshal, lp.attr.EncKey)
+	if err != nil {
+		return fmt.Errorf("Input->Encrypt: %w", err)
+	}
+
+	lp.attr.LoginAttr.Data = encrypt
 
 	return nil
 }

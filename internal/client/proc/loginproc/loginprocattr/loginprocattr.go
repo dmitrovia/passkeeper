@@ -19,6 +19,7 @@ type LoginProcAttr struct {
 	Login         *elogin.Login
 	Wgroup        *sync.WaitGroup
 	AttrClintProc *clientpa.ClientProcAttr
+	EncKey        *[]byte
 }
 
 func (rpa *LoginProcAttr) Init(
@@ -35,6 +36,7 @@ func (rpa *LoginProcAttr) Init(
 	rpa.TokenSavePath = attr.AuthTokenPath
 	rpa.AttrClintProc = attr
 	rpa.Wgroup = attr.WGsubprocess
+	rpa.EncKey = &attr.PrivateKey
 
 	return nil
 }

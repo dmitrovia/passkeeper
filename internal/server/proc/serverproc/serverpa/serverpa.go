@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
@@ -54,6 +55,8 @@ type ServerProcAttr struct {
 	DefReadTimeout      time.Duration
 	DefWriteTimeout     time.Duration
 	DefIdleTimeout      time.Duration
+	CryptoKeyPath       string
+	PrivateKey          []byte
 	ZapLogInfoLevel     string
 	DefDBDSN            string
 	DefServerAddr       string
@@ -149,6 +152,15 @@ func (p *ServerProcAttr) GetAttrsCFG() error {
 		p.FilesStoragePath = cfg.FilesStoragePath
 	}
 
+	if p.CryptoKeyPath == "" {
+		p.CryptoKeyPath = cfg.CryptoKeyPath
+	}
+
+	p.PrivateKey, err = os.ReadFile(p.CryptoKeyPath)
+	if err != nil {
+		return fmt.Errorf("Init->ReadFile: %w", err)
+	}
+
 	return nil
 }
 
@@ -223,9 +235,9 @@ func (p *ServerProcAttr) initHandlersAttr() {
 
 	p.UploadAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.LoginAttr.Init(p.ZapLogger, p.SecretAuth,
-		p.TokenExpHour, p.Dbtimeout)
+		p.TokenExpHour, p.Dbtimeout, &p.PrivateKey)
 	p.RigsterAttr.Init(p.ZapLogger, p.SecretAuth,
-		p.TokenExpHour, p.Dbtimeout)
+		p.TokenExpHour, p.Dbtimeout, &p.PrivateKey)
 }
 
 func (p *ServerProcAttr) SetPgxPool(

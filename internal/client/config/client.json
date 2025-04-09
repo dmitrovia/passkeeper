@@ -2,5 +2,6 @@
     "filesSynchronizePath" : "../../files_client/go.gz",
     "address" : "http://localhost:8080",
     "metaPath" : "../../meta_client/meta.json",
-    "tokenPath" : "../../internal/client/auth/token.json"
+    "tokenPath" : "../../internal/client/auth/token.json",
+    "cryptoKeyPath": "../../internal/client/crypto/keys/public.pem"
 } 

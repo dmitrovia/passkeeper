@@ -10,6 +10,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/registerproc/registerprocpattr"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
+	"github.com/dmitrovia/passkeeper/internal/general/rsa"
 )
 
 var errSNOK = errors.New("status is not OK")
@@ -87,7 +88,12 @@ func (rp *RegisterProc) Input() error {
 		return fmt.Errorf("RP->Marshal: %w", err)
 	}
 
-	rp.attr.RegisterAttr.Data = &marshal
+	encrypt, err := rsa.Encrypt(&marshal, rp.attr.EncKey)
+	if err != nil {
+		return fmt.Errorf("Input->Encrypt: %w", err)
+	}
+
+	rp.attr.RegisterAttr.Data = encrypt
 
 	return nil
 }

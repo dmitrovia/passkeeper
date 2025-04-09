@@ -3,6 +3,7 @@ package clientpa
 import (
 	"flag"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -32,6 +33,8 @@ type ClientProcAttr struct {
 	DefServerAddr       string
 	MetaPath            string
 	DefMetaPath         string
+	CryptoKeyPath       string
+	PrivateKey          []byte
 	CountWorkersChunker int
 	CountWorkersUpload  int
 	DefChunkSize        int
@@ -68,6 +71,11 @@ func (p *ClientProcAttr) Init() error {
 		return fmt.Errorf("Init->GetAttrsCFG: %w", err)
 	}
 
+	p.PrivateKey, err = os.ReadFile(p.CryptoKeyPath)
+	if err != nil {
+		return fmt.Errorf("Init->ReadFile: %w", err)
+	}
+
 	return nil
 }
 
@@ -87,6 +95,10 @@ func (p *ClientProcAttr) GetAttrsCFG() error {
 
 	if p.MetaPath == "" {
 		p.MetaPath = cfg.MetaPath
+	}
+
+	if p.CryptoKeyPath == "" {
+		p.CryptoKeyPath = cfg.CryptoKeyPath
 	}
 
 	if p.AuthTokenPath == "" {

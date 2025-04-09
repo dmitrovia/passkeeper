@@ -11,6 +11,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
+	"github.com/dmitrovia/passkeeper/internal/general/rsa"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/register/registerattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/dmitrovia/passkeeper/internal/server/service"
@@ -45,7 +46,7 @@ func (h *Register) RegisterHandler(
 ) {
 	reqAttr := &apim.InRegisterUser{}
 
-	err := getReqData(req, reqAttr)
+	err := getReqData(req, reqAttr, h.attr)
 	if err != nil {
 		setErr(writer, h.attr, err, "getReqData")
 
@@ -146,6 +147,7 @@ func cryptPass(pass string) (string, error) {
 func getReqData(
 	req *http.Request,
 	reqAttr *apim.InRegisterUser,
+	attrHandler *registerattr.RegisterAttr,
 ) error {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -156,7 +158,12 @@ func getReqData(
 		return fmt.Errorf("getReqData: %w", errEmptyData)
 	}
 
-	err = json.Unmarshal(body, reqAttr)
+	dec, err := rsa.Decrypt(&body, attrHandler.DecKey)
+	if err != nil {
+		return fmt.Errorf("getReqData->Decrypt: %w", err)
+	}
+
+	err = json.Unmarshal(*dec, reqAttr)
 	if err != nil {
 		return fmt.Errorf("getReqData->json.Unmarshal: %w", err)
 	}

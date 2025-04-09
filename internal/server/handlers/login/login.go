@@ -11,6 +11,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
+	"github.com/dmitrovia/passkeeper/internal/general/rsa"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/login/loginattr"
 	"github.com/dmitrovia/passkeeper/internal/server/service"
 	"github.com/golang-jwt/jwt/v4"
@@ -37,7 +38,7 @@ func (h *Login) LoginHandler(
 ) {
 	reqAttr := &apim.InLoginUser{}
 
-	err := getReqData(req, reqAttr)
+	err := getReqData(req, reqAttr, h.attr)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		logger.LogE("login->getReqData", err, h.attr.ZapLogger)
@@ -132,6 +133,7 @@ func validate(reqAttr *apim.InLoginUser) bool {
 func getReqData(
 	req *http.Request,
 	reqAttr *apim.InLoginUser,
+	attrHandler *loginattr.LoginAttr,
 ) error {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -142,7 +144,12 @@ func getReqData(
 		return fmt.Errorf("getReqData: %w", errEmptyData)
 	}
 
-	err = json.Unmarshal(body, reqAttr)
+	dec, err := rsa.Decrypt(&body, attrHandler.DecKey)
+	if err != nil {
+		return fmt.Errorf("getReqData->Decrypt: %w", err)
+	}
+
+	err = json.Unmarshal(*dec, reqAttr)
 	if err != nil {
 		return fmt.Errorf("getReqData->json.Unmarshal: %w", err)
 	}

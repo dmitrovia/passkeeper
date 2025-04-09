@@ -11,6 +11,7 @@ type LoginAttr struct {
 	Dbtimeout    time.Duration
 	Secret       string
 	TokenExpHour int
+	DecKey       *[]byte
 }
 
 func (p *LoginAttr) Init(
@@ -18,9 +19,11 @@ func (p *LoginAttr) Init(
 	secret string,
 	tokenExpHour int,
 	dbt time.Duration,
+	dkey *[]byte,
 ) {
 	p.Secret = secret
 	p.TokenExpHour = tokenExpHour
 	p.ZapLogger = logger
 	p.Dbtimeout = dbt
+	p.DecKey = dkey
 }
