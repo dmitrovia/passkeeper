@@ -33,6 +33,7 @@ func (m *MetaStorage) CreateMeta(
 		ctx,
 		"INSERT INTO meta (file_name,hash_md,"+
 			" index_number,client_user) VALUES ($1,$2,$3,$4)"+
+			" ON CONFLICT (file_name) DO NOTHING"+
 			" RETURNING id",
 		meta.FileName, meta.Hash,
 		meta.Index, meta.User.ID).Scan(&lastInsertID)

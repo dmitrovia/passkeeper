@@ -15,6 +15,7 @@ type ChunkerProcAttr struct {
 	ChunkSize           int
 	CntChunks           int
 	FilePath            string
+	FileName            string
 	Wgroup              *sync.WaitGroup
 	WorkerChunkWg       *sync.WaitGroup
 	ChFile              *os.File
@@ -42,6 +43,8 @@ func (cpa *ChunkerProcAttr) Init(
 	if err != nil {
 		return fmt.Errorf("RP->Stat: %w", err)
 	}
+
+	cpa.FileName = fileInfo.Name()
 
 	cz := int64(cpa.ChunkSize)
 	cntChunks := int(fileInfo.Size() / cz)

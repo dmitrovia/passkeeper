@@ -117,17 +117,7 @@ func (p *ServerProcAttr) Init() error {
 		return fmt.Errorf("Init->SetPgxPool: %w", err)
 	}
 
-	p.FileStorage = &filestorage.FileStorage{}
-	p.FileStorage.Initiate(p.PgxConn)
-	p.MetaStorage = &metastorage.MetaStorage{}
-	p.MetaStorage.Initiate(p.PgxConn)
-	p.UserStorage = &userstorage.UserStorage{}
-	p.UserStorage.Initiate(p.PgxConn)
-	p.MetaService = metaservice.NewMetaService(p.MetaStorage)
-	p.FIleService = fileservice.NewFileService(p.FIleService)
-	p.AuthService = authservice.NewAuthService(
-		p.UserStorage)
-	p.initHandlersAttr()
+	p.initServices()
 	p.AuthMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
 	p.AuthMidAttr.Init(p.ZapLogger,
 		p.AuthService, p.Dbtimeout, p.SecretAuth)
@@ -144,6 +134,20 @@ func (p *ServerProcAttr) Init() error {
 	}
 
 	return nil
+}
+
+func (p *ServerProcAttr) initServices() {
+	p.FileStorage = &filestorage.FileStorage{}
+	p.FileStorage.Initiate(p.PgxConn)
+	p.MetaStorage = &metastorage.MetaStorage{}
+	p.MetaStorage.Initiate(p.PgxConn)
+	p.UserStorage = &userstorage.UserStorage{}
+	p.UserStorage.Initiate(p.PgxConn)
+	p.MetaService = metaservice.NewMetaService(p.MetaStorage)
+	p.FIleService = fileservice.NewFileService(p.FIleService)
+	p.AuthService = authservice.NewAuthService(
+		p.UserStorage)
+	p.initHandlersAttr()
 }
 
 func (p *ServerProcAttr) GetAttrsCFG() error {
@@ -259,7 +263,8 @@ func (p *ServerProcAttr) initHandlersAttr() {
 
 	p.InitUploadAttr.Init(p.ZapLogger,
 		p.Dbtimeout, p.FilesStoragePath)
-	p.UploadAttr.Init(p.ZapLogger, p.Dbtimeout)
+	p.UploadAttr.Init(p.ZapLogger, p.Dbtimeout,
+		p.FilesStoragePath)
 	p.LoginAttr.Init(p.ZapLogger, p.SecretAuth,
 		p.TokenExpHour, p.Dbtimeout, &p.PrivateKey)
 	p.RigsterAttr.Init(p.ZapLogger, p.SecretAuth,

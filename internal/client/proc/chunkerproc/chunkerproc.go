@@ -86,7 +86,7 @@ func (cp *ChunkerProc) toChunk(
 	chBytes := buffer[:bytesRead]
 	hash := md5.Sum(chBytes)
 	fileName := fmt.Sprintf("%s.chunk.%d",
-		cp.attr.FilePath, index)
+		cp.attr.FileName, index)
 	encodeHash := hex.EncodeToString(hash[:])
 
 	oldChunk,

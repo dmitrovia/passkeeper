@@ -42,10 +42,11 @@ type InteractionProcAttr struct {
 	Logoutproc *logoutproc.LogoutProc
 	Logoutpa   *logoutprocattr.LogoutProcAttr
 	// general
-	AttrClintProc *clientpa.ClientProcAttr
-	WGsubprocess  *sync.WaitGroup
-	WorkerChunkWg *sync.WaitGroup
-	Metamanager   *metamanager.MetaManager
+	AttrClintProc   *clientpa.ClientProcAttr
+	WGsubprocess    *sync.WaitGroup
+	WorkerChunkWg   *sync.WaitGroup
+	Metamanager     *metamanager.MetaManager
+	CurrentMetadata map[string]chunckmeta.ChunkMeta
 }
 
 func (ipa *InteractionProcAttr) InitRegister() error {
@@ -97,6 +98,8 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	if err != nil {
 		return fmt.Errorf("InitChunkAndUpload->LM: %w", err)
 	}
+
+	ipa.CurrentMetadata = metadata
 
 	err = ipa.Chunkerpa.Init(ipa.AttrClintProc)
 	if err != nil {

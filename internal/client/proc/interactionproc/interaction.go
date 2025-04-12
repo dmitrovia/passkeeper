@@ -2,6 +2,7 @@ package interactionproc
 
 import (
 	"fmt"
+	"maps"
 	"os"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc/interactionpa"
@@ -162,10 +163,15 @@ func (ip *InteractionProc) uploadAndChunk() error {
 	ip.attr.Chunkerpa.ChFile.Close()
 	close(ip.attr.ErrChan)
 
-	err = ip.attr.Metamanager.SaveMetadata(
-		ip.attr.Uploadpa.UploadedMetadata)
-	if err != nil {
-		return fmt.Errorf("uploadAndChunk->SaveMetadata: %w", err)
+	if len(ip.attr.Uploadpa.UploadedMetadata) > 0 {
+		maps.Copy(ip.attr.CurrentMetadata,
+			ip.attr.Uploadpa.UploadedMetadata)
+
+		err = ip.attr.Metamanager.SaveMetadata(
+			ip.attr.CurrentMetadata)
+		if err != nil {
+			return fmt.Errorf("uploadAndChunk->SM: %w", err)
+		}
 	}
 
 	for err := range ip.attr.Uploadpa.ErrChan {

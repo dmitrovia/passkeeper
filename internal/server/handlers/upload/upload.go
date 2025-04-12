@@ -63,6 +63,9 @@ func (h *Upload) UploadHandler(
 	defer cancel()
 
 	chunk.User = user
+	newPath := fmt.Sprintf("%s/%s/%s",
+		h.attr.FilesStoragePath, *user.Login, *chunk.FileName)
+	chunk.FileName = &newPath
 
 	err = h.metaService.CreateMeta(ctx, chunk)
 	if err != nil {

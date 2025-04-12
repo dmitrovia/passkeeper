@@ -7,13 +7,13 @@ import (
 )
 
 type ChunkMeta struct {
-	FileName    *string     `json:"fileName"`
-	Createddate *time.Time  `json:"createdDate,omitempty"`
 	ID          int32       `json:"id,omitempty"`
-	Hash        *string     `json:"hash"`
 	Index       *int        `json:"index"`
+	Hash        *string     `json:"hash"`
+	FileName    *string     `json:"fileName"`
 	Data        *[]byte     `json:"data,omitempty"`
 	User        *userm.User `json:"user,omitempty"`
+	Createddate *time.Time  `json:"createdDate,omitempty"`
 }
 
 func NewChunkMeta(
