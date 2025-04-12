@@ -143,12 +143,15 @@ func (ip *InteractionProc) uploadAndChunk() error {
 		return fmt.Errorf("uploadAndChunk->ICAU: %w", err)
 	}
 
+	err = ip.attr.InitUploadproc.RunProcess()
+	if err != nil {
+		return fmt.Errorf("uploadAndChunk->IUPRP: %w", err)
+	}
+
 	ip.attr.WGsubprocess.Add(
 		ip.attr.Chunkerpa.CountWorkersChunker)
 	ip.attr.WGsubprocess.Add(
 		ip.attr.Uploadpa.CountWorkersUpload)
-
-	fmt.Println(ip.attr.Chunkerpa.CntChunks)
 	ip.attr.WorkerChunkWg.Add(ip.attr.Chunkerpa.CntChunks)
 
 	go ip.RunChunker()

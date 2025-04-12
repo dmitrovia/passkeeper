@@ -10,13 +10,14 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware/authmiddlewareattr"
+	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/golang-jwt/jwt/v4"
 )
 
 // const tokenLen = 2
 
-var errUnexpectedMethod = errors.New("data is empty")
+var errUnexpectedMethod = errors.New("errUnexpectedMethod")
 
 var errUserNotExist = errors.New("user is not exist")
 
@@ -57,7 +58,7 @@ func AuthMiddleware(
 
 			defer cancel()
 
-			isValid, err := isValidToken(ctx, token, attr)
+			user, isValid, err := isValidToken(ctx, token, attr)
 			if err != nil {
 				setErr(writer, attr, err)
 
@@ -69,6 +70,9 @@ func AuthMiddleware(
 
 				return
 			}
+
+			req = req.WithContext(
+				context.WithValue(req.Context(), ctxm.UserKey, user))
 
 			hand.ServeHTTP(writer, req)
 		}
@@ -82,56 +86,43 @@ func AuthMiddleware(
 func isValidToken(ctx context.Context,
 	token *jwt.Token,
 	attr *authmiddlewareattr.AuthMiddlewareAttr,
-) (bool, error) {
+) (*userm.User, bool, error) {
 	if !token.Valid {
-		return false, nil
+		return nil, false, nil
 	}
 
 	claims, oka := token.Claims.(jwt.MapClaims)
 	if !oka {
-		return false, nil
+		return nil, false, nil
 	}
 
 	timeNow := float64(time.Now().Unix())
 	claimsExp, oka := claims["exp"].(float64)
 
 	if !oka {
-		return false, nil
+		return nil, false, nil
 	}
 
 	if timeNow > claimsExp {
-		return false, nil
+		return nil, false, nil
 	}
 
 	login, ok := claims["id"].(string)
 	if !ok {
-		return false, nil
+		return nil, false, nil
 	}
 
 	exist, user, err := attr.AuthService.UserIsExist(ctx,
 		login)
 	if err != nil {
-		return false, fmt.Errorf("isValidToken->UIE: %w", err)
+		return nil, false, fmt.Errorf("IVT->UIE: %w", err)
 	}
 
 	if !exist {
-		return false, errUserNotExist
+		return nil, false, errUserNotExist
 	}
 
-	setSessionUserData(user, attr)
-
-	return true, nil
-}
-
-func setSessionUserData(user *userm.User,
-	attr *authmiddlewareattr.AuthMiddlewareAttr,
-) {
-	sessionUser := attr.SessionUser
-	sessionUser.SetUser(
-		user.ID,
-		user.Login,
-		user.Password,
-		user.Createddate)
+	return user, true, nil
 }
 
 func parseToken(inToken string,

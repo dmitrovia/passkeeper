@@ -8,6 +8,8 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/inituploadproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/inituploadproc/inituploadprocattr.go"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/loginproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/loginproc/loginprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/logoutproc"
@@ -27,6 +29,9 @@ type InteractionProcAttr struct {
 	Uploadpa   *uploadpa.UploadProcAttr
 	UploadChan chan chunckmeta.ChunkMeta
 	ErrChan    chan error
+	// init upload
+	InitUploadproc *inituploadproc.InitUploadProc
+	InitUploadpa   *inituploadprocattr.InitUploadProcAttr
 	// register
 	Registerproc *registerproc.RegisterProc
 	Registerpa   *registerprocpattr.RegisterProcAttr
@@ -122,6 +127,11 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	ipa.Uploadpa.CountChunk = ipa.Chunkerpa.CntChunks
 	ipa.Uploadpa.WorkerChunkWg = ipa.WorkerChunkWg
 	ipa.Uploadproc = uploadproc.NewProc(ipa.Uploadpa)
+
+	ipa.InitUploadpa = &inituploadprocattr.InitUploadProcAttr{}
+	ipa.InitUploadpa.Init(ipa.AttrClintProc)
+	ipa.InitUploadproc = inituploadproc.NewProc(
+		ipa.InitUploadpa)
 
 	return nil
 }

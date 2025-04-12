@@ -10,6 +10,8 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/server/config"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/initupload"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/initupload/inituploadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/login"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/login/loginattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/notallowed"
@@ -19,8 +21,8 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/upload/uploadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware/authmiddlewareattr"
+	"github.com/dmitrovia/passkeeper/internal/server/middleware/gzipmiddle"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/loggermiddleware"
-	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/dmitrovia/passkeeper/internal/server/service/authservice"
 	"github.com/dmitrovia/passkeeper/internal/server/service/metaservice"
 	"github.com/dmitrovia/passkeeper/internal/server/storage/metastorage"
@@ -42,7 +44,6 @@ type ServerProcAttr struct {
 	ZapLogger           *zap.Logger
 	PgxConn             *pgxpool.Pool
 	Server              *http.Server
-	SessionUser         *userm.User
 	UserStorage         *userstorage.UserStorage
 	AuthService         *authservice.AuthService
 	MetaStorage         *metastorage.MetaStorage
@@ -51,6 +52,8 @@ type ServerProcAttr struct {
 	RigsterAttr         *registerattr.RegisterAttr
 	UploadAttr          *uploadattr.UploadAttr
 	AuthMidAttr         *authmiddlewareattr.AuthMiddlewareAttr
+	InitUpload          *initupload.InitUpload
+	InitUploadAttr      *inituploadattr.InitUploadAttr
 	Dbtimeout           time.Duration
 	DefReadTimeout      time.Duration
 	DefWriteTimeout     time.Duration
@@ -73,7 +76,6 @@ type ServerProcAttr struct {
 }
 
 func (p *ServerProcAttr) Init() error {
-	p.SessionUser = &userm.User{}
 	p.SecretAuth = "qwerty"
 	p.TokenExpHour = 24
 	p.ZapLogInfoLevel = "info"
@@ -118,7 +120,7 @@ func (p *ServerProcAttr) Init() error {
 	p.initHandlersAttr()
 	p.AuthMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
 	p.AuthMidAttr.Init(p.ZapLogger,
-		p.AuthService, p.SessionUser, p.Dbtimeout, p.SecretAuth)
+		p.AuthService, p.Dbtimeout, p.SecretAuth)
 
 	mux := mux.NewRouter()
 	p.initAPIMethods(mux)
@@ -201,10 +203,14 @@ func (p *ServerProcAttr) initAPIMethods(
 		p.AuthService, p.LoginAttr).LoginHandler
 	uploadH := upload.NewUploadHandler(p.MetaService,
 		p.UploadAttr).UploadHandler
+	initUploadH := initupload.NewUploadHandler(p.MetaService,
+		p.InitUploadAttr).UploadHandler
 
-	p.setMethod(post, "register", mux, register, false)
-	p.setMethod(post, "login", mux, login, false)
-	p.setMethod(post, "upload", mux, uploadH, true)
+	p.setMethod(post, "register", mux, register, false, false)
+	p.setMethod(post, "login", mux, login, false, false)
+	p.setMethod(post, "upload", mux, uploadH, true, true)
+	p.setMethod(post, "initupload", mux, initUploadH, true,
+		false)
 
 	mux.MethodNotAllowedHandler = hNotAllowed
 }
@@ -215,6 +221,7 @@ func (p *ServerProcAttr) setMethod(
 	mux *mux.Router,
 	handler func(http.ResponseWriter, *http.Request),
 	onlyAuth bool,
+	decompress bool,
 ) {
 	subRouter := mux.Methods(method).Subrouter()
 	subRouter.HandleFunc(p.APIUsersURL+url,
@@ -226,13 +233,20 @@ func (p *ServerProcAttr) setMethod(
 		subRouter.Use(
 			authmiddleware.AuthMiddleware(p.AuthMidAttr))
 	}
+
+	if decompress {
+		subRouter.Use(gzipmiddle.GzipMiddleware(),
+			loggermiddleware.RequestLogger(p.ZapLogger))
+	}
 }
 
 func (p *ServerProcAttr) initHandlersAttr() {
 	p.LoginAttr = &loginattr.LoginAttr{}
 	p.RigsterAttr = &registerattr.RegisterAttr{}
 	p.UploadAttr = &uploadattr.UploadAttr{}
+	p.InitUploadAttr = &inituploadattr.InitUploadAttr{}
 
+	p.InitUploadAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.UploadAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.LoginAttr.Init(p.ZapLogger, p.SecretAuth,
 		p.TokenExpHour, p.Dbtimeout, &p.PrivateKey)
