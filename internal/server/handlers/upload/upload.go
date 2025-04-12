@@ -1,6 +1,7 @@
 package upload
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,14 +24,20 @@ const (
 
 type Upload struct {
 	fileService service.FileService
+	metaService service.MetaService
 	attr        *uploadattr.UploadAttr
 }
 
 func NewUploadHandler(
 	s service.FileService,
+	metaService service.MetaService,
 	inAttr *uploadattr.UploadAttr,
 ) *Upload {
-	return &Upload{fileService: s, attr: inAttr}
+	return &Upload{
+		fileService: s,
+		attr:        inAttr,
+		metaService: metaService,
+	}
 }
 
 func (h *Upload) UploadHandler(
@@ -51,7 +58,18 @@ func (h *Upload) UploadHandler(
 		return
 	}
 
-	fmt.Println(chunk)
+	ctx, cancel := context.WithTimeout(
+		req.Context(), h.attr.Dbtimeout)
+	defer cancel()
+
+	chunk.User = user
+
+	err = h.metaService.CreateMeta(ctx, chunk)
+	if err != nil {
+		h.setErr(writer, err, "CreateMeta")
+
+		return
+	}
 
 	writer.WriteHeader(http.StatusOK)
 }

@@ -24,7 +24,9 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/gzipmiddle"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/loggermiddleware"
 	"github.com/dmitrovia/passkeeper/internal/server/service/authservice"
+	"github.com/dmitrovia/passkeeper/internal/server/service/fileservice"
 	"github.com/dmitrovia/passkeeper/internal/server/service/metaservice"
+	"github.com/dmitrovia/passkeeper/internal/server/storage/filestorage"
 	"github.com/dmitrovia/passkeeper/internal/server/storage/metastorage"
 	"github.com/dmitrovia/passkeeper/internal/server/storage/userstorage"
 	"github.com/gorilla/mux"
@@ -48,6 +50,8 @@ type ServerProcAttr struct {
 	AuthService         *authservice.AuthService
 	MetaStorage         *metastorage.MetaStorage
 	MetaService         *metaservice.MetaService
+	FileStorage         *filestorage.FileStorage
+	FIleService         *fileservice.FileService
 	LoginAttr           *loginattr.LoginAttr
 	RigsterAttr         *registerattr.RegisterAttr
 	UploadAttr          *uploadattr.UploadAttr
@@ -113,8 +117,14 @@ func (p *ServerProcAttr) Init() error {
 		return fmt.Errorf("Init->SetPgxPool: %w", err)
 	}
 
+	p.FileStorage = &filestorage.FileStorage{}
+	p.FileStorage.Initiate(p.PgxConn)
+	p.MetaStorage = &metastorage.MetaStorage{}
+	p.MetaStorage.Initiate(p.PgxConn)
 	p.UserStorage = &userstorage.UserStorage{}
 	p.UserStorage.Initiate(p.PgxConn)
+	p.MetaService = metaservice.NewMetaService(p.MetaStorage)
+	p.FIleService = fileservice.NewFileService(p.FIleService)
 	p.AuthService = authservice.NewAuthService(
 		p.UserStorage)
 	p.initHandlersAttr()
@@ -201,10 +211,11 @@ func (p *ServerProcAttr) initAPIMethods(
 		p.AuthService, p.RigsterAttr).RegisterHandler
 	login := login.NewLoginHandler(
 		p.AuthService, p.LoginAttr).LoginHandler
-	uploadH := upload.NewUploadHandler(p.MetaService,
+	uploadH := upload.NewUploadHandler(p.FIleService,
+		p.MetaService,
 		p.UploadAttr).UploadHandler
-	initUploadH := initupload.NewUploadHandler(p.MetaService,
-		p.InitUploadAttr).UploadHandler
+	initUploadH := initupload.NewUploadHandler(p.FIleService,
+		p.InitUploadAttr).InitUploadHandler
 
 	p.setMethod(post, "register", mux, register, false, false)
 	p.setMethod(post, "login", mux, login, false, false)
@@ -246,7 +257,8 @@ func (p *ServerProcAttr) initHandlersAttr() {
 	p.UploadAttr = &uploadattr.UploadAttr{}
 	p.InitUploadAttr = &inituploadattr.InitUploadAttr{}
 
-	p.InitUploadAttr.Init(p.ZapLogger, p.Dbtimeout)
+	p.InitUploadAttr.Init(p.ZapLogger,
+		p.Dbtimeout, p.FilesStoragePath)
 	p.UploadAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.LoginAttr.Init(p.ZapLogger, p.SecretAuth,
 		p.TokenExpHour, p.Dbtimeout, &p.PrivateKey)

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 )
 
@@ -12,6 +13,9 @@ type AuthService interface {
 	CreateUser(ctx context.Context, user *userm.User) error
 }
 
-type MetaService interface{}
+type MetaService interface {
+	CreateMeta(ctx context.Context,
+		meta *chunckmeta.ChunkMeta) error
+}
 
 type FileService interface{}

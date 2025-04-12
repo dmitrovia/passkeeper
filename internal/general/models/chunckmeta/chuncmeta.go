@@ -1,14 +1,19 @@
 package chunckmeta
 
-import "time"
+import (
+	"time"
+
+	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
+)
 
 type ChunkMeta struct {
-	FileName    *string    `json:"fileName"`
-	Createddate *time.Time `json:"createdDate,omitempty"`
-	ID          int32      `json:"id,omitempty"`
-	Hash        *string    `json:"hash"`
-	Index       *int       `json:"index"`
-	Data        *[]byte    `json:"data,omitempty"`
+	FileName    *string     `json:"fileName"`
+	Createddate *time.Time  `json:"createdDate,omitempty"`
+	ID          int32       `json:"id,omitempty"`
+	Hash        *string     `json:"hash"`
+	Index       *int        `json:"index"`
+	Data        *[]byte     `json:"data,omitempty"`
+	User        *userm.User `json:"user,omitempty"`
 }
 
 func NewChunkMeta(

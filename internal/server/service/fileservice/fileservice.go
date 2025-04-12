@@ -7,7 +7,7 @@ type FileService struct {
 }
 
 func NewFileService(
-	rep storage.UserStorage,
+	rep storage.FileStorage,
 ) *FileService {
 	return &FileService{
 		repository: rep,
