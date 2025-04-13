@@ -21,7 +21,6 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/upload/uploadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware/authmiddlewareattr"
-	"github.com/dmitrovia/passkeeper/internal/server/middleware/gzipmiddle"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/loggermiddleware"
 	"github.com/dmitrovia/passkeeper/internal/server/service/authservice"
 	"github.com/dmitrovia/passkeeper/internal/server/service/fileservice"
@@ -221,11 +220,10 @@ func (p *ServerProcAttr) initAPIMethods(
 	initUploadH := initupload.NewUploadHandler(p.FIleService,
 		p.InitUploadAttr).InitUploadHandler
 
-	p.setMethod(post, "register", mux, register, false, false)
-	p.setMethod(post, "login", mux, login, false, false)
-	p.setMethod(post, "upload", mux, uploadH, true, false)
-	p.setMethod(post, "initupload", mux, initUploadH, true,
-		false)
+	p.setMethod(post, "register", mux, register, false)
+	p.setMethod(post, "login", mux, login, false)
+	p.setMethod(post, "upload", mux, uploadH, true)
+	p.setMethod(post, "initupload", mux, initUploadH, true)
 
 	mux.MethodNotAllowedHandler = hNotAllowed
 }
@@ -236,7 +234,6 @@ func (p *ServerProcAttr) setMethod(
 	mux *mux.Router,
 	handler func(http.ResponseWriter, *http.Request),
 	onlyAuth bool,
-	decompress bool,
 ) {
 	subRouter := mux.Methods(method).Subrouter()
 	subRouter.HandleFunc(p.APIUsersURL+url,
@@ -247,11 +244,6 @@ func (p *ServerProcAttr) setMethod(
 	if onlyAuth {
 		subRouter.Use(
 			authmiddleware.AuthMiddleware(p.AuthMidAttr))
-	}
-
-	if decompress {
-		subRouter.Use(gzipmiddle.GzipMiddleware(),
-			loggermiddleware.RequestLogger(p.ZapLogger))
 	}
 }
 

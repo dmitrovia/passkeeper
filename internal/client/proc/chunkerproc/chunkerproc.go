@@ -54,6 +54,8 @@ func (cp *ChunkerProc) runWorker(
 	for index := range indexChan {
 		err := cp.toChunk(index)
 		if err != nil {
+			cp.attr.ErrChan <- err
+
 			cp.attr.WorkerChunkWg.Done()
 		}
 	}
@@ -67,15 +69,11 @@ func (cp *ChunkerProc) toChunk(
 
 	_, err := cp.attr.ChFile.Seek(offset, 0)
 	if err != nil {
-		cp.attr.ErrChan <- err
-
 		return fmt.Errorf("toChunk->Seek: %w", err)
 	}
 
 	bytesRead, err := cp.attr.ChFile.Read(buffer)
 	if err != nil && !errors.Is(err, io.EOF) {
-		cp.attr.ErrChan <- err
-
 		return fmt.Errorf("toChunk->Read: %w", err)
 	}
 
@@ -110,8 +108,6 @@ func (cp *ChunkerProc) toChunk(
 		compressData, err := compress.DeflateCompress(
 			chBytes)
 		if err != nil {
-			cp.attr.ErrChan <- err
-
 			return fmt.Errorf("toChunk->DC: %w", err)
 		}
 

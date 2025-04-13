@@ -175,6 +175,23 @@ func (
 		return nil
 	}
 
+	entries, err := os.ReadDir(
+		ip.attr.AttrClintProc.FileSynchronizePath)
+	if err != nil {
+		return fmt.Errorf("UACSM->ReadDir: %w", err)
+	}
+
+	for _, e := range entries {
+		fsp := ip.attr.AttrClintProc.FileSynchronizePath
+		ip.attr.AttrClintProc.SelectFilePath = fsp +
+			e.Name()
+
+		err := ip.uploadAndChunk()
+		if err != nil {
+			return fmt.Errorf("UACSM->UAC: %w", err)
+		}
+	}
+
 	return nil
 }
 
