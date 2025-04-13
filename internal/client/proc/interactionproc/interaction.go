@@ -124,9 +124,7 @@ func (ip *InteractionProc) selectOption() bool {
 
 		return true
 	case uploadOption:
-		fmt.Println("Send data to server")
-
-		err = ip.uploadAndChunk()
+		err = ip.uploadAndChunksSelectMode()
 	default:
 		fmt.Println("No such option")
 	}
@@ -136,6 +134,48 @@ func (ip *InteractionProc) selectOption() bool {
 	}
 
 	return false
+}
+
+func (
+	ip *InteractionProc) uploadAndChunksSelectMode() error {
+	str := "Enter 1 if you want to download" +
+		"a specific file, any other value if all"
+	fmt.Println(str)
+
+	var inValue int
+
+	var fileName string
+
+	_, err1 := fmt.Fscan(os.Stdin, &inValue)
+	if err1 != nil {
+		return fmt.Errorf("UACSM->Fscan1: %w", err1)
+	}
+
+	if inValue == 1 {
+		ip.attr.SpecificFileUpload = true
+	}
+
+	if ip.attr.SpecificFileUpload {
+		fmt.Println("Enter file name")
+
+		_, err1 := fmt.Fscan(os.Stdin, &fileName)
+		if err1 != nil {
+			return fmt.Errorf("UACSM->Fscan2: %w", err1)
+		}
+
+		fsp := ip.attr.AttrClintProc.FileSynchronizePath
+		ip.attr.AttrClintProc.SelectFilePath = fsp +
+			fileName
+
+		err := ip.uploadAndChunk()
+		if err != nil {
+			return fmt.Errorf("UACSM->UAC: %w", err)
+		}
+
+		return nil
+	}
+
+	return nil
 }
 
 func (ip *InteractionProc) uploadAndChunk() error {

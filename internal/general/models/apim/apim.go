@@ -13,6 +13,7 @@ type CfgClient struct {
 	MetaPath             string `json:"metaPath"`
 	TokenPath            string `json:"tokenPath"`
 	CryptoKeyPath        string `json:"cryptoKeyPath"`
+	GzipFormats          string `json:"gzipFormats"`
 }
 
 type InRegisterUser struct {

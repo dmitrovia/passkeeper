@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
+	"github.com/dmitrovia/passkeeper/internal/general/compress"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
@@ -50,37 +52,37 @@ func (cp *ChunkerProc) runWorker(
 	defer cp.attr.Wgroup.Done()
 
 	for index := range indexChan {
-		cp.toChunk(index)
+		err := cp.toChunk(index)
+		if err != nil {
+			cp.attr.WorkerChunkWg.Done()
+		}
 	}
 }
 
 func (cp *ChunkerProc) toChunk(
 	index int,
-) {
+) error {
 	offset := int64(index) * int64(cp.attr.ChunkSize)
-	buffer := make([]byte,
-		cp.attr.ChunkSize)
+	buffer := make([]byte, cp.attr.ChunkSize)
 
 	_, err := cp.attr.ChFile.Seek(offset, 0)
 	if err != nil {
 		cp.attr.ErrChan <- err
-		cp.attr.WorkerChunkWg.Done()
 
-		return
+		return fmt.Errorf("toChunk->Seek: %w", err)
 	}
 
 	bytesRead, err := cp.attr.ChFile.Read(buffer)
 	if err != nil && !errors.Is(err, io.EOF) {
 		cp.attr.ErrChan <- err
-		cp.attr.WorkerChunkWg.Done()
 
-		return
+		return fmt.Errorf("toChunk->Read: %w", err)
 	}
 
 	if bytesRead == 0 {
 		cp.attr.WorkerChunkWg.Done()
 
-		return
+		return nil
 	}
 
 	chBytes := buffer[:bytesRead]
@@ -95,15 +97,30 @@ func (cp *ChunkerProc) toChunk(
 	if exists || oldChunk.Hash == &encodeHash {
 		cp.attr.WorkerChunkWg.Done()
 
-		return
+		return nil
 	}
 
 	chunk := chunckmeta.NewChunkMeta(
-		fileName,
-		encodeHash,
-		index,
-		&chBytes,
+		fileName, encodeHash, index, nil,
 	)
 
+	isCompress := strings.Contains(cp.attr.GzipFormats,
+		cp.attr.FileFormat)
+	if isCompress {
+		compressData, err := compress.DeflateCompress(
+			chBytes)
+		if err != nil {
+			cp.attr.ErrChan <- err
+
+			return fmt.Errorf("toChunk->DC: %w", err)
+		}
+
+		chunk.Data = &compressData
+	} else {
+		chunk.Data = &chBytes
+	}
+
 	cp.attr.UploadChan <- *chunk
+
+	return nil
 }

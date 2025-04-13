@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
@@ -67,6 +68,13 @@ func (h *Upload) UploadHandler(
 		h.attr.FilesStoragePath, *user.Login, *chunk.FileName)
 	chunk.FileName = &newPath
 
+	err = h.createChunkFile(chunk)
+	if err != nil {
+		h.setErr(writer, err, "createChunkFile")
+
+		return
+	}
+
 	err = h.metaService.CreateMeta(ctx, chunk)
 	if err != nil {
 		h.setErr(writer, err, "CreateMeta")
@@ -75,6 +83,22 @@ func (h *Upload) UploadHandler(
 	}
 
 	writer.WriteHeader(http.StatusOK)
+}
+
+func (h *Upload) createChunkFile(
+	chunk *chunckmeta.ChunkMeta,
+) error {
+	chunkFile, err := os.Create(*chunk.FileName)
+	if err != nil {
+		return fmt.Errorf("createChunkFile->Create: %w", err)
+	}
+
+	_, err = chunkFile.Write(*chunk.Data)
+	if err != nil {
+		return fmt.Errorf("createChunkFile->Write: %w", err)
+	}
+
+	return nil
 }
 
 func (h *Upload) setErr(writer http.ResponseWriter,

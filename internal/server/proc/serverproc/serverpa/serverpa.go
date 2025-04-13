@@ -223,7 +223,7 @@ func (p *ServerProcAttr) initAPIMethods(
 
 	p.setMethod(post, "register", mux, register, false, false)
 	p.setMethod(post, "login", mux, login, false, false)
-	p.setMethod(post, "upload", mux, uploadH, true, true)
+	p.setMethod(post, "upload", mux, uploadH, true, false)
 	p.setMethod(post, "initupload", mux, initUploadH, true,
 		false)
 

@@ -10,7 +10,6 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/euploader"
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/euploader/euploaderattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc/uploadpa"
-	"github.com/dmitrovia/passkeeper/internal/general/compress"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
@@ -65,13 +64,13 @@ func (up *UploadProc) toCompressJSON(
 		return nil, fmt.Errorf("toCompressJSON->Marshal: %w", err)
 	}
 
-	jsonCompress, err := compress.DeflateCompress(
+	/*jsonCompress, err := compress.DeflateCompress(
 		metricMarshall)
 	if err != nil {
 		return nil, fmt.Errorf("toCompressJSON->Deflate: %w", err)
-	}
+	}*/
 
-	return &jsonCompress, nil
+	return &metricMarshall, nil
 }
 
 func (up *UploadProc) UploadChunk(

@@ -42,11 +42,12 @@ type InteractionProcAttr struct {
 	Logoutproc *logoutproc.LogoutProc
 	Logoutpa   *logoutprocattr.LogoutProcAttr
 	// general
-	AttrClintProc   *clientpa.ClientProcAttr
-	WGsubprocess    *sync.WaitGroup
-	WorkerChunkWg   *sync.WaitGroup
-	Metamanager     *metamanager.MetaManager
-	CurrentMetadata map[string]chunckmeta.ChunkMeta
+	AttrClintProc      *clientpa.ClientProcAttr
+	WGsubprocess       *sync.WaitGroup
+	WorkerChunkWg      *sync.WaitGroup
+	Metamanager        *metamanager.MetaManager
+	CurrentMetadata    map[string]chunckmeta.ChunkMeta
+	SpecificFileUpload bool
 }
 
 func (ipa *InteractionProcAttr) InitRegister() error {

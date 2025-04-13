@@ -3,6 +3,7 @@ package chunkerpa
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/dmitrovia/passkeeper/internal/client/metamanager"
@@ -16,6 +17,8 @@ type ChunkerProcAttr struct {
 	CntChunks           int
 	FilePath            string
 	FileName            string
+	FileFormat          string
+	GzipFormats         string
 	Wgroup              *sync.WaitGroup
 	WorkerChunkWg       *sync.WaitGroup
 	ChFile              *os.File
@@ -30,7 +33,7 @@ func (cpa *ChunkerProcAttr) Init(
 ) error {
 	cpa.ChunkSize = attr.DefChunkSize
 	cpa.FilePath = attr.
-		FileSynchronizePath
+		SelectFilePath
 
 	file, err := os.Open(cpa.FilePath)
 	if err != nil {
@@ -45,6 +48,8 @@ func (cpa *ChunkerProcAttr) Init(
 	}
 
 	cpa.FileName = fileInfo.Name()
+	cpa.FileFormat = filepath.Ext(cpa.FilePath)
+	fmt.Println(cpa.FileFormat)
 
 	cz := int64(cpa.ChunkSize)
 	cntChunks := int(fileInfo.Size() / cz)
@@ -53,6 +58,7 @@ func (cpa *ChunkerProcAttr) Init(
 		cntChunks++
 	}
 
+	cpa.GzipFormats = attr.GzipFormats
 	cpa.CntChunks = cntChunks
 
 	cpa.CountWorkersChunker = attr.CountWorkersChunker

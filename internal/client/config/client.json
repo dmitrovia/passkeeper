@@ -1,7 +1,8 @@
 {
-    "filesSynchronizePath" : "../../files_client/go.gz",
+    "filesSynchronizePath" : "../../internal/client/files_client/",
     "address" : "http://localhost:8080",
-    "metaPath" : "../../meta_client/meta.json",
+    "metaPath" : "../../internal/client/meta_client/meta.json",
     "tokenPath" : "../../internal/client/auth/token.json",
-    "cryptoKeyPath": "../../internal/client/crypto/keys/public.pem"
+    "cryptoKeyPath": "../../internal/client/crypto/keys/public.pem",
+    "gzipFormats" : ".html,.css,.js,.txt,.xml,.csv,.java,.json,.log,.doc,.pdf"
 } 

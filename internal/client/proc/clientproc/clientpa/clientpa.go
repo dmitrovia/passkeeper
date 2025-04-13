@@ -21,6 +21,7 @@ const (
 type ClientProcAttr struct {
 	ZapLogger           *zap.Logger
 	FileSynchronizePath string
+	SelectFilePath      string
 	DefSynchronizePath  string
 	IsAuth              bool
 	AuthToken           string
@@ -34,6 +35,7 @@ type ClientProcAttr struct {
 	MetaPath            string
 	DefMetaPath         string
 	CryptoKeyPath       string
+	GzipFormats         string
 	PrivateKey          []byte
 	CountWorkersChunker int
 	CountWorkersUpload  int
@@ -103,6 +105,10 @@ func (p *ClientProcAttr) GetAttrsCFG() error {
 
 	if p.AuthTokenPath == "" {
 		p.AuthTokenPath = cfg.TokenPath
+	}
+
+	if p.GzipFormats == "" {
+		p.GzipFormats = cfg.GzipFormats
 	}
 
 	token, err := authcfg.GetToken(p.AuthTokenPath)
