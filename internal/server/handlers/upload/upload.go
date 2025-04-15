@@ -66,7 +66,7 @@ func (h *Upload) UploadHandler(
 	chunk.User = user
 	newPath := fmt.Sprintf("%s/%s/%s",
 		h.attr.FilesStoragePath, *user.Login, *chunk.FileName)
-	chunk.FileName = &newPath
+	chunk.FilePath = &newPath
 
 	err = h.createChunkFile(chunk)
 	if err != nil {
@@ -88,7 +88,7 @@ func (h *Upload) UploadHandler(
 func (h *Upload) createChunkFile(
 	chunk *chunckmeta.ChunkMeta,
 ) error {
-	chunkFile, err := os.Create(*chunk.FileName)
+	chunkFile, err := os.Create(*chunk.FilePath)
 	if err != nil {
 		return fmt.Errorf("createChunkFile->Create: %w", err)
 	}

@@ -10,8 +10,12 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/server/config"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/initload"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/initload/initloadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initupload"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initupload/inituploadattr"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/load"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/load/loadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/login"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/login/loginattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/notallowed"
@@ -57,6 +61,10 @@ type ServerProcAttr struct {
 	AuthMidAttr         *authmiddlewareattr.AuthMiddlewareAttr
 	InitUpload          *initupload.InitUpload
 	InitUploadAttr      *inituploadattr.InitUploadAttr
+	InitLoad            *initload.InitLoad
+	InitLoadAttr        *initloadattr.InitLoadAttr
+	Load                *load.Load
+	LoadAttr            *loadattr.LoadAttr
 	Dbtimeout           time.Duration
 	DefReadTimeout      time.Duration
 	DefWriteTimeout     time.Duration
@@ -206,7 +214,7 @@ func (p *ServerProcAttr) InitFlags() {
 func (p *ServerProcAttr) initAPIMethods(
 	mux *mux.Router,
 ) {
-	// get := http.MethodGet
+	get := http.MethodGet
 	post := http.MethodPost
 
 	hNotAllowed := notallowed.NotAllowed{}
@@ -220,10 +228,17 @@ func (p *ServerProcAttr) initAPIMethods(
 	initUploadH := initupload.NewUploadHandler(p.FIleService,
 		p.InitUploadAttr).InitUploadHandler
 
+	loadH := load.NewLoadHandler(p.MetaService,
+		p.LoadAttr).InitLoadHandler
+	initLoadH := initload.NewLoadHandler(p.MetaService,
+		p.InitLoadAttr).InitLoadHandler
+
 	p.setMethod(post, "register", mux, register, false)
 	p.setMethod(post, "login", mux, login, false)
 	p.setMethod(post, "upload", mux, uploadH, true)
 	p.setMethod(post, "initupload", mux, initUploadH, true)
+	p.setMethod(get, "load", mux, loadH, true)
+	p.setMethod(get, "initload", mux, initLoadH, true)
 
 	mux.MethodNotAllowedHandler = hNotAllowed
 }
@@ -252,6 +267,8 @@ func (p *ServerProcAttr) initHandlersAttr() {
 	p.RigsterAttr = &registerattr.RegisterAttr{}
 	p.UploadAttr = &uploadattr.UploadAttr{}
 	p.InitUploadAttr = &inituploadattr.InitUploadAttr{}
+	p.InitLoadAttr = &initloadattr.InitLoadAttr{}
+	p.LoadAttr = &loadattr.LoadAttr{}
 
 	p.InitUploadAttr.Init(p.ZapLogger,
 		p.Dbtimeout, p.FilesStoragePath)
@@ -261,6 +278,8 @@ func (p *ServerProcAttr) initHandlersAttr() {
 		p.TokenExpHour, p.Dbtimeout, &p.PrivateKey)
 	p.RigsterAttr.Init(p.ZapLogger, p.SecretAuth,
 		p.TokenExpHour, p.Dbtimeout, &p.PrivateKey)
+	p.InitLoadAttr.Init(p.ZapLogger, p.Dbtimeout)
+	p.LoadAttr.Init(p.ZapLogger, p.Dbtimeout)
 }
 
 func (p *ServerProcAttr) SetPgxPool(

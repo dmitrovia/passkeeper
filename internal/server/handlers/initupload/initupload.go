@@ -2,7 +2,6 @@ package initupload
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/server/service"
 )
 
-// const fmd os.FileMode = 0o666
 const (
 	statusISE = http.StatusInternalServerError
 )
@@ -51,8 +49,6 @@ func (h *InitUpload) InitUploadHandler(
 			return
 		}
 	}
-
-	fmt.Println(user)
 
 	writer.WriteHeader(http.StatusOK)
 }

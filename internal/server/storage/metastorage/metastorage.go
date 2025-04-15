@@ -18,11 +18,6 @@ func (m *MetaStorage) Initiate(
 	m.conn = conn
 }
 
-// const defOrderData = "o.id, o.identifier, o.createddate, " +
-//	"o.status, o.accrual, o.points_write_off"
-
-// const defUserData = "u.id,u.login,u.password,u.createddate"
-
 func (m *MetaStorage) CreateMeta(
 	ctx context.Context,
 	meta *chunckmeta.ChunkMeta,
@@ -32,13 +27,16 @@ func (m *MetaStorage) CreateMeta(
 	err := m.conn.QueryRow(
 		ctx,
 		"INSERT INTO meta (file_name,hash_md,"+
-			" index_number,client_user) VALUES ($1,$2,$3,$4)"+
+			" index_number,client_user,file_path)"+
+			" VALUES ($1,$2,$3,$4,$5)"+
 			" ON CONFLICT (file_name) DO UPDATE"+
 			" SET file_name=$1, hash_md=$2,"+
-			" index_number=$3, client_user=$4"+
+			" index_number=$3, client_user=$4,"+
+			" file_path=$5"+
 			" RETURNING id",
 		meta.FileName, meta.Hash,
-		meta.Index, meta.User.ID).Scan(&lastInsertID)
+		meta.Index, meta.User.ID,
+		meta.FilePath).Scan(&lastInsertID)
 	if err != nil {
 		return fmt.Errorf(
 			"CreateMeta->Scan: %w", err)
@@ -49,57 +47,85 @@ func (m *MetaStorage) CreateMeta(
 	return nil
 }
 
-/*func (m *MetaStorage) GetOrdersByClient(
-	ctx *context.Context,
+func (m *MetaStorage) GetMetaByClientOptimized(
+	ctx context.Context,
 	clientID int32,
-) (*[]ordermodel.Order, *[]error, error) {
-	var (
-		outOrderID, outUserID                   *int32
-		outOrderStatus, outOrderIdentifier      *string
-		outUserLogin, outUserPass               *string
-		outUserCreateddate, outOrderCreateddate *time.Time
-		outOrderPointsWriteOff, outOrderAccrual *float32
-	)
+) (map[string]chunckmeta.ChunkMeta, *[]error, error) {
+	var outFileName *string
 
 	rows, err := m.conn.Query(
-		*ctx, "select "+defOrderData+","+defUserData+
-			" from orders o"+
-			" left join users u on u.id = o.client"+
-			" where o.client=$1"+
-			" order by o.createddate desc",
+		ctx, "select m.file_name"+
+			" from meta m"+
+			" where m.client_user=$1",
 		clientID)
 	if err != nil {
 		return nil, nil, fmt.Errorf(
-			"GetOrdersByClient->m.conn.Query %w", err)
+			"GetMetaByClientOptimized->m.conn.Query %w", err)
 	}
 
 	defer rows.Close()
 
-	orders := make([]ordermodel.Order, 0)
+	metas := make(map[string]chunckmeta.ChunkMeta)
 	errors := make([]error, 0)
 
 	for rows.Next() {
-		order := &ordermodel.Order{}
-		user := &usermodel.User{}
-		err = rows.Scan(&outOrderID, &outOrderIdentifier,
-			&outOrderCreateddate, &outOrderStatus, &outOrderAccrual,
-			&outOrderPointsWriteOff, &outUserID,
-			&outUserLogin, &outUserPass, &outUserCreateddate)
+		meta := chunckmeta.ChunkMeta{}
 
+		err = rows.Scan(&outFileName)
 		if err != nil {
 			errors = append(errors, err)
-		} else {
-			user.SetUser(*outUserID, outUserLogin,
-				outUserPass, outUserCreateddate)
-			order.SetOrder(
-				*outOrderID, outOrderIdentifier, user,
-				outOrderCreateddate, outOrderStatus,
-				outOrderAccrual, outOrderPointsWriteOff)
 
-			orders = append(orders, *order)
+			continue
 		}
+
+		meta.FileName = outFileName
+		metas[*meta.FileName] = meta
 	}
 
-	return &orders, &errors, nil
+	return metas, &errors, nil
 }
-*/
+
+func (m *MetaStorage) GetMetaByClientFileNameOptimized(
+	ctx context.Context,
+	clientID int32,
+	fileName string,
+) (*chunckmeta.ChunkMeta, *[]error, error) {
+	var outFileName, outHash *string
+
+	var outFilePath *string
+
+	var outIndex *int
+
+	rows, err := m.conn.Query(
+		ctx, "select m.file_name,m.hash_md,"+
+			" m.index_number,m.file_path"+
+			" from meta m"+
+			" where m.client_user=$1 and m.file_name=$2",
+		clientID, fileName)
+	if err != nil {
+		return nil, nil, fmt.Errorf(
+			"GetMetaByClientFileNameOptimized->m.conn.Query %w", err)
+	}
+
+	defer rows.Close()
+
+	meta := &chunckmeta.ChunkMeta{}
+	errors := make([]error, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&outFileName, &outHash,
+			&outIndex, &outFilePath)
+		if err != nil {
+			errors = append(errors, err)
+
+			continue
+		}
+
+		meta.FileName = outFileName
+		meta.Hash = outHash
+		meta.Index = outIndex
+		meta.FilePath = outFilePath
+	}
+
+	return meta, &errors, nil
+}

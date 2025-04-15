@@ -7,10 +7,11 @@ import (
 )
 
 type ChunkMeta struct {
-	ID          int32       `json:"id,omitempty"`
-	Index       *int        `json:"index"`
-	Hash        *string     `json:"hash"`
 	FileName    *string     `json:"fileName"`
+	ID          int32       `json:"id,omitempty"`
+	Index       *int        `json:"index,omitempty"`
+	Hash        *string     `json:"hash,omitempty"`
+	FilePath    *string     `json:"filePath,omitempty"`
 	Data        *[]byte     `json:"data,omitempty"`
 	User        *userm.User `json:"user,omitempty"`
 	Createddate *time.Time  `json:"createdDate,omitempty"`
