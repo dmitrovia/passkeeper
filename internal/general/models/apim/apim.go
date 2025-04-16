@@ -16,6 +16,10 @@ type CfgClient struct {
 	GzipFormats          string `json:"gzipFormats"`
 }
 
+type InInitSingleLoad struct {
+	FileName string `json:"fileName"`
+}
+
 type InRegisterUser struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`

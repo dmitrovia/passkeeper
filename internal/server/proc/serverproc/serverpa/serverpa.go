@@ -12,6 +12,8 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/server/config"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initload"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initload/initloadattr"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/initsingleload"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/initsingleload/initsingleloadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initupload"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initupload/inituploadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/load"
@@ -63,6 +65,8 @@ type ServerProcAttr struct {
 	InitUploadAttr      *inituploadattr.InitUploadAttr
 	InitLoad            *initload.InitLoad
 	InitLoadAttr        *initloadattr.InitLoadAttr
+	InitSingleLoad      *initsingleload.InitSingleLoad
+	InitSingleLoadAttr  *initsingleloadattr.InitSingleLoadAttr
 	Load                *load.Load
 	LoadAttr            *loadattr.LoadAttr
 	Dbtimeout           time.Duration
@@ -218,20 +222,23 @@ func (p *ServerProcAttr) initAPIMethods(
 	post := http.MethodPost
 
 	hNotAllowed := notallowed.NotAllowed{}
-	register := register.NewRegisterHandler(
+	register := register.NewHandler(
 		p.AuthService, p.RigsterAttr).RegisterHandler
-	login := login.NewLoginHandler(
+	login := login.NewHandler(
 		p.AuthService, p.LoginAttr).LoginHandler
-	uploadH := upload.NewUploadHandler(p.FIleService,
+	uploadH := upload.NewHandler(p.FIleService,
 		p.MetaService,
 		p.UploadAttr).UploadHandler
-	initUploadH := initupload.NewUploadHandler(p.FIleService,
+	initUploadH := initupload.NewHandler(p.FIleService,
 		p.InitUploadAttr).InitUploadHandler
 
-	loadH := load.NewLoadHandler(p.MetaService,
+	loadH := load.NewHandler(p.MetaService,
 		p.LoadAttr).InitLoadHandler
-	initLoadH := initload.NewLoadHandler(p.MetaService,
+	initLoadH := initload.NewHandler(p.MetaService,
 		p.InitLoadAttr).InitLoadHandler
+
+	initSingleH := initsingleload.NewHandler(
+		p.MetaService, p.InitSingleLoadAttr).InitSingleLoadHadnler
 
 	p.setMethod(post, "register", mux, register, false)
 	p.setMethod(post, "login", mux, login, false)
@@ -239,6 +246,7 @@ func (p *ServerProcAttr) initAPIMethods(
 	p.setMethod(post, "initupload", mux, initUploadH, true)
 	p.setMethod(get, "load", mux, loadH, true)
 	p.setMethod(get, "initload", mux, initLoadH, true)
+	p.setMethod(get, "initsingleload", mux, initSingleH, true)
 
 	mux.MethodNotAllowedHandler = hNotAllowed
 }
@@ -269,7 +277,12 @@ func (p *ServerProcAttr) initHandlersAttr() {
 	p.InitUploadAttr = &inituploadattr.InitUploadAttr{}
 	p.InitLoadAttr = &initloadattr.InitLoadAttr{}
 	p.LoadAttr = &loadattr.LoadAttr{}
+	p.InitSingleLoad = &initsingleload.InitSingleLoad{}
 
+	attr := &initsingleloadattr.InitSingleLoadAttr{}
+	p.InitSingleLoadAttr = attr
+
+	p.InitSingleLoadAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.InitUploadAttr.Init(p.ZapLogger,
 		p.Dbtimeout, p.FilesStoragePath)
 	p.UploadAttr.Init(p.ZapLogger, p.Dbtimeout,

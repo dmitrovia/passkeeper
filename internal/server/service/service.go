@@ -27,6 +27,12 @@ type MetaService interface {
 		clientID int32,
 		fileName string,
 	) (*chunckmeta.ChunkMeta, *[]error, error)
+
+	GetMetaByClientOrigFileNameOptimized(
+		ctx context.Context,
+		clientID int32,
+		fileName string,
+	) (map[string]chunckmeta.ChunkMeta, *[]error, error)
 }
 
 type FileService interface{}

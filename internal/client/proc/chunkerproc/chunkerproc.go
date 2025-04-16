@@ -99,7 +99,7 @@ func (cp *ChunkerProc) toChunk(
 	}
 
 	chunk := chunckmeta.NewChunkMeta(
-		fileName, encodeHash, index, nil,
+		fileName, cp.attr.FileName, encodeHash, index, nil,
 	)
 
 	isCompress := strings.Contains(cp.attr.GzipFormats,

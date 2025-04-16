@@ -48,6 +48,7 @@ type InteractionProcAttr struct {
 	Metamanager        *metamanager.MetaManager
 	CurrentMetadata    map[string]chunckmeta.ChunkMeta
 	SpecificFileUpload bool
+	SpecificFileLoad   bool
 }
 
 func (ipa *InteractionProcAttr) InitRegister() error {

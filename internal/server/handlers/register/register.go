@@ -30,7 +30,7 @@ const (
 	statusISE = http.StatusInternalServerError
 )
 
-func NewRegisterHandler(
+func NewHandler(
 	authS service.AuthService,
 	inAttr *registerattr.RegisterAttr,
 ) *Register {

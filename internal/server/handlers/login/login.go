@@ -25,7 +25,7 @@ type Login struct {
 	attr *loginattr.LoginAttr
 }
 
-func NewLoginHandler(
+func NewHandler(
 	s service.AuthService,
 	inAttr *loginattr.LoginAttr,
 ) *Login {

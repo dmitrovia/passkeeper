@@ -21,7 +21,7 @@ type InitUpload struct {
 	attr        *inituploadattr.InitUploadAttr
 }
 
-func NewUploadHandler(
+func NewHandler(
 	s service.FileService,
 	inAttr *inituploadattr.InitUploadAttr,
 ) *InitUpload {

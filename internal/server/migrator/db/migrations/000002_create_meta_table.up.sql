@@ -1,6 +1,7 @@
 CREATE TABLE meta (
    id serial primary key,
    file_name varchar not null,
+   orig_file_name varchar not null,
    file_path varchar not null unique,
    hash_md varchar not null,
    index_number int,
@@ -10,5 +11,5 @@ CREATE TABLE meta (
 
 COMMIT;
 
-CREATE INDEX meta__client_user__index
-ON meta (client_user);
+CREATE INDEX meta__cu__ofn__index
+ON meta (client_user,orig_file_name);

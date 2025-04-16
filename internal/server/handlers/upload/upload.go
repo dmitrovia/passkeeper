@@ -29,7 +29,7 @@ type Upload struct {
 	attr        *uploadattr.UploadAttr
 }
 
-func NewUploadHandler(
+func NewHandler(
 	s service.FileService,
 	metaService service.MetaService,
 	inAttr *uploadattr.UploadAttr,

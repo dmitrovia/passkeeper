@@ -14,6 +14,7 @@ const (
 	loginOption       int = 2
 	uploadOption      int = 3
 	logoutOption      int = 4
+	loadOption        int = 5
 	exitOption        int = 99
 	nonExistentOption     = 999
 )
@@ -54,6 +55,7 @@ func (ip *InteractionProc) printOptions() {
 	}
 
 	fmt.Println("3.Send data to server")
+	fmt.Println("5.Get data from server")
 	fmt.Println("4.Logout")
 	fmt.Println("99.Exit")
 	fmt.Println("")
@@ -123,6 +125,8 @@ func (ip *InteractionProc) selectOption() bool {
 		fmt.Println("Press ctrl+c to exit")
 
 		return true
+	case loadOption:
+		err = ip.loadAndChunksSelectMode()
 	case uploadOption:
 		err = ip.uploadAndChunksSelectMode()
 	default:
@@ -134,6 +138,52 @@ func (ip *InteractionProc) selectOption() bool {
 	}
 
 	return false
+}
+
+func (
+	ip *InteractionProc) loadAndChunksSelectMode() error {
+	str := "Enter 1 if you want to load" +
+		"a specific file, any other value if all"
+	fmt.Println(str)
+
+	var inValue int
+
+	var fileName string
+
+	_, err1 := fmt.Fscan(os.Stdin, &inValue)
+	if err1 != nil {
+		return fmt.Errorf("LACSM->Fscan1: %w", err1)
+	}
+
+	if inValue == 1 {
+		ip.attr.SpecificFileLoad = true
+	}
+
+	if ip.attr.SpecificFileLoad {
+		fmt.Println("Enter file name")
+
+		_, err1 := fmt.Fscan(os.Stdin, &fileName)
+		if err1 != nil {
+			return fmt.Errorf("LACSM->Fscan2: %w", err1)
+		}
+
+		// получение мета едининого файла
+
+		return nil
+	} else {
+		// получение мета всех файлов
+	}
+
+	err := ip.loadAndBuild()
+	if err != nil {
+		return fmt.Errorf("LACSM->UAC: %w", err)
+	}
+
+	return nil
+}
+
+func (ip *InteractionProc) loadAndBuild() error {
+	return nil
 }
 
 func (

@@ -28,7 +28,7 @@ type Load struct {
 	attr        *loadattr.LoadAttr
 }
 
-func NewLoadHandler(
+func NewHandler(
 	s service.MetaService,
 	inAttr *loadattr.LoadAttr,
 ) *Load {

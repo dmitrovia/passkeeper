@@ -1,14 +1,17 @@
-package initload
+package initsingleload
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/dmitrovia/passkeeper/internal/general/compress"
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
-	"github.com/dmitrovia/passkeeper/internal/server/handlers/initload/initloadattr"
+	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/initsingleload/initsingleloadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/dmitrovia/passkeeper/internal/server/service"
@@ -18,19 +21,21 @@ const (
 	statusISE = http.StatusInternalServerError
 )
 
-type InitLoad struct {
+var errEmptyData = errors.New("data is empty")
+
+type InitSingleLoad struct {
 	metaService service.MetaService
-	attr        *initloadattr.InitLoadAttr
+	attr        *initsingleloadattr.InitSingleLoadAttr
 }
 
 func NewHandler(
 	s service.MetaService,
-	inAttr *initloadattr.InitLoadAttr,
-) *InitLoad {
-	return &InitLoad{metaService: s, attr: inAttr}
+	inAttr *initsingleloadattr.InitSingleLoadAttr,
+) *InitSingleLoad {
+	return &InitSingleLoad{metaService: s, attr: inAttr}
 }
 
-func (h *InitLoad) InitLoadHandler(
+func (h *InitSingleLoad) InitSingleLoadHadnler(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -41,11 +46,18 @@ func (h *InitLoad) InitLoadHandler(
 		return
 	}
 
+	reqAttr, err := h.getReqData(req)
+	if err != nil {
+		h.setErr(writer, err, "getReqData")
+
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(
 		req.Context(), h.attr.Dbtimeout)
 	defer cancel()
 
-	body, err := h.getResponeBody(ctx, user)
+	body, err := h.getResponeBody(ctx, user, reqAttr)
 	if err != nil {
 		h.setErr(writer, err, "getResponeBody")
 
@@ -62,12 +74,14 @@ func (h *InitLoad) InitLoadHandler(
 	writer.WriteHeader(http.StatusOK)
 }
 
-func (h *InitLoad) getResponeBody(
+func (h *InitSingleLoad) getResponeBody(
 	ctx context.Context,
 	user *userm.User,
+	reqAttr *apim.InInitSingleLoad,
 ) (*[]byte, error) {
-	metas, _, err := h.metaService.GetMetaByClientOptimized(
-		ctx, user.ID)
+	metas, _,
+		err := h.metaService.GetMetaByClientOrigFileNameOptimized(
+		ctx, user.ID, reqAttr.FileName)
 	if err != nil {
 		return nil, fmt.Errorf("getResponeBody->GMBCO: %w", err)
 	}
@@ -85,10 +99,37 @@ func (h *InitLoad) getResponeBody(
 	return &compress, nil
 }
 
-func (h *InitLoad) setErr(writer http.ResponseWriter,
+func (h *InitSingleLoad) setErr(writer http.ResponseWriter,
 	err error,
 	method string,
 ) {
 	writer.WriteHeader(statusISE)
 	logger.LogE("initLoad->"+method, err, h.attr.ZapLogger)
+}
+
+func (h *InitSingleLoad) getReqData(
+	req *http.Request,
+) (*apim.InInitSingleLoad, error) {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		return nil, fmt.Errorf("getReqData->io.ReadAll: %w", err)
+	}
+
+	if len(body) == 0 {
+		return nil, fmt.Errorf("getReqData: %w", errEmptyData)
+	}
+
+	reqData := &apim.InInitSingleLoad{}
+
+	err = json.Unmarshal(body, reqData)
+	if err != nil {
+		return nil, fmt.Errorf("getReqData->JU: %w", err)
+	}
+
+	err = req.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("getReqData->RBC: %w", err)
+	}
+
+	return reqData, nil
 }
