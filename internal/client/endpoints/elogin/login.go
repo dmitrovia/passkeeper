@@ -34,6 +34,8 @@ func (u *Login) LoginUser(
 		return nil, fmt.Errorf("LoginUser->NRWC: %w", err)
 	}
 
+	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("LoginUser->Do: %w", err)

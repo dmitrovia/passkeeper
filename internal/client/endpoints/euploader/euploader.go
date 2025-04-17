@@ -35,8 +35,6 @@ func (u *Uploader) UploadChunk(
 	}
 
 	req.Header.Set("Authorization", u.attr.Token)
-	req.Header.Set("Content-Encoding", "gzip")
-	req.Header.Set("Accept-Encoding", "gzip")
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := u.attr.Client.Do(req)

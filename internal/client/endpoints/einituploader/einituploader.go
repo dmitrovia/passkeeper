@@ -13,7 +13,7 @@ type InitUploader struct {
 	attr *einituploaderattr.InitUploadAttr
 }
 
-func NewUploader(
+func NewInitUploader(
 	attr *einituploaderattr.InitUploadAttr,
 ) *InitUploader {
 	return &InitUploader{attr: attr}
@@ -35,6 +35,7 @@ func (u *InitUploader) InitUpload(
 	}
 
 	req.Header.Set("Authorization", u.attr.Token)
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {

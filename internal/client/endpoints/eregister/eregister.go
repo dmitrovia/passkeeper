@@ -34,6 +34,8 @@ func (u *Register) RegisterUser(
 		return nil, fmt.Errorf("RegisterUser->NRWC: %w", err)
 	}
 
+	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("RegisterUser->Do: %w", err)

@@ -28,11 +28,11 @@ func (m *MetaStorage) CreateMeta(
 		ctx,
 		"INSERT INTO meta (file_name,orig_file_name,hash_md,"+
 			" index_number,client_user,file_path)"+
-			" VALUES ($1,$2,$3,$4,$5)"+
-			" ON CONFLICT (file_name) DO UPDATE"+
-			" SET file_name=$1, hash_md=$2,"+
-			" index_number=$3, client_user=$4,"+
-			" file_path=$5"+
+			" VALUES ($1,$2,$3,$4,$5,$6)"+
+			" ON CONFLICT (file_path) DO UPDATE"+
+			" SET file_name=$1, orig_file_name=$2,"+
+			" hash_md=$3, index_number=$4,"+
+			" client_user=$5, file_path=$6"+
 			" RETURNING id",
 		meta.FileName, meta.OrigFileName, meta.Hash,
 		meta.Index, meta.User.ID,

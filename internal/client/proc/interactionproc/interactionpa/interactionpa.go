@@ -8,6 +8,8 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/initsingleloadproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/initsingleloadproc/initsingleloadprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/inituploadproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/inituploadproc/inituploadprocattr.go"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/loginproc"
@@ -29,6 +31,10 @@ type InteractionProcAttr struct {
 	Uploadpa   *uploadpa.UploadProcAttr
 	UploadChan chan chunckmeta.ChunkMeta
 	ErrChan    chan error
+	// init singleinitload
+	InitSingleLoadproc *initsingleloadproc.InitSingleProc
+	InitSingleLoadpa   *initsingleloadprocattr.
+				InitUploadProcAttr
 	// init upload
 	InitUploadproc *inituploadproc.InitUploadProc
 	InitUploadpa   *inituploadprocattr.InitUploadProcAttr
@@ -47,6 +53,7 @@ type InteractionProcAttr struct {
 	WorkerChunkWg      *sync.WaitGroup
 	Metamanager        *metamanager.MetaManager
 	CurrentMetadata    map[string]chunckmeta.ChunkMeta
+	LoadMetadata       map[string]chunckmeta.ChunkMeta
 	SpecificFileUpload bool
 	SpecificFileLoad   bool
 }
@@ -137,6 +144,13 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	ipa.InitUploadpa.Init(ipa.AttrClintProc)
 	ipa.InitUploadproc = inituploadproc.NewProc(
 		ipa.InitUploadpa)
+
+	ipa.InitSingleLoadpa = &initsingleloadprocattr.
+		InitUploadProcAttr{}
+	ipa.InitSingleLoadpa.LoadMetadata = ipa.LoadMetadata
+	ipa.InitSingleLoadpa.Init(ipa.AttrClintProc)
+	ipa.InitSingleLoadproc = initsingleloadproc.NewProc(
+		ipa.InitSingleLoadpa)
 
 	return nil
 }

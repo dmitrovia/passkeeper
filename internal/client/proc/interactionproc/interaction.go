@@ -167,7 +167,12 @@ func (
 			return fmt.Errorf("LACSM->Fscan2: %w", err1)
 		}
 
-		// получение мета едининого файла
+		ip.attr.InitSingleLoadpa.SpecificFileLoadName = fileName
+
+		err := ip.attr.InitSingleLoadproc.RunProcess()
+		if err != nil {
+			return fmt.Errorf("LACSM->ISLPRP: %w", err)
+		}
 
 		return nil
 	} else {
