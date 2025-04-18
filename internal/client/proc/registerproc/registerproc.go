@@ -28,7 +28,7 @@ func NewProc(
 }
 
 func (rp *RegisterProc) RunProcess() error {
-	defer rp.attr.Wgroup.Done()
+	defer rp.attr.WgSubProc.Done()
 	fmt.Println("RegisterProc run")
 
 	defer fmt.Println("RegisterProc end")

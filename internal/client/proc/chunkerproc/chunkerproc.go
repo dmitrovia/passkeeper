@@ -49,7 +49,7 @@ func (cp *ChunkerProc) runWorkerPoolChunker() {
 func (cp *ChunkerProc) runWorker(
 	indexChan chan int,
 ) {
-	defer cp.attr.Wgroup.Done()
+	defer cp.attr.WgSubProc.Done()
 
 	for index := range indexChan {
 		err := cp.toChunk(index)

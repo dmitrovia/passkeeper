@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc/interactionpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/logoutproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/logoutproc/logoutprocattr"
 	"github.com/dmitrovia/passkeeper/internal/general/functions/loggerf"
 )
 
@@ -43,6 +45,33 @@ func (ip *InteractionProc) RunProcess() error {
 	return nil
 }
 
+func (ip *InteractionProc) chooseProc() error {
+	for {
+		ip.printOptions()
+
+		if ip.attr.AttrClintProc.SelectedProc != nil &&
+			*ip.attr.AttrClintProc.SelectedProc == exitOption {
+			fmt.Println("Press ctrl+c to exit")
+
+			return nil
+		}
+
+		var inValue int
+
+		_, err1 := fmt.Fscan(os.Stdin, &inValue)
+		if err1 != nil {
+			return fmt.Errorf("chooseProc->Fscan: %w", err1)
+		}
+
+		ip.checkIncorrectOption(inValue)
+
+		isExit := ip.selectOption()
+		if isExit {
+			return nil
+		}
+	}
+}
+
 func (ip *InteractionProc) printOptions() {
 	fmt.Println("--------------------------------------------")
 	fmt.Println("")
@@ -75,33 +104,6 @@ func (ip *InteractionProc) checkIncorrectOption(
 		ip.attr.AttrClintProc.SelectedProc = &notOption
 	} else {
 		ip.attr.AttrClintProc.SelectedProc = &option
-	}
-}
-
-func (ip *InteractionProc) chooseProc() error {
-	for {
-		ip.printOptions()
-
-		if ip.attr.AttrClintProc.SelectedProc != nil &&
-			*ip.attr.AttrClintProc.SelectedProc == exitOption {
-			fmt.Println("Press ctrl+c to exit")
-
-			return nil
-		}
-
-		var inValue int
-
-		_, err1 := fmt.Fscan(os.Stdin, &inValue)
-		if err1 != nil {
-			return fmt.Errorf("chooseProc->Fscan: %w", err1)
-		}
-
-		ip.checkIncorrectOption(inValue)
-
-		isExit := ip.selectOption()
-		if isExit {
-			return nil
-		}
 	}
 }
 
@@ -148,8 +150,6 @@ func (
 
 	var inValue int
 
-	var fileName string
-
 	_, err1 := fmt.Fscan(os.Stdin, &inValue)
 	if err1 != nil {
 		return fmt.Errorf("LACSM->Fscan1: %w", err1)
@@ -160,21 +160,10 @@ func (
 	}
 
 	if ip.attr.SpecificFileLoad {
-		fmt.Println("Enter file name")
-
-		_, err1 := fmt.Fscan(os.Stdin, &fileName)
-		if err1 != nil {
-			return fmt.Errorf("LACSM->Fscan2: %w", err1)
-		}
-
-		ip.attr.InitSingleLoadpa.SpecificFileLoadName = fileName
-
 		err := ip.attr.InitSingleLoadproc.RunProcess()
 		if err != nil {
 			return fmt.Errorf("LACSM->ISLPRP: %w", err)
 		}
-
-		return nil
 	} else {
 		// получение мета всех файлов
 	}
@@ -261,16 +250,16 @@ func (ip *InteractionProc) uploadAndChunk() error {
 		return fmt.Errorf("uploadAndChunk->IUPRP: %w", err)
 	}
 
-	ip.attr.WGsubprocess.Add(
+	ip.attr.WgSubProc.Add(
 		ip.attr.Chunkerpa.CountWorkersChunker)
-	ip.attr.WGsubprocess.Add(
+	ip.attr.WgSubProc.Add(
 		ip.attr.Uploadpa.CountWorkersUpload)
 	ip.attr.WorkerChunkWg.Add(ip.attr.Chunkerpa.CntChunks)
 
 	go ip.RunChunker()
 	go ip.RunUploader()
 
-	ip.attr.WGsubprocess.Wait()
+	ip.attr.WgSubProc.Wait()
 
 	ip.attr.Chunkerpa.ChFile.Close()
 	close(ip.attr.ErrChan)
@@ -316,7 +305,7 @@ func (ip *InteractionProc) RunUploader() {
 }
 
 func (ip *InteractionProc) RunRegister() error {
-	ip.attr.WGsubprocess.Add(1)
+	ip.attr.WgSubProc.Add(1)
 
 	err := ip.attr.InitRegister()
 	if err != nil {
@@ -332,7 +321,7 @@ func (ip *InteractionProc) RunRegister() error {
 }
 
 func (ip *InteractionProc) RunLogin() error {
-	ip.attr.WGsubprocess.Add(1)
+	ip.attr.WgSubProc.Add(1)
 
 	err := ip.attr.InitLogin()
 	if err != nil {
@@ -348,12 +337,16 @@ func (ip *InteractionProc) RunLogin() error {
 }
 
 func (ip *InteractionProc) RunLogout() error {
-	ip.attr.WGsubprocess.Add(1)
+	ip.attr.WgSubProc.Add(1)
 
-	err := ip.attr.InitLogout()
+	ip.attr.Logoutpa = &logoutprocattr.LogoutProcAttr{}
+
+	err := ip.attr.Logoutpa.Init(ip.attr.AttrClintProc)
 	if err != nil {
-		return fmt.Errorf("RunLogout->IL: %w", err)
+		return fmt.Errorf("RunLogout->Init: %w", err)
 	}
+
+	ip.attr.Logoutproc = logoutproc.NewProc(ip.attr.Logoutpa)
 
 	err = ip.attr.Logoutproc.RunProcess()
 	if err != nil {

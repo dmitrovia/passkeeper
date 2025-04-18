@@ -29,7 +29,7 @@ func NewProc(
 }
 
 func (lp *LoginProc) RunProcess() error {
-	defer lp.attr.Wgroup.Done()
+	defer lp.attr.WgSubProc.Done()
 	fmt.Println("LoginProc run")
 
 	defer fmt.Println("LoginProc end")

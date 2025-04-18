@@ -10,7 +10,7 @@ import (
 
 type UploadProcAttr struct {
 	CountWorkersUpload int
-	Wgroup             *sync.WaitGroup
+	WgSubProc          *sync.WaitGroup
 	WorkerChunkWg      *sync.WaitGroup
 	ReqTimeout         time.Duration
 	UploadChan         chan chunckmeta.ChunkMeta
@@ -33,7 +33,7 @@ func (upa *UploadProcAttr) Init(
 	upa.UploadedMetadata = make(
 		map[string]chunckmeta.ChunkMeta)
 	upa.CountWorkersUpload = attr.CountWorkersUpload
-	upa.Wgroup = attr.WGsubprocess
+	upa.WgSubProc = attr.WgSubProc
 	upa.AuthToken = attr.AuthToken
 
 	return nil

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/initsingleloadproc/initsingleloadprocattr"
 	"github.com/dmitrovia/passkeeper/internal/general/compress"
@@ -30,6 +31,17 @@ func NewProc(
 func (isp *InitSingleProc) RunProcess() error {
 	fmt.Println("InitSingleProc run")
 	defer fmt.Println("InitSingleProc end")
+
+	fmt.Println("Enter file name")
+
+	var fileName string
+
+	_, err1 := fmt.Fscan(os.Stdin, &fileName)
+	if err1 != nil {
+		return fmt.Errorf("RP->Fscan: %w", err1)
+	}
+
+	isp.attr.SpecificFileLoadName = fileName
 
 	reqData := &apim.InInitSingleLoad{}
 	reqData.FileName = isp.attr.SpecificFileLoadName

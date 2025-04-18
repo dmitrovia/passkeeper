@@ -7,7 +7,7 @@ import (
 )
 
 type LogoutProcAttr struct {
-	Wgroup        *sync.WaitGroup
+	WgSubProc     *sync.WaitGroup
 	AttrClintProc *clientpa.ClientProcAttr
 }
 
@@ -15,7 +15,7 @@ func (lpa *LogoutProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) error {
 	lpa.AttrClintProc = attr
-	lpa.Wgroup = attr.WGsubprocess
+	lpa.WgSubProc = attr.WgSubProc
 
 	return nil
 }

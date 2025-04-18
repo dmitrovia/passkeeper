@@ -42,7 +42,7 @@ type ClientProcAttr struct {
 	DefChunkSize        int
 	MaxRetries          int
 	SelectedProc        *int
-	WGsubprocess        *sync.WaitGroup
+	WgSubProc           *sync.WaitGroup
 	WGMainProc          *sync.WaitGroup
 	ReqTimeout          time.Duration
 }
@@ -56,7 +56,7 @@ func (p *ClientProcAttr) Init() error {
 	p.MaxRetries = 3
 	p.CountWorkersChunker = 5
 	p.CountWorkersUpload = 5
-	p.WGsubprocess = &sync.WaitGroup{}
+	p.WgSubProc = &sync.WaitGroup{}
 	p.WGMainProc = &sync.WaitGroup{}
 
 	logger, err := logger.Initialize(p.ZapLogInfoLevel)

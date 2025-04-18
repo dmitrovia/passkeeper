@@ -39,8 +39,8 @@ func (sp *ClientProc) RunProcess() error {
 	go sp.runInteraction(sp.attr)
 
 	sp.attr.WGMainProc.Wait()
-	fmt.Println("Wait for processes to complete")
-	sp.attr.WGsubprocess.Wait()
+	fmt.Println("Wait for sub processes to complete")
+	sp.attr.WgSubProc.Wait()
 
 	return nil
 }
@@ -50,7 +50,7 @@ func (sp *ClientProc) runInteraction(
 ) {
 	newAttr := &interactionpa.InteractionProcAttr{}
 	newAttr.AttrClintProc = attr
-	newAttr.WGsubprocess = sp.attr.WGsubprocess
+	newAttr.WgSubProc = sp.attr.WgSubProc
 
 	ip := interactionproc.NewProc(newAttr)
 

@@ -49,7 +49,7 @@ type InteractionProcAttr struct {
 	Logoutpa   *logoutprocattr.LogoutProcAttr
 	// general
 	AttrClintProc      *clientpa.ClientProcAttr
-	WGsubprocess       *sync.WaitGroup
+	WgSubProc          *sync.WaitGroup
 	WorkerChunkWg      *sync.WaitGroup
 	Metamanager        *metamanager.MetaManager
 	CurrentMetadata    map[string]chunckmeta.ChunkMeta

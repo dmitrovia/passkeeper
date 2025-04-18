@@ -49,7 +49,7 @@ func (up *UploadProc) awaitClose() {
 }
 
 func (up *UploadProc) runWorker() {
-	defer up.attr.Wgroup.Done()
+	defer up.attr.WgSubProc.Done()
 
 	for chunk := range up.attr.UploadChan {
 		up.UploadChunk(&chunk)
