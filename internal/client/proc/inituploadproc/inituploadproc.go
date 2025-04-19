@@ -23,15 +23,17 @@ func NewProc(
 	}
 }
 
-func (iup *InitUploadProc) RunProcess() error {
+func (proc *InitUploadProc) RunProcess() error {
+	defer proc.attr.WgSubProc.Done()
+
 	fmt.Println("InitUploadProc run")
 	defer fmt.Println("InitUploadProc end")
 
 	ctx, cancel := context.WithTimeout(
-		context.Background(), iup.attr.ReqTimeout)
+		context.Background(), proc.attr.ReqTimeout)
 	defer cancel()
 
-	resp, err := iup.attr.Inituploader.InitUpload(ctx)
+	resp, err := proc.attr.Inituploader.InitUpload(ctx)
 	if err != nil {
 		return fmt.Errorf("RP->InitUpload: %w", err)
 	}

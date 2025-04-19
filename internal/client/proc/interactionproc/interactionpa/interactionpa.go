@@ -8,6 +8,8 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/initloadproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/initloadproc/initloadprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/initsingleloadproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/initsingleloadproc/initsingleloadprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/inituploadproc"
@@ -25,16 +27,20 @@ import (
 
 type InteractionProcAttr struct {
 	// upload and chunk
-	Chproc     *chunkerproc.ChunkerProc
-	Chunkerpa  *chunkerpa.ChunkerProcAttr
-	Uploadproc *uploadproc.UploadProc
-	Uploadpa   *uploadpa.UploadProcAttr
-	UploadChan chan chunckmeta.ChunkMeta
-	ErrChan    chan error
-	// init singleinitload
+	Chproc             *chunkerproc.ChunkerProc
+	Chunkerpa          *chunkerpa.ChunkerProcAttr
+	Uploadproc         *uploadproc.UploadProc
+	Uploadpa           *uploadpa.UploadProcAttr
+	UploadChan         chan chunckmeta.ChunkMeta
+	ErrChan            chan error
+	SpecificFileUpload bool
+	// singleinitload
 	InitSingleLoadproc *initsingleloadproc.InitSingleProc
 	InitSingleLoadpa   *initsingleloadprocattr.
-				InitUploadProcAttr
+				InitSingleLoadProcAttr
+	// initload
+	InitLoadproc *initloadproc.InitProc
+	InitLoadpa   *initloadprocattr.InitLoadProcAttr
 	// init upload
 	InitUploadproc *inituploadproc.InitUploadProc
 	InitUploadpa   *inituploadprocattr.InitUploadProcAttr
@@ -48,14 +54,14 @@ type InteractionProcAttr struct {
 	Logoutproc *logoutproc.LogoutProc
 	Logoutpa   *logoutprocattr.LogoutProcAttr
 	// general
-	AttrClintProc      *clientpa.ClientProcAttr
-	WgSubProc          *sync.WaitGroup
-	WorkerChunkWg      *sync.WaitGroup
-	Metamanager        *metamanager.MetaManager
-	CurrentMetadata    map[string]chunckmeta.ChunkMeta
-	LoadMetadata       map[string]chunckmeta.ChunkMeta
-	SpecificFileUpload bool
-	SpecificFileLoad   bool
+	AttrClintProc   *clientpa.ClientProcAttr
+	WgSubProc       *sync.WaitGroup
+	WorkerChunkWg   *sync.WaitGroup
+	Metamanager     *metamanager.MetaManager
+	CurrentMetadata map[string]chunckmeta.ChunkMeta
+	// load
+	SpecificFileLoad bool
+	LoadMetadata     map[string]chunckmeta.ChunkMeta
 }
 
 func (ipa *InteractionProcAttr) InitRegister() error {
@@ -125,9 +131,7 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	ipa.UploadChan = make(chan chunckmeta.ChunkMeta,
 		ipa.Chunkerpa.CntChunks)
 	ipa.ErrChan = make(chan error, ipa.Chunkerpa.CntChunks)
-
 	ipa.WorkerChunkWg = &sync.WaitGroup{}
-
 	ipa.Chunkerpa.UploadChan = ipa.UploadChan
 	ipa.Chunkerpa.ErrChan = ipa.ErrChan
 	ipa.Chunkerpa.WorkerChunkWg = ipa.WorkerChunkWg
@@ -139,18 +143,25 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	ipa.Uploadpa.CountChunk = ipa.Chunkerpa.CntChunks
 	ipa.Uploadpa.WorkerChunkWg = ipa.WorkerChunkWg
 	ipa.Uploadproc = uploadproc.NewProc(ipa.Uploadpa)
-
 	ipa.InitUploadpa = &inituploadprocattr.InitUploadProcAttr{}
 	ipa.InitUploadpa.Init(ipa.AttrClintProc)
 	ipa.InitUploadproc = inituploadproc.NewProc(
 		ipa.InitUploadpa)
 
+	return nil
+}
+
+func (ipa *InteractionProcAttr) InitLoad() error {
 	ipa.InitSingleLoadpa = &initsingleloadprocattr.
-		InitUploadProcAttr{}
-	ipa.InitSingleLoadpa.LoadMetadata = ipa.LoadMetadata
+		InitSingleLoadProcAttr{}
 	ipa.InitSingleLoadpa.Init(ipa.AttrClintProc)
 	ipa.InitSingleLoadproc = initsingleloadproc.NewProc(
 		ipa.InitSingleLoadpa)
+	ipa.InitLoadpa = &initloadprocattr.
+		InitLoadProcAttr{}
+	ipa.InitLoadpa.Init(ipa.AttrClintProc)
+	ipa.InitLoadproc = initloadproc.NewProc(
+		ipa.InitLoadpa)
 
 	return nil
 }

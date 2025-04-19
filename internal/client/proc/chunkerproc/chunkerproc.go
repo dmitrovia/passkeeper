@@ -23,62 +23,62 @@ func NewProc(attr *chunkerpa.ChunkerProcAttr) *ChunkerProc {
 	}
 }
 
-func (cp *ChunkerProc) RunProcess() error {
+func (proc *ChunkerProc) RunProcess() error {
 	fmt.Println("ChunkerProc run")
 	defer fmt.Println("ChunkerProc end")
 
-	cp.runWorkerPoolChunker()
+	proc.runWorkerPoolChunker()
 
 	return nil
 }
 
-func (cp *ChunkerProc) runWorkerPoolChunker() {
-	indexChan := make(chan int, cp.attr.CntChunks)
+func (proc *ChunkerProc) runWorkerPoolChunker() {
+	indexChan := make(chan int, proc.attr.CntChunks)
 
-	for i := range cp.attr.CntChunks {
+	for i := range proc.attr.CntChunks {
 		indexChan <- i
 	}
 
 	close(indexChan)
 
-	for range cp.attr.CountWorkersChunker {
-		go cp.runWorker(indexChan)
+	for range proc.attr.CountWorkersChunker {
+		go proc.runWorker(indexChan)
 	}
 }
 
-func (cp *ChunkerProc) runWorker(
+func (proc *ChunkerProc) runWorker(
 	indexChan chan int,
 ) {
-	defer cp.attr.WgSubProc.Done()
+	defer proc.attr.WgSubProc.Done()
 
 	for index := range indexChan {
-		err := cp.toChunk(index)
+		err := proc.toChunk(index)
 		if err != nil {
-			cp.attr.ErrChan <- err
+			proc.attr.ErrChan <- err
 
-			cp.attr.WorkerChunkWg.Done()
+			proc.attr.WorkerChunkWg.Done()
 		}
 	}
 }
 
-func (cp *ChunkerProc) toChunk(
+func (proc *ChunkerProc) toChunk(
 	index int,
 ) error {
-	offset := int64(index) * int64(cp.attr.ChunkSize)
-	buffer := make([]byte, cp.attr.ChunkSize)
+	offset := int64(index) * int64(proc.attr.ChunkSize)
+	buffer := make([]byte, proc.attr.ChunkSize)
 
-	_, err := cp.attr.ChFile.Seek(offset, 0)
+	_, err := proc.attr.ChFile.Seek(offset, 0)
 	if err != nil {
 		return fmt.Errorf("toChunk->Seek: %w", err)
 	}
 
-	bytesRead, err := cp.attr.ChFile.Read(buffer)
+	bytesRead, err := proc.attr.ChFile.Read(buffer)
 	if err != nil && !errors.Is(err, io.EOF) {
 		return fmt.Errorf("toChunk->Read: %w", err)
 	}
 
 	if bytesRead == 0 {
-		cp.attr.WorkerChunkWg.Done()
+		proc.attr.WorkerChunkWg.Done()
 
 		return nil
 	}
@@ -86,24 +86,24 @@ func (cp *ChunkerProc) toChunk(
 	chBytes := buffer[:bytesRead]
 	hash := md5.Sum(chBytes)
 	fileName := fmt.Sprintf("%s.chunk.%d",
-		cp.attr.FileName, index)
+		proc.attr.FileName, index)
 	encodeHash := hex.EncodeToString(hash[:])
 
 	oldChunk,
-		exists := cp.attr.CurrentMetadata[fileName]
+		exists := proc.attr.CurrentMetadata[fileName]
 
 	if exists || oldChunk.Hash == &encodeHash {
-		cp.attr.WorkerChunkWg.Done()
+		proc.attr.WorkerChunkWg.Done()
 
 		return nil
 	}
 
 	chunk := chunckmeta.NewChunkMeta(
-		fileName, cp.attr.FileName, encodeHash, index, nil,
+		fileName, proc.attr.FileName, encodeHash, index, nil,
 	)
 
-	isCompress := strings.Contains(cp.attr.GzipFormats,
-		cp.attr.FileFormat)
+	isCompress := strings.Contains(proc.attr.GzipFormats,
+		proc.attr.FileFormat)
 	if isCompress {
 		compressData, err := compress.DeflateCompress(
 			chBytes)
@@ -116,7 +116,7 @@ func (cp *ChunkerProc) toChunk(
 		chunk.Data = &chBytes
 	}
 
-	cp.attr.UploadChan <- *chunk
+	proc.attr.UploadChan <- *chunk
 
 	return nil
 }

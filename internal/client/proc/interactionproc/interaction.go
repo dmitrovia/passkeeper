@@ -157,6 +157,15 @@ func (
 
 	if inValue == 1 {
 		ip.attr.SpecificFileLoad = true
+	} else {
+		ip.attr.SpecificFileLoad = false
+	}
+
+	ip.attr.WgSubProc.Add(1)
+
+	err := ip.attr.InitLoad()
+	if err != nil {
+		return fmt.Errorf("LACSM->IL: %w", err)
 	}
 
 	if ip.attr.SpecificFileLoad {
@@ -164,11 +173,20 @@ func (
 		if err != nil {
 			return fmt.Errorf("LACSM->ISLPRP: %w", err)
 		}
+
+		ip.attr.LoadMetadata = ip.
+			attr.InitSingleLoadpa.LoadMetadata
 	} else {
-		// получение мета всех файлов
+		err := ip.attr.InitLoadproc.RunProcess()
+		if err != nil {
+			return fmt.Errorf("LACSM->ILPRP: %w", err)
+		}
+
+		ip.attr.LoadMetadata = ip.
+			attr.InitLoadpa.LoadMetadata
 	}
 
-	err := ip.loadAndBuild()
+	err = ip.loadAndBuild()
 	if err != nil {
 		return fmt.Errorf("LACSM->UAC: %w", err)
 	}
@@ -188,8 +206,6 @@ func (
 
 	var inValue int
 
-	var fileName string
-
 	_, err1 := fmt.Fscan(os.Stdin, &inValue)
 	if err1 != nil {
 		return fmt.Errorf("UACSM->Fscan1: %w", err1)
@@ -197,28 +213,28 @@ func (
 
 	if inValue == 1 {
 		ip.attr.SpecificFileUpload = true
+	} else {
+		ip.attr.SpecificFileUpload = false
 	}
 
 	if ip.attr.SpecificFileUpload {
-		fmt.Println("Enter file name")
-
-		_, err1 := fmt.Fscan(os.Stdin, &fileName)
-		if err1 != nil {
-			return fmt.Errorf("UACSM->Fscan2: %w", err1)
-		}
-
-		fsp := ip.attr.AttrClintProc.FileSynchronizePath
-		ip.attr.AttrClintProc.SelectFilePath = fsp +
-			fileName
-
-		err := ip.uploadAndChunk()
+		err := ip.uploadSingleFile()
 		if err != nil {
-			return fmt.Errorf("UACSM->UAC: %w", err)
+			return fmt.Errorf("UACSM->uploadSingleFile: %w", err)
 		}
 
 		return nil
 	}
 
+	err := ip.uploadMultiFiles()
+	if err != nil {
+		return fmt.Errorf("UACSM->uploadMultiFiles: %w", err)
+	}
+
+	return nil
+}
+
+func (ip *InteractionProc) uploadMultiFiles() error {
 	entries, err := os.ReadDir(
 		ip.attr.AttrClintProc.FileSynchronizePath)
 	if err != nil {
@@ -239,11 +255,35 @@ func (
 	return nil
 }
 
+func (ip *InteractionProc) uploadSingleFile() error {
+	fmt.Println("Enter file name")
+
+	var fileName string
+
+	_, err1 := fmt.Fscan(os.Stdin, &fileName)
+	if err1 != nil {
+		return fmt.Errorf("USF->Fscan: %w", err1)
+	}
+
+	fsp := ip.attr.AttrClintProc.FileSynchronizePath
+	ip.attr.AttrClintProc.SelectFilePath = fsp +
+		fileName
+
+	err := ip.uploadAndChunk()
+	if err != nil {
+		return fmt.Errorf("USF->UAC: %w", err)
+	}
+
+	return nil
+}
+
 func (ip *InteractionProc) uploadAndChunk() error {
 	err := ip.attr.InitChunkAndUpload()
 	if err != nil {
 		return fmt.Errorf("uploadAndChunk->ICAU: %w", err)
 	}
+
+	ip.attr.WgSubProc.Add(1)
 
 	err = ip.attr.InitUploadproc.RunProcess()
 	if err != nil {

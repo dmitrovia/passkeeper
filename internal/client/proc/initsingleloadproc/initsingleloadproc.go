@@ -17,18 +17,20 @@ import (
 var errSNOK = errors.New("status is not OK")
 
 type InitSingleProc struct {
-	attr *initsingleloadprocattr.InitUploadProcAttr
+	attr *initsingleloadprocattr.InitSingleLoadProcAttr
 }
 
 func NewProc(
-	attr *initsingleloadprocattr.InitUploadProcAttr,
+	attr *initsingleloadprocattr.InitSingleLoadProcAttr,
 ) *InitSingleProc {
 	return &InitSingleProc{
 		attr: attr,
 	}
 }
 
-func (isp *InitSingleProc) RunProcess() error {
+func (proc *InitSingleProc) RunProcess() error {
+	defer proc.attr.WgSubProc.Done()
+
 	fmt.Println("InitSingleProc run")
 	defer fmt.Println("InitSingleProc end")
 
@@ -41,23 +43,23 @@ func (isp *InitSingleProc) RunProcess() error {
 		return fmt.Errorf("RP->Fscan: %w", err1)
 	}
 
-	isp.attr.SpecificFileLoadName = fileName
+	proc.attr.SpecificFileLoadName = fileName
 
 	reqData := &apim.InInitSingleLoad{}
-	reqData.FileName = isp.attr.SpecificFileLoadName
+	reqData.FileName = proc.attr.SpecificFileLoadName
 
 	marshal, err := json.Marshal(reqData)
 	if err != nil {
 		return fmt.Errorf("RP->Marshal: %w", err)
 	}
 
-	isp.attr.InitSingleLoadAttr.Data = &marshal
+	proc.attr.InitSingleLoadAttr.Data = &marshal
 
 	ctx, cancel := context.WithTimeout(
-		context.Background(), isp.attr.ReqTimeout)
+		context.Background(), proc.attr.ReqTimeout)
 	defer cancel()
 
-	resp, err := isp.attr.InitSingleLoad.InitSingleLoad(ctx)
+	resp, err := proc.attr.InitSingleLoad.InitSingleLoad(ctx)
 	if err != nil {
 		return fmt.Errorf("RP->InitSingleLoad: %w", err)
 	}
@@ -70,7 +72,7 @@ func (isp *InitSingleProc) RunProcess() error {
 		return err
 	}
 
-	err = isp.parseResp(resp)
+	err = proc.parseResp(resp)
 	if err != nil {
 		return fmt.Errorf("RP->parseResp: %w", err)
 	}
@@ -78,7 +80,7 @@ func (isp *InitSingleProc) RunProcess() error {
 	return nil
 }
 
-func (isp *InitSingleProc) parseResp(
+func (proc *InitSingleProc) parseResp(
 	response *http.Response,
 ) error {
 	out, err := compress.DeflateDecompress(response.Body)
@@ -93,7 +95,7 @@ func (isp *InitSingleProc) parseResp(
 		return fmt.Errorf("parseResp->Unmarshal: %w", err)
 	}
 
-	isp.attr.LoadMetadata = metas
+	proc.attr.LoadMetadata = metas
 
 	return nil
 }

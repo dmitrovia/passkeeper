@@ -2,6 +2,7 @@ package inituploadprocattr
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/einituploader"
@@ -16,6 +17,7 @@ type InitUploadProcAttr struct {
 	Inituploader     *einituploader.InitUploader
 	Inituploaderattr *einituploaderattr.InitUploadAttr
 	AuthToken        string
+	WgSubProc        *sync.WaitGroup
 }
 
 func (rpa *InitUploadProcAttr) Init(
@@ -30,4 +32,5 @@ func (rpa *InitUploadProcAttr) Init(
 	rpa.Inituploaderattr.Init(url, rpa.Client, rpa.AuthToken)
 	rpa.Inituploader = einituploader.NewInitUploader(
 		rpa.Inituploaderattr)
+	rpa.WgSubProc = attr.WgSubProc
 }

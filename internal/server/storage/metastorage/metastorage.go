@@ -59,7 +59,8 @@ func (m *MetaStorage) GetMetaByClientOptimized(
 	rows, err := m.conn.Query(
 		ctx, "select m.file_name,m.orig_file_name"+
 			" from meta m"+
-			" where m.client_user=$1",
+			" where m.client_user=$1"+
+			" order by m.orig_file_name",
 		clientID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%s %w", txt, err)
@@ -73,7 +74,7 @@ func (m *MetaStorage) GetMetaByClientOptimized(
 	for rows.Next() {
 		meta := chunckmeta.ChunkMeta{}
 
-		err = rows.Scan(&outFileName, outFileName)
+		err = rows.Scan(&outFileName, &outOrigFileName)
 		if err != nil {
 			errors = append(errors, err)
 

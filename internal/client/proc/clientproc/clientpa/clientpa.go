@@ -20,6 +20,7 @@ const (
 
 type ClientProcAttr struct {
 	ZapLogger           *zap.Logger
+	TempFilesPath       string
 	FileSynchronizePath string
 	SelectFilePath      string
 	DefSynchronizePath  string
@@ -39,6 +40,7 @@ type ClientProcAttr struct {
 	PrivateKey          []byte
 	CountWorkersChunker int
 	CountWorkersUpload  int
+	CountWorkersLoad    int
 	DefChunkSize        int
 	MaxRetries          int
 	SelectedProc        *int
@@ -52,10 +54,12 @@ func (p *ClientProcAttr) Init() error {
 	p.ZapLogInfoLevel = "info"
 	p.DefConfigPath = "../../internal/client/config/" +
 		"client.json"
+	p.TempFilesPath = "../../internal/client/files_temp"
 	p.DefChunkSize = defChunkSize
 	p.MaxRetries = 3
 	p.CountWorkersChunker = 5
 	p.CountWorkersUpload = 5
+	p.CountWorkersLoad = 5
 	p.WgSubProc = &sync.WaitGroup{}
 	p.WGMainProc = &sync.WaitGroup{}
 

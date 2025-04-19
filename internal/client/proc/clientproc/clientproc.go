@@ -20,37 +20,37 @@ func NewProc(attr *clientpa.ClientProcAttr) *ClientProc {
 	return &ClientProc{attr: attr}
 }
 
-func (sp *ClientProc) RunProcess() error {
+func (proc *ClientProc) RunProcess() error {
 	fmt.Println("ClientProc run")
 	defer fmt.Println("ClientProc end")
 
-	if sp.attr == nil {
-		sp.attr = &clientpa.ClientProcAttr{}
+	if proc.attr == nil {
+		proc.attr = &clientpa.ClientProcAttr{}
 	}
 
-	err := sp.attr.Init()
+	err := proc.attr.Init()
 	if err != nil {
 		return fmt.Errorf("RP->Init: %w", err)
 	}
 
-	sp.attr.WGMainProc.Add(1)
+	proc.attr.WGMainProc.Add(1)
 
-	go sp.waitClose()
-	go sp.runInteraction(sp.attr)
+	go proc.waitClose()
+	go proc.runInteraction(proc.attr)
 
-	sp.attr.WGMainProc.Wait()
+	proc.attr.WGMainProc.Wait()
 	fmt.Println("Wait for sub processes to complete")
-	sp.attr.WgSubProc.Wait()
+	proc.attr.WgSubProc.Wait()
 
 	return nil
 }
 
-func (sp *ClientProc) runInteraction(
+func (proc *ClientProc) runInteraction(
 	attr *clientpa.ClientProcAttr,
 ) {
 	newAttr := &interactionpa.InteractionProcAttr{}
 	newAttr.AttrClintProc = attr
-	newAttr.WgSubProc = sp.attr.WgSubProc
+	newAttr.WgSubProc = proc.attr.WgSubProc
 
 	ip := interactionproc.NewProc(newAttr)
 
@@ -60,7 +60,7 @@ func (sp *ClientProc) runInteraction(
 	}
 }
 
-func (sp *ClientProc) waitClose() {
+func (proc *ClientProc) waitClose() {
 	channelCancel := make(chan os.Signal, 1)
 	signal.Notify(channelCancel,
 		os.Interrupt,
@@ -71,9 +71,9 @@ func (sp *ClientProc) waitClose() {
 		_, ok := <-channelCancel
 		if ok {
 			exitV := 99
-			sp.attr.SelectedProc = &exitV
+			proc.attr.SelectedProc = &exitV
 
-			sp.attr.WGMainProc.Done()
+			proc.attr.WGMainProc.Done()
 
 			return
 		}

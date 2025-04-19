@@ -56,19 +56,13 @@ func (up *UploadProc) runWorker() {
 	}
 }
 
-func (up *UploadProc) toCompressJSON(
+func (up *UploadProc) toJSON(
 	chunk *chunckmeta.ChunkMeta,
 ) (*[]byte, error) {
 	metricMarshall, err := json.Marshal(chunk)
 	if err != nil {
 		return nil, fmt.Errorf("toCompressJSON->Marshal: %w", err)
 	}
-
-	/*jsonCompress, err := compress.DeflateCompress(
-		metricMarshall)
-	if err != nil {
-		return nil, fmt.Errorf("toCompressJSON->Deflate: %w", err)
-	}*/
 
 	return &metricMarshall, nil
 }
@@ -82,7 +76,7 @@ func (up *UploadProc) UploadChunk(
 	uplattr := &euploaderattr.UploaderAttr{}
 	uplattr.URL = up.attr.ServerURL + "/api/user/upload"
 
-	data, err := up.toCompressJSON(chunk)
+	data, err := up.toJSON(chunk)
 	if err != nil {
 		up.attr.ErrChan <- err
 

@@ -50,7 +50,7 @@ func (m *MetaManager) SaveMetadata(
 
 	err = os.WriteFile(m.metaPath, data, fmd)
 	if err != nil {
-		return fmt.Errorf("LoadMetadata->WF: %w", err)
+		return fmt.Errorf("SaveMetadata->WF: %w", err)
 	}
 
 	return nil
