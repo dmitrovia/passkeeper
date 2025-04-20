@@ -122,6 +122,7 @@ func (m *MetaStorage) GetMetaByClientOrigFileNameOptimized(
 			continue
 		}
 
+		meta.OrigFileName = &fileName
 		meta.FileName = outFileName
 		metas[*meta.FileName] = meta
 	}
@@ -145,7 +146,7 @@ func (m *MetaStorage) GetMetaByClientFileNameOptimized(
 	txt := "GetMetaByClientFileNameOptimized->Query"
 
 	rows, err := m.conn.Query(
-		ctx, "select m.file_name,m.hash_md,m.orig_file_name"+
+		ctx, "select m.file_name,m.hash_md,m.orig_file_name,"+
 			" m.index_number,m.file_path"+
 			" from meta m"+
 			" where m.client_user=$1 and m.file_name=$2",

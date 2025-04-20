@@ -49,7 +49,7 @@ func (proc *BuildProc) build() error {
 		len(proc.attr.BuildMetadata))
 
 	for _, chunk := range proc.attr.BuildMetadata {
-		chunks = append(chunks, chunk)
+		chunks = append(chunks, *chunk)
 	}
 
 	slices.SortFunc(chunks,
@@ -58,22 +58,25 @@ func (proc *BuildProc) build() error {
 		})
 
 	for _, chunk := range chunks {
-		chunkFile, err := os.Open(*chunk.FileName)
+		chunkFile, err := os.Open(*chunk.FilePath)
 		if err != nil {
 			return fmt.Errorf("RP->Open: %w", err)
 		}
-
-		chunkFile.Close()
 
 		_, err = io.Copy(oFile, chunkFile)
 		if err != nil {
 			return fmt.Errorf("RP->Copy: %w", err)
 		}
 
-		err = os.Remove(*chunk.FileName)
+		chunkFile.Close()
+
+		err = os.Remove(*chunk.FilePath)
 		if err != nil {
 			return fmt.Errorf("RP->Remove: %w", err)
 		}
+
+		chunk.ClearAllExceptMeta()
+		proc.attr.CurrentMetadata[*chunk.FileName] = chunk
 	}
 
 	return nil

@@ -209,6 +209,10 @@ func (
 		return fmt.Errorf("LACSM->SLM: %w", err)
 	}
 
+	if len(ip.attr.LoadMetadata) == 0 {
+		return nil
+	}
+
 	err = ip.attr.SortLoadMetadata()
 	if err != nil {
 		return fmt.Errorf("LACSM->SLM: %w", err)
@@ -235,21 +239,21 @@ func (
 
 func (ip *InteractionProc) loadAndBuild(
 	fileName string,
-	metas map[string]chunckmeta.ChunkMeta,
+	metas map[string]*chunckmeta.ChunkMeta,
 ) error {
-	ip.attr.WgSubProc.Add(1)
-	defer ip.attr.WgSubProc.Done()
-
 	err := ip.attr.InitLoad(len(metas))
 	if err != nil {
 		return fmt.Errorf("LACSM->IL: %w", err)
 	}
 
+	for _, val := range metas {
+		ip.attr.LoadChan <- val
+	}
+
 	ip.attr.WorkerChunkWg.Add(len(metas))
 
 	go ip.runLoader()
-
-	ip.attr.WgSubProc.Wait()
+	ip.attr.WorkerChunkWg.Wait()
 
 	close(ip.attr.ErrChan)
 	close(ip.attr.LoadChan)
@@ -262,7 +266,8 @@ func (ip *InteractionProc) loadAndBuild(
 
 	builderAttr := &buildprocattr.BuildProcAttr{}
 	builderAttr.BuildMetadata = metas
-	newPath := fmt.Sprintf("%s/%s",
+	builderAttr.CurrentMetadata = ip.attr.CurrentMetadata
+	newPath := fmt.Sprintf("%s%s",
 		ip.attr.AttrClintProc.FilesUploadPath,
 		fileName)
 	builderAttr.OutFilePath = newPath
@@ -271,10 +276,16 @@ func (ip *InteractionProc) loadAndBuild(
 
 	err = builder.RunProcess()
 	if err != nil {
-		return fmt.Errorf("UACSM->RPBuilder: %w", err)
+		return fmt.Errorf("LAB->RPBuilder: %w", err)
 	}
 
-	fmt.Println("Successfully loaded")
+	err = ip.attr.Metamanager.SaveMetadata(
+		ip.attr.CurrentMetadata)
+	if err != nil {
+		return fmt.Errorf("LAB->SM: %w", err)
+	}
+
+	fmt.Println("Successfully loaded and builded")
 
 	return nil
 }
@@ -358,13 +369,13 @@ func (ip *InteractionProc) uploadSingleFile() error {
 }
 
 func (ip *InteractionProc) uploadAndChunk() error {
+	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
+
 	err := ip.attr.InitChunkAndUpload()
 	if err != nil {
 		return fmt.Errorf("uploadAndChunk->ICAU: %w", err)
 	}
-
-	ip.attr.WgSubProc.Add(1)
-	defer ip.attr.WgSubProc.Done()
 
 	err = ip.attr.InitUploadproc.RunProcess()
 	if err != nil {
@@ -375,6 +386,7 @@ func (ip *InteractionProc) uploadAndChunk() error {
 
 	go ip.runChunker()
 	go ip.runUploader()
+
 	ip.attr.WorkerChunkWg.Wait()
 	ip.attr.Chunkerpa.ChFile.Close()
 	close(ip.attr.ErrChan)

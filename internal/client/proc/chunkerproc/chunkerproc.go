@@ -114,7 +114,7 @@ func (proc *ChunkerProc) toChunk(
 		chunk.Data = &chBytes
 	}
 
-	proc.attr.UploadChan <- *chunk
+	proc.attr.UploadChan <- chunk
 
 	return nil
 }

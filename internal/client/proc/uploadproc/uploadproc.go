@@ -43,7 +43,7 @@ func (up *UploadProc) runWorkerPoolUpload() {
 
 func (up *UploadProc) runWorker() {
 	for chunk := range up.attr.UploadChan {
-		up.uploadChunk(&chunk)
+		up.uploadChunk(chunk)
 	}
 }
 

@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/eload"
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/eload/eloadattr"
@@ -47,7 +49,7 @@ func (proc *LoadProc) runWorkerPoolLoad() {
 
 func (proc *LoadProc) runWorker() {
 	for chunk := range proc.attr.LoadChan {
-		proc.loadChunk(&chunk)
+		proc.loadChunk(chunk)
 	}
 }
 
@@ -128,15 +130,22 @@ func (proc *LoadProc) parseRespAndSaveFile(
 		return fmt.Errorf("PRASF->Unmarshal: %w", err)
 	}
 
-	decompress, err := compress.DeflateDecompress(
-		bytes.NewReader(*respChunk.Data),
-	)
-	if err != nil {
-		return fmt.Errorf("parseRespAndSaveFile->DD: %w", err)
+	isDecompress := strings.Contains(proc.attr.GzipFormats,
+		filepath.Ext(*respChunk.OrigFileName))
+	if isDecompress {
+		decompress, err := compress.DeflateDecompress(
+			bytes.NewReader(*respChunk.Data),
+		)
+		if err != nil {
+			return fmt.Errorf("parseRespAndSaveFile->DD: %w", err)
+		}
+
+		orig.Data = &decompress
+	} else {
+		orig.Data = respChunk.Data
 	}
 
-	orig.Data = &decompress
-	newPath := fmt.Sprintf("%s/%s", proc.attr.TempFilesPath,
+	newPath := fmt.Sprintf("%s%s", proc.attr.TempFilesPath,
 		*respChunk.FileName)
 	orig.FilePath = &newPath
 	orig.Hash = respChunk.Hash
@@ -144,7 +153,7 @@ func (proc *LoadProc) parseRespAndSaveFile(
 	orig.FileName = respChunk.FileName
 	orig.OrigFileName = respChunk.OrigFileName
 
-	err = proc.createChunkFile(respChunk)
+	err = proc.createChunkFile(orig)
 	if err != nil {
 		return fmt.Errorf("parseRespAndSaveFile->CCF: %w", err)
 	}

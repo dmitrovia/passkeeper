@@ -54,7 +54,7 @@ func (p *ClientProcAttr) Init() error {
 	p.ZapLogInfoLevel = "info"
 	p.DefConfigPath = "../../internal/client/config/" +
 		"client.json"
-	p.TempFilesPath = "../../internal/client/files_temp"
+	p.TempFilesPath = "../../internal/client/files_temp/"
 	p.DefChunkSize = defChunkSize
 	p.MaxRetries = 3
 	p.CountWorkersChunker = 5

@@ -12,7 +12,7 @@ type UploadProcAttr struct {
 	CountWorkersUpload int
 	WorkerChunkWg      *sync.WaitGroup
 	ReqTimeout         time.Duration
-	UploadChan         chan chunckmeta.ChunkMeta
+	UploadChan         chan *chunckmeta.ChunkMeta
 	CurrentMetadata    map[string]chunckmeta.ChunkMeta
 	Mutex              *sync.Mutex
 	ErrChan            chan error

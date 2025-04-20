@@ -5,6 +5,7 @@ import (
 )
 
 type BuildProcAttr struct {
-	OutFilePath   string
-	BuildMetadata map[string]chunckmeta.ChunkMeta
+	OutFilePath     string
+	BuildMetadata   map[string]*chunckmeta.ChunkMeta
+	CurrentMetadata map[string]chunckmeta.ChunkMeta
 }

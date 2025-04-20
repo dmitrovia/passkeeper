@@ -12,12 +12,13 @@ type LoadProcAttr struct {
 	CountWorkersLoad int
 	WorkerChunkWg    *sync.WaitGroup
 	ReqTimeout       time.Duration
-	LoadChan         chan chunckmeta.ChunkMeta
+	LoadChan         chan *chunckmeta.ChunkMeta
 	LoadedMetadata   map[string]chunckmeta.ChunkMeta
 	ErrChan          chan error
 	ServerURL        string
 	AuthToken        string
 	TempFilesPath    string
+	GzipFormats      string
 }
 
 func (lpa *LoadProcAttr) Init(
@@ -30,4 +31,5 @@ func (lpa *LoadProcAttr) Init(
 	lpa.CountWorkersLoad = attr.CountWorkersLoad
 	lpa.AuthToken = attr.AuthToken
 	lpa.TempFilesPath = attr.TempFilesPath
+	lpa.GzipFormats = attr.GzipFormats
 }

@@ -29,7 +29,7 @@ import (
 )
 
 type LoadChunkInfo struct {
-	Chunks      map[string]chunckmeta.ChunkMeta
+	Chunks      map[string]*chunckmeta.ChunkMeta
 	LoadIsAllow bool
 }
 type InteractionProcAttr struct {
@@ -38,7 +38,7 @@ type InteractionProcAttr struct {
 	Chunkerpa          *chunkerpa.ChunkerProcAttr
 	Uploadproc         *uploadproc.UploadProc
 	Uploadpa           *uploadpa.UploadProcAttr
-	UploadChan         chan chunckmeta.ChunkMeta
+	UploadChan         chan *chunckmeta.ChunkMeta
 	ErrChan            chan error
 	SpecificFileUpload bool
 	// singleinitload
@@ -67,7 +67,7 @@ type InteractionProcAttr struct {
 	Metamanager     *metamanager.MetaManager
 	CurrentMetadata map[string]chunckmeta.ChunkMeta
 	// load and build
-	LoadChan           chan chunckmeta.ChunkMeta
+	LoadChan           chan *chunckmeta.ChunkMeta
 	SpecificFileLoad   bool
 	LoadMetadata       map[string]chunckmeta.ChunkMeta
 	FileNamesAllowLoad map[string]LoadChunkInfo
@@ -77,17 +77,16 @@ type InteractionProcAttr struct {
 
 func (ipa *InteractionProcAttr) SortLoadMetadata() error {
 	ipa.FileNamesAllowLoad = make(map[string]LoadChunkInfo)
-
 	for _, value := range ipa.LoadMetadata {
 		val, ok := ipa.FileNamesAllowLoad[*value.OrigFileName]
 		if !ok {
 			lci := &LoadChunkInfo{}
-			lci.Chunks = make(map[string]chunckmeta.ChunkMeta)
-			lci.Chunks[*value.FileName] = value
+			lci.Chunks = make(map[string]*chunckmeta.ChunkMeta)
+			lci.Chunks[*value.FileName] = &value
 			lci.LoadIsAllow = true
 			ipa.FileNamesAllowLoad[*value.OrigFileName] = *lci
 		} else {
-			val.Chunks[*value.FileName] = value
+			val.Chunks[*value.FileName] = &value
 		}
 	}
 
@@ -109,6 +108,8 @@ func (ipa *InteractionProcAttr) SetRestrictions() error {
 		if ok {
 			str := "Do you want to overwrite the file?" +
 				"Enter 1 if yes, 2 - all files, other - no"
+
+			fmt.Println("FILE:" + key)
 			fmt.Println(str)
 
 			_, err1 := fmt.Fscan(os.Stdin, &inValue)
@@ -174,7 +175,6 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	ipa.Chunkerpa = &chunkerpa.ChunkerProcAttr{}
 	ipa.Metamanager = metamanager.NewMetaManager(
 		ipa.AttrClintProc.MetaPath)
-	ipa.Chunkerpa.Metamanager = ipa.Metamanager
 
 	metadata, err := ipa.Metamanager.LoadMetadata()
 	if err != nil {
@@ -195,7 +195,7 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 		return fmt.Errorf("InitChunkAndUpload->Init: %w", err)
 	}
 
-	ipa.UploadChan = make(chan chunckmeta.ChunkMeta,
+	ipa.UploadChan = make(chan *chunckmeta.ChunkMeta,
 		ipa.Chunkerpa.CntChunks)
 	ipa.ErrChan = make(chan error, ipa.Chunkerpa.CntChunks)
 	ipa.WorkerChunkWg = &sync.WaitGroup{}
@@ -236,14 +236,27 @@ func (ipa *InteractionProcAttr) InitAfterLoad() error {
 func (ipa *InteractionProcAttr) InitLoad(
 	countMeta int,
 ) error {
-	ipa.LoadChan = make(chan chunckmeta.ChunkMeta,
+	ipa.LoadChan = make(chan *chunckmeta.ChunkMeta,
 		countMeta)
 	ipa.ErrChan = make(chan error, countMeta)
 
 	ipa.WorkerChunkWg = &sync.WaitGroup{}
+	ipa.LoadProcAttr = &loadprocattr.LoadProcAttr{}
 	ipa.LoadProcAttr.Init(ipa.AttrClintProc)
 	ipa.LoadProcAttr.WorkerChunkWg = ipa.WorkerChunkWg
 	ipa.LoadProcAttr.LoadChan = ipa.LoadChan
+	ipa.LoadProcAttr.ErrChan = ipa.ErrChan
+	ipa.LoadProc = loadproc.NewProc(ipa.LoadProcAttr)
+
+	ipa.Metamanager = metamanager.NewMetaManager(
+		ipa.AttrClintProc.MetaPath)
+
+	metadata, err := ipa.Metamanager.LoadMetadata()
+	if err != nil {
+		return fmt.Errorf("InitLoad->LM: %w", err)
+	}
+
+	ipa.CurrentMetadata = metadata
 
 	return nil
 }

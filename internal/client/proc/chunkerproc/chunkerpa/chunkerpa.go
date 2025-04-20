@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/dmitrovia/passkeeper/internal/client/metamanager"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
@@ -21,10 +20,9 @@ type ChunkerProcAttr struct {
 	GzipFormats         string
 	WorkerChunkWg       *sync.WaitGroup
 	ChFile              *os.File
-	UploadChan          chan chunckmeta.ChunkMeta
+	UploadChan          chan *chunckmeta.ChunkMeta
 	ErrChan             chan error
 	CurrentMetadata     map[string]chunckmeta.ChunkMeta
-	Metamanager         *metamanager.MetaManager
 }
 
 func (cpa *ChunkerProcAttr) Init(
