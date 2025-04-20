@@ -36,5 +36,10 @@ docker/docker-compose.yml
 bin
 
 internal/server/files_server/*
+!internal/server/files_server/.gitkeep
 internal/client/files_client_upload/*
+!internal/client/files_client_upload/.gitkeep
 internal/client/meta_client/*
+!internal/client/meta_client/.gitkeep
+internal/client/files_temp/*
+!internal/client/files_temp/.gitkeep
