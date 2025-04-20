@@ -36,5 +36,5 @@ docker/docker-compose.yml
 bin
 
 internal/server/files_server/*
-internal/client/files_client/*
+internal/client/files_client_upload/*
 internal/client/meta_client/*
