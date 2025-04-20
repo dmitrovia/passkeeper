@@ -5,10 +5,13 @@ import (
 	"maps"
 	"os"
 
+	"github.com/dmitrovia/passkeeper/internal/client/proc/buildproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/buildproc/buildprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc/interactionpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/logoutproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/logoutproc/logoutprocattr"
 	"github.com/dmitrovia/passkeeper/internal/general/functions/loggerf"
+	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
 const (
@@ -114,15 +117,15 @@ func (ip *InteractionProc) selectOption() bool {
 	case registerOption:
 		fmt.Println("Register")
 
-		err = ip.RunRegister()
+		err = ip.runRegister()
 	case loginOption:
 		fmt.Println("Login")
 
-		err = ip.RunLogin()
+		err = ip.runLogin()
 	case logoutOption:
 		fmt.Println("Logout")
 
-		err = ip.RunLogout()
+		err = ip.runLogout()
 	case exitOption:
 		fmt.Println("Press ctrl+c to exit")
 
@@ -143,7 +146,7 @@ func (ip *InteractionProc) selectOption() bool {
 }
 
 func (
-	ip *InteractionProc) loadAndChunksSelectMode() error {
+	ip *InteractionProc) chooseLoadType() error {
 	str := "Enter 1 if you want to load" +
 		"a specific file, any other value if all"
 	fmt.Println(str)
@@ -152,7 +155,7 @@ func (
 
 	_, err1 := fmt.Fscan(os.Stdin, &inValue)
 	if err1 != nil {
-		return fmt.Errorf("LACSM->Fscan1: %w", err1)
+		return fmt.Errorf("chooseLoadType->Fscan1: %w", err1)
 	}
 
 	if inValue == 1 {
@@ -161,17 +164,15 @@ func (
 		ip.attr.SpecificFileLoad = false
 	}
 
-	ip.attr.WgSubProc.Add(1)
+	return nil
+}
 
-	err := ip.attr.InitLoad()
-	if err != nil {
-		return fmt.Errorf("LACSM->IL: %w", err)
-	}
-
+func (
+	ip *InteractionProc) getLoadMetadata() error {
 	if ip.attr.SpecificFileLoad {
 		err := ip.attr.InitSingleLoadproc.RunProcess()
 		if err != nil {
-			return fmt.Errorf("LACSM->ISLPRP: %w", err)
+			return fmt.Errorf("getLoadMetadata->ISLPRP: %w", err)
 		}
 
 		ip.attr.LoadMetadata = ip.
@@ -179,22 +180,113 @@ func (
 	} else {
 		err := ip.attr.InitLoadproc.RunProcess()
 		if err != nil {
-			return fmt.Errorf("LACSM->ILPRP: %w", err)
+			return fmt.Errorf("getLoadMetadata->ILPRP: %w", err)
 		}
 
 		ip.attr.LoadMetadata = ip.
 			attr.InitLoadpa.LoadMetadata
 	}
 
-	err = ip.loadAndBuild()
+	return nil
+}
+
+func (
+	ip *InteractionProc) loadAndChunksSelectMode() error {
+	err := ip.chooseLoadType()
 	if err != nil {
-		return fmt.Errorf("LACSM->UAC: %w", err)
+		return fmt.Errorf("LACSM->chooseLoadType: %w", err)
+	}
+
+	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
+
+	err = ip.attr.InitAfterLoad()
+	if err != nil {
+		return fmt.Errorf("LACSM->IAL: %w", err)
+	}
+
+	err = ip.getLoadMetadata()
+	if err != nil {
+		return fmt.Errorf("LACSM->SLM: %w", err)
+	}
+
+	err = ip.attr.SortLoadMetadata()
+	if err != nil {
+		return fmt.Errorf("LACSM->SLM: %w", err)
+	}
+
+	err = ip.attr.SetRestrictions()
+	if err != nil {
+		return fmt.Errorf("LACSM->SetRestrictions: %w", err)
+	}
+
+	for fileName, value := range ip.attr.FileNamesAllowLoad {
+		if !value.LoadIsAllow {
+			continue
+		}
+
+		err = ip.loadAndBuild(fileName, value.Chunks)
+		if err != nil {
+			return fmt.Errorf("LACSM->LAB: %w", err)
+		}
 	}
 
 	return nil
 }
 
-func (ip *InteractionProc) loadAndBuild() error {
+func (ip *InteractionProc) loadAndBuild(
+	fileName string,
+	metas map[string]chunckmeta.ChunkMeta,
+) error {
+	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
+
+	err := ip.attr.InitLoad(len(metas))
+	if err != nil {
+		return fmt.Errorf("LACSM->IL: %w", err)
+	}
+
+	ip.attr.WorkerChunkWg.Add(len(metas))
+
+	go ip.runLoader()
+
+	ip.attr.WgSubProc.Wait()
+
+	close(ip.attr.ErrChan)
+
+	for err := range ip.attr.ErrChan {
+		if err != nil {
+			return err
+		}
+	}
+
+	builderAttr := &buildprocattr.BuildProcAttr{}
+	builderAttr.BuildMetadata = metas
+	newPath := fmt.Sprintf("%s/%s",
+		ip.attr.AttrClintProc.FilesUploadPath,
+		fileName)
+	builderAttr.OutFilePath = newPath
+
+	builder := buildproc.NewProc(builderAttr)
+
+	err = builder.RunProcess()
+	if err != nil {
+		return fmt.Errorf("UACSM->RPBuilder: %w", err)
+	}
+
+	/*if len(ip.attr.Uploadpa.UploadedMetadata) > 0 {
+		maps.Copy(ip.attr.CurrentMetadata,
+			ip.attr.Uploadpa.UploadedMetadata)
+
+		err = ip.attr.Metamanager.SaveMetadata(
+			ip.attr.CurrentMetadata)
+		if err != nil {
+			return fmt.Errorf("uploadAndChunk->SM: %w", err)
+		}
+	}*/
+
+	fmt.Println("Successfully loaded")
+
 	return nil
 }
 
@@ -235,16 +327,15 @@ func (
 }
 
 func (ip *InteractionProc) uploadMultiFiles() error {
-	entries, err := os.ReadDir(
-		ip.attr.AttrClintProc.FileSynchronizePath)
+	names, err := ip.attr.GetExistingFilenames()
 	if err != nil {
-		return fmt.Errorf("UACSM->ReadDir: %w", err)
+		return fmt.Errorf("uploadMultiFiles->GEFN: %w", err)
 	}
 
-	for _, e := range entries {
-		fsp := ip.attr.AttrClintProc.FileSynchronizePath
+	for key := range names {
+		fsp := ip.attr.AttrClintProc.FilesUploadPath
 		ip.attr.AttrClintProc.SelectFilePath = fsp +
-			e.Name()
+			key
 
 		err := ip.uploadAndChunk()
 		if err != nil {
@@ -265,7 +356,7 @@ func (ip *InteractionProc) uploadSingleFile() error {
 		return fmt.Errorf("USF->Fscan: %w", err1)
 	}
 
-	fsp := ip.attr.AttrClintProc.FileSynchronizePath
+	fsp := ip.attr.AttrClintProc.FilesUploadPath
 	ip.attr.AttrClintProc.SelectFilePath = fsp +
 		fileName
 
@@ -284,23 +375,19 @@ func (ip *InteractionProc) uploadAndChunk() error {
 	}
 
 	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
 
 	err = ip.attr.InitUploadproc.RunProcess()
 	if err != nil {
 		return fmt.Errorf("uploadAndChunk->IUPRP: %w", err)
 	}
 
-	ip.attr.WgSubProc.Add(
-		ip.attr.Chunkerpa.CountWorkersChunker)
-	ip.attr.WgSubProc.Add(
-		ip.attr.Uploadpa.CountWorkersUpload)
 	ip.attr.WorkerChunkWg.Add(ip.attr.Chunkerpa.CntChunks)
 
-	go ip.RunChunker()
-	go ip.RunUploader()
+	go ip.runChunker()
+	go ip.runUploader()
 
-	ip.attr.WgSubProc.Wait()
-
+	ip.attr.WorkerChunkWg.Wait()
 	ip.attr.Chunkerpa.ChFile.Close()
 	close(ip.attr.ErrChan)
 
@@ -315,7 +402,7 @@ func (ip *InteractionProc) uploadAndChunk() error {
 		}
 	}
 
-	for err := range ip.attr.Uploadpa.ErrChan {
+	for err := range ip.attr.ErrChan {
 		if err != nil {
 			return err
 		}
@@ -326,7 +413,7 @@ func (ip *InteractionProc) uploadAndChunk() error {
 	return nil
 }
 
-func (ip *InteractionProc) RunChunker() {
+func (ip *InteractionProc) runChunker() {
 	err := ip.attr.Chproc.RunProcess()
 	if err != nil {
 		loggerf.Log("RunChunker->RP", err)
@@ -335,7 +422,7 @@ func (ip *InteractionProc) RunChunker() {
 	}
 }
 
-func (ip *InteractionProc) RunUploader() {
+func (ip *InteractionProc) runUploader() {
 	err := ip.attr.Uploadproc.RunProcess()
 	if err != nil {
 		loggerf.Log("RunUploader->RP", err)
@@ -344,8 +431,18 @@ func (ip *InteractionProc) RunUploader() {
 	}
 }
 
-func (ip *InteractionProc) RunRegister() error {
+func (ip *InteractionProc) runLoader() {
+	err := ip.attr.LoadProc.RunProcess()
+	if err != nil {
+		loggerf.Log("RunLoader->RP", err)
+
+		return
+	}
+}
+
+func (ip *InteractionProc) runRegister() error {
 	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
 
 	err := ip.attr.InitRegister()
 	if err != nil {
@@ -360,8 +457,9 @@ func (ip *InteractionProc) RunRegister() error {
 	return nil
 }
 
-func (ip *InteractionProc) RunLogin() error {
+func (ip *InteractionProc) runLogin() error {
 	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
 
 	err := ip.attr.InitLogin()
 	if err != nil {
@@ -376,8 +474,9 @@ func (ip *InteractionProc) RunLogin() error {
 	return nil
 }
 
-func (ip *InteractionProc) RunLogout() error {
+func (ip *InteractionProc) runLogout() error {
 	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
 
 	ip.attr.Logoutpa = &logoutprocattr.LogoutProcAttr{}
 

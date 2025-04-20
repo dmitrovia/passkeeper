@@ -2,7 +2,6 @@ package registerprocpattr
 
 import (
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/eregister"
@@ -16,7 +15,6 @@ type RegisterProcAttr struct {
 	ServerURL    string
 	RegisterAttr *eregisterattr.RegisterAttr
 	Register     *eregister.Register
-	WgSubProc    *sync.WaitGroup
 	EncKey       *[]byte
 }
 
@@ -31,7 +29,6 @@ func (rpa *RegisterProcAttr) Init(
 	url := rpa.ServerURL + "/api/user/register"
 	rpa.RegisterAttr.Init(url, rpa.Client)
 	rpa.Register = eregister.NewRegister(rpa.RegisterAttr)
-	rpa.WgSubProc = attr.WgSubProc
 	rpa.EncKey = &attr.PrivateKey
 
 	return nil

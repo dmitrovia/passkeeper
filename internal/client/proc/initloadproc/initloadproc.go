@@ -27,8 +27,6 @@ func NewProc(
 }
 
 func (proc *InitProc) RunProcess() error {
-	defer proc.attr.WgSubProc.Done()
-
 	fmt.Println("InitProc run")
 	defer fmt.Println("InitProc end")
 

@@ -49,8 +49,6 @@ func (proc *ChunkerProc) runWorkerPoolChunker() {
 func (proc *ChunkerProc) runWorker(
 	indexChan chan int,
 ) {
-	defer proc.attr.WgSubProc.Done()
-
 	for index := range indexChan {
 		err := proc.toChunk(index)
 		if err != nil {

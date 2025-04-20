@@ -9,7 +9,7 @@ import (
 type ChunkMeta struct {
 	FileName     *string     `json:"fileName"`
 	OrigFileName *string     `json:"origFileName,omitempty"`
-	ID           int32       `json:"id,omitempty"`
+	ID           *int32      `json:"id,omitempty"`
 	Index        *int        `json:"index,omitempty"`
 	Hash         *string     `json:"hash,omitempty"`
 	FilePath     *string     `json:"filePath,omitempty"`
@@ -36,4 +36,12 @@ func NewChunkMeta(
 
 func (cm *ChunkMeta) ClearData() {
 	cm.Data = nil
+}
+
+func (cm *ChunkMeta) ClearAllExceptMeta() {
+	cm.ID = nil
+	cm.FilePath = nil
+	cm.Data = nil
+	cm.User = nil
+	cm.Createddate = nil
 }

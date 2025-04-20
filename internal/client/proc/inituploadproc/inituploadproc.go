@@ -24,8 +24,6 @@ func NewProc(
 }
 
 func (proc *InitUploadProc) RunProcess() error {
-	defer proc.attr.WgSubProc.Done()
-
 	fmt.Println("InitUploadProc run")
 	defer fmt.Println("InitUploadProc end")
 

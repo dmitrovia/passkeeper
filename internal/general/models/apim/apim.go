@@ -8,12 +8,12 @@ type CfgServer struct {
 }
 
 type CfgClient struct {
-	ServerAddr           string `json:"address"`
-	FilesSynchronizePath string `json:"filesSynchronizePath"`
-	MetaPath             string `json:"metaPath"`
-	TokenPath            string `json:"tokenPath"`
-	CryptoKeyPath        string `json:"cryptoKeyPath"`
-	GzipFormats          string `json:"gzipFormats"`
+	ServerAddr      string `json:"address"`
+	FilesUploadPath string `json:"filesUploadPath"`
+	MetaPath        string `json:"metaPath"`
+	TokenPath       string `json:"tokenPath"`
+	CryptoKeyPath   string `json:"cryptoKeyPath"`
+	GzipFormats     string `json:"gzipFormats"`
 }
 
 type InInitSingleLoad struct {

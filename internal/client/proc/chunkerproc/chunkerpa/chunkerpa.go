@@ -19,7 +19,6 @@ type ChunkerProcAttr struct {
 	FileName            string
 	FileFormat          string
 	GzipFormats         string
-	WgSubProc           *sync.WaitGroup
 	WorkerChunkWg       *sync.WaitGroup
 	ChFile              *os.File
 	UploadChan          chan chunckmeta.ChunkMeta
@@ -62,7 +61,6 @@ func (cpa *ChunkerProcAttr) Init(
 	cpa.CntChunks = cntChunks
 
 	cpa.CountWorkersChunker = attr.CountWorkersChunker
-	cpa.WgSubProc = attr.WgSubProc
 
 	return nil
 }

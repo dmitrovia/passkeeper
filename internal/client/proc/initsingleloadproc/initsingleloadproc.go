@@ -29,8 +29,6 @@ func NewProc(
 }
 
 func (proc *InitSingleProc) RunProcess() error {
-	defer proc.attr.WgSubProc.Done()
-
 	fmt.Println("InitSingleProc run")
 	defer fmt.Println("InitSingleProc end")
 

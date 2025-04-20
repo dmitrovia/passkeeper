@@ -49,10 +49,8 @@ func (up *UploadProc) awaitClose() {
 }
 
 func (up *UploadProc) runWorker() {
-	defer up.attr.WgSubProc.Done()
-
 	for chunk := range up.attr.UploadChan {
-		up.UploadChunk(&chunk)
+		up.uploadChunk(&chunk)
 	}
 }
 
@@ -67,10 +65,11 @@ func (up *UploadProc) toJSON(
 	return &metricMarshall, nil
 }
 
-func (up *UploadProc) UploadChunk(
+func (up *UploadProc) uploadChunk(
 	chunk *chunckmeta.ChunkMeta,
 ) {
 	defer up.attr.WorkerChunkWg.Done()
+	defer chunk.ClearData()
 
 	client := &http.Client{}
 	uplattr := &euploaderattr.UploaderAttr{}
@@ -79,8 +78,6 @@ func (up *UploadProc) UploadChunk(
 	data, err := up.toJSON(chunk)
 	if err != nil {
 		up.attr.ErrChan <- err
-
-		chunk.ClearData()
 
 		return
 	}
@@ -98,12 +95,8 @@ func (up *UploadProc) UploadChunk(
 	if err != nil {
 		up.attr.ErrChan <- err
 
-		chunk.ClearData()
-
 		return
 	}
-
-	chunk.ClearData()
 
 	defer resp.Body.Close()
 

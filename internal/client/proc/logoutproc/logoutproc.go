@@ -20,7 +20,6 @@ func NewProc(
 }
 
 func (lp *LogoutProc) RunProcess() error {
-	defer lp.attr.WgSubProc.Done()
 	fmt.Println("LogoutProc run")
 
 	defer fmt.Println("LogoutProc end")

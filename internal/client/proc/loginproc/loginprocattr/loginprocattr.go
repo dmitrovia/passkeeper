@@ -2,7 +2,6 @@ package loginprocattr
 
 import (
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/elogin"
@@ -17,7 +16,6 @@ type LoginProcAttr struct {
 	TokenSavePath string
 	LoginAttr     *eloginattr.LoginAttr
 	Login         *elogin.Login
-	WgSubProc     *sync.WaitGroup
 	AttrClintProc *clientpa.ClientProcAttr
 	EncKey        *[]byte
 }
@@ -35,7 +33,6 @@ func (rpa *LoginProcAttr) Init(
 	rpa.Login = elogin.NewLogin(rpa.LoginAttr)
 	rpa.TokenSavePath = attr.AuthTokenPath
 	rpa.AttrClintProc = attr
-	rpa.WgSubProc = attr.WgSubProc
 	rpa.EncKey = &attr.PrivateKey
 
 	return nil

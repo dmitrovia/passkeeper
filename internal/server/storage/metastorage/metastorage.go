@@ -41,7 +41,7 @@ func (m *MetaStorage) CreateMeta(
 		return fmt.Errorf("CreateMeta->Scan: %w", err)
 	}
 
-	meta.ID = *lastInsertID
+	meta.ID = lastInsertID
 
 	return nil
 }
@@ -59,8 +59,7 @@ func (m *MetaStorage) GetMetaByClientOptimized(
 	rows, err := m.conn.Query(
 		ctx, "select m.file_name,m.orig_file_name"+
 			" from meta m"+
-			" where m.client_user=$1"+
-			" order by m.orig_file_name",
+			" where m.client_user=$1",
 		clientID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%s %w", txt, err)

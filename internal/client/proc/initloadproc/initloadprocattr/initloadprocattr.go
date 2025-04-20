@@ -2,7 +2,6 @@ package initloadprocattr
 
 import (
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/einitload"
@@ -19,7 +18,6 @@ type InitLoadProcAttr struct {
 	InitLoadAttr *einitloadattr.InitLoadAttr
 	AuthToken    string
 	LoadMetadata map[string]chunckmeta.ChunkMeta
-	WgSubProc    *sync.WaitGroup
 }
 
 func (ilp *InitLoadProcAttr) Init(
@@ -35,5 +33,4 @@ func (ilp *InitLoadProcAttr) Init(
 	ilp.InitLoadAttr.Init(url, ilp.Client, ilp.AuthToken)
 	ilp.InitLoad = einitload.NewInitLoad(
 		ilp.InitLoadAttr)
-	ilp.WgSubProc = attr.WgSubProc
 }

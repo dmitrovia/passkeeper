@@ -29,7 +29,6 @@ func NewProc(
 }
 
 func (lp *LoginProc) RunProcess() error {
-	defer lp.attr.WgSubProc.Done()
 	fmt.Println("LoginProc run")
 
 	defer fmt.Println("LoginProc end")
@@ -39,7 +38,7 @@ func (lp *LoginProc) RunProcess() error {
 
 	defer cancel()
 
-	err := lp.Input()
+	err := lp.input()
 	if err != nil {
 		return fmt.Errorf("RP->Input: %w", err)
 	}
@@ -71,7 +70,7 @@ func (lp *LoginProc) RunProcess() error {
 	return nil
 }
 
-func (lp *LoginProc) Input() error {
+func (lp *LoginProc) input() error {
 	var inLogin string
 
 	var inPass string

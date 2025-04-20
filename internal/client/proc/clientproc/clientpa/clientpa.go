@@ -21,9 +21,9 @@ const (
 type ClientProcAttr struct {
 	ZapLogger           *zap.Logger
 	TempFilesPath       string
-	FileSynchronizePath string
+	FilesUploadPath     string
 	SelectFilePath      string
-	DefSynchronizePath  string
+	DefFilesUploadPath  string
 	IsAuth              bool
 	AuthToken           string
 	AuthTokenPath       string
@@ -91,8 +91,8 @@ func (p *ClientProcAttr) GetAttrsCFG() error {
 		return fmt.Errorf("GetAttrsCFG->GetAttrs: %w", err)
 	}
 
-	if p.FileSynchronizePath == "" {
-		p.FileSynchronizePath = cfg.FilesSynchronizePath
+	if p.FilesUploadPath == "" {
+		p.FilesUploadPath = cfg.FilesUploadPath
 	}
 
 	if p.ServerAddr == "" {
@@ -147,8 +147,8 @@ func (p *ClientProcAttr) InitFlags() {
 		"Meta files path.",
 	)
 	flag.StringVar(
-		&p.FileSynchronizePath,
-		"fspath", p.DefSynchronizePath,
+		&p.FilesUploadPath,
+		"fspath", p.DefFilesUploadPath,
 		"Directory for synchronizing files from the server.",
 	)
 	flag.StringVar(

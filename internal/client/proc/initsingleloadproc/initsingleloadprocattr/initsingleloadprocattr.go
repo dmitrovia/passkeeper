@@ -2,7 +2,6 @@ package initsingleloadprocattr
 
 import (
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/einitsingleload"
@@ -21,7 +20,6 @@ type InitSingleLoadProcAttr struct {
 	AuthToken            string
 	SpecificFileLoadName string
 	LoadMetadata         map[string]chunckmeta.ChunkMeta
-	WgSubProc            *sync.WaitGroup
 }
 
 func (rpa *InitSingleLoadProcAttr) Init(
@@ -37,5 +35,4 @@ func (rpa *InitSingleLoadProcAttr) Init(
 	rpa.InitSingleLoadAttr.Init(url, rpa.Client, rpa.AuthToken)
 	rpa.InitSingleLoad = einitsingleload.NewInitSingleLoad(
 		rpa.InitSingleLoadAttr)
-	rpa.WgSubProc = attr.WgSubProc
 }

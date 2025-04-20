@@ -28,7 +28,6 @@ func NewProc(
 }
 
 func (rp *RegisterProc) RunProcess() error {
-	defer rp.attr.WgSubProc.Done()
 	fmt.Println("RegisterProc run")
 
 	defer fmt.Println("RegisterProc end")
@@ -37,7 +36,7 @@ func (rp *RegisterProc) RunProcess() error {
 		context.Background(), rp.attr.ReqTimeout)
 	defer cancel()
 
-	err := rp.Input()
+	err := rp.input()
 	if err != nil {
 		return fmt.Errorf("RP->Input: %w", err)
 	}
@@ -60,7 +59,7 @@ func (rp *RegisterProc) RunProcess() error {
 	return nil
 }
 
-func (rp *RegisterProc) Input() error {
+func (rp *RegisterProc) input() error {
 	var inLogin string
 
 	var inPass string

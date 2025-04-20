@@ -28,7 +28,7 @@ func (proc *BuildProc) RunProcess() error {
 
 	defer fmt.Println("BuildProc end")
 
-	err := proc.Build()
+	err := proc.build()
 	if err != nil {
 		return fmt.Errorf("RP->Build: %w", err)
 	}
@@ -38,7 +38,7 @@ func (proc *BuildProc) RunProcess() error {
 	return nil
 }
 
-func (proc *BuildProc) Build() error {
+func (proc *BuildProc) build() error {
 	oFile, err := os.Create(proc.attr.OutFilePath)
 	if err != nil {
 		return fmt.Errorf("RP->Create: %w", err)

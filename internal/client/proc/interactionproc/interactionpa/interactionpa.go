@@ -2,6 +2,7 @@ package interactionpa
 
 import (
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/dmitrovia/passkeeper/internal/client/metamanager"
@@ -14,6 +15,8 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/proc/initsingleloadproc/initsingleloadprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/inituploadproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/inituploadproc/inituploadprocattr.go"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/loadproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/loadproc/loadprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/loginproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/loginproc/loginprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/logoutproc"
@@ -25,6 +28,10 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
+type LoadChunkInfo struct {
+	Chunks      map[string]chunckmeta.ChunkMeta
+	LoadIsAllow bool
+}
 type InteractionProcAttr struct {
 	// upload and chunk
 	Chproc             *chunkerproc.ChunkerProc
@@ -59,9 +66,69 @@ type InteractionProcAttr struct {
 	WorkerChunkWg   *sync.WaitGroup
 	Metamanager     *metamanager.MetaManager
 	CurrentMetadata map[string]chunckmeta.ChunkMeta
-	// load
-	SpecificFileLoad bool
-	LoadMetadata     map[string]chunckmeta.ChunkMeta
+	// load and build
+	LoadChan           chan chunckmeta.ChunkMeta
+	SpecificFileLoad   bool
+	LoadMetadata       map[string]chunckmeta.ChunkMeta
+	FileNamesAllowLoad map[string]LoadChunkInfo
+	LoadProc           *loadproc.LoadProc
+	LoadProcAttr       *loadprocattr.LoadProcAttr
+}
+
+func (ipa *InteractionProcAttr) SortLoadMetadata() error {
+	ipa.FileNamesAllowLoad = make(map[string]LoadChunkInfo)
+
+	for _, value := range ipa.LoadMetadata {
+		val, ok := ipa.FileNamesAllowLoad[*value.OrigFileName]
+		if !ok {
+			lci := &LoadChunkInfo{}
+			lci.Chunks = make(map[string]chunckmeta.ChunkMeta)
+			lci.Chunks[*value.FileName] = value
+			lci.LoadIsAllow = true
+			ipa.FileNamesAllowLoad[*value.OrigFileName] = *lci
+		} else {
+			val.Chunks[*value.FileName] = value
+		}
+	}
+
+	clear(ipa.LoadMetadata)
+
+	return nil
+}
+
+func (ipa *InteractionProcAttr) SetRestrictions() error {
+	names, err := ipa.GetExistingFilenames()
+	if err != nil {
+		return fmt.Errorf("loadAndBuild->GEF: %w", err)
+	}
+
+	var inValue string
+
+	for key, value := range ipa.FileNamesAllowLoad {
+		_, ok := names[key]
+		if ok {
+			str := "Do you want to overwrite the file?" +
+				"Enter 1 if yes, 2 - all files, other - no"
+			fmt.Println(str)
+
+			_, err1 := fmt.Fscan(os.Stdin, &inValue)
+			if err1 != nil {
+				continue
+			}
+
+			if inValue == "2" {
+				break
+			}
+
+			if inValue == "1" {
+				continue
+			}
+
+			value.LoadIsAllow = false
+		}
+	}
+
+	return nil
 }
 
 func (ipa *InteractionProcAttr) InitRegister() error {
@@ -151,7 +218,7 @@ func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	return nil
 }
 
-func (ipa *InteractionProcAttr) InitLoad() error {
+func (ipa *InteractionProcAttr) InitAfterLoad() error {
 	ipa.InitSingleLoadpa = &initsingleloadprocattr.
 		InitSingleLoadProcAttr{}
 	ipa.InitSingleLoadpa.Init(ipa.AttrClintProc)
@@ -164,4 +231,38 @@ func (ipa *InteractionProcAttr) InitLoad() error {
 		ipa.InitLoadpa)
 
 	return nil
+}
+
+func (ipa *InteractionProcAttr) InitLoad(
+	countMeta int,
+) error {
+	ipa.LoadChan = make(chan chunckmeta.ChunkMeta,
+		countMeta)
+	ipa.ErrChan = make(chan error, countMeta)
+
+	ipa.WorkerChunkWg = &sync.WaitGroup{}
+	ipa.LoadProcAttr.Init(ipa.AttrClintProc)
+	ipa.LoadProcAttr.WorkerChunkWg = ipa.WorkerChunkWg
+	ipa.LoadProcAttr.LoadChan = ipa.LoadChan
+
+	return nil
+}
+
+func (ipa *InteractionProcAttr) GetExistingFilenames() (
+	map[string]struct{}, error,
+) {
+	entries, err := os.ReadDir(
+		ipa.AttrClintProc.FilesUploadPath)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"GetExistingFilenames->ReadDir: %w", err)
+	}
+
+	names := make(map[string]struct{})
+
+	for _, e := range entries {
+		names[e.Name()] = struct{}{}
+	}
+
+	return names, nil
 }
