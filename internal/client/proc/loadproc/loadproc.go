@@ -34,8 +34,6 @@ func (proc *LoadProc) RunProcess() error {
 	fmt.Println("LoadProc run")
 	defer fmt.Println("LoadProc end")
 
-	go proc.awaitClose()
-
 	proc.runWorkerPoolLoad()
 
 	return nil
@@ -45,11 +43,6 @@ func (proc *LoadProc) runWorkerPoolLoad() {
 	for range proc.attr.CountWorkersLoad {
 		go proc.runWorker()
 	}
-}
-
-func (proc *LoadProc) awaitClose() {
-	proc.attr.WorkerChunkWg.Wait()
-	close(proc.attr.LoadChan)
 }
 
 func (proc *LoadProc) runWorker() {
@@ -139,7 +132,7 @@ func (proc *LoadProc) parseRespAndSaveFile(
 		bytes.NewReader(*respChunk.Data),
 	)
 	if err != nil {
-		fmt.Println("PRASF->DD: %w", err)
+		return fmt.Errorf("parseRespAndSaveFile->DD: %w", err)
 	}
 
 	orig.Data = &decompress
@@ -153,7 +146,7 @@ func (proc *LoadProc) parseRespAndSaveFile(
 
 	err = proc.createChunkFile(respChunk)
 	if err != nil {
-		fmt.Println("PRASF->createChunkFile: %w", err)
+		return fmt.Errorf("parseRespAndSaveFile->CCF: %w", err)
 	}
 
 	defer respChunk.ClearData()

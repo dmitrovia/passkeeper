@@ -30,8 +30,6 @@ func (up *UploadProc) RunProcess() error {
 	fmt.Println("UploadProc run")
 	defer fmt.Println("UploadProc end")
 
-	go up.awaitClose()
-
 	up.runWorkerPoolUpload()
 
 	return nil
@@ -41,11 +39,6 @@ func (up *UploadProc) runWorkerPoolUpload() {
 	for range up.attr.CountWorkersUpload {
 		go up.runWorker()
 	}
-}
-
-func (up *UploadProc) awaitClose() {
-	up.attr.WorkerChunkWg.Wait()
-	close(up.attr.UploadChan)
 }
 
 func (up *UploadProc) runWorker() {
@@ -69,7 +62,6 @@ func (up *UploadProc) uploadChunk(
 	chunk *chunckmeta.ChunkMeta,
 ) {
 	defer up.attr.WorkerChunkWg.Done()
-	defer chunk.ClearData()
 
 	client := &http.Client{}
 	uplattr := &euploaderattr.UploaderAttr{}
@@ -78,6 +70,8 @@ func (up *UploadProc) uploadChunk(
 	data, err := up.toJSON(chunk)
 	if err != nil {
 		up.attr.ErrChan <- err
+
+		chunk.ClearData()
 
 		return
 	}
@@ -95,6 +89,8 @@ func (up *UploadProc) uploadChunk(
 	if err != nil {
 		up.attr.ErrChan <- err
 
+		chunk.ClearData()
+
 		return
 	}
 
@@ -105,11 +101,14 @@ func (up *UploadProc) uploadChunk(
 		err := fmt.Errorf("RWP->UploadChunk: %w", errSNOK)
 		up.attr.ErrChan <- err
 
+		chunk.ClearData()
+
 		return
 	}
 
+	chunk.ClearData()
+
 	up.attr.Mutex.Lock()
 	up.attr.CurrentMetadata[*chunk.FileName] = *chunk
-	up.attr.UploadedMetadata[*chunk.FileName] = *chunk
 	up.attr.Mutex.Unlock()
 }

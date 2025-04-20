@@ -48,7 +48,6 @@ func (cpa *ChunkerProcAttr) Init(
 
 	cpa.FileName = fileInfo.Name()
 	cpa.FileFormat = filepath.Ext(cpa.FilePath)
-	fmt.Println(cpa.FileFormat)
 
 	cz := int64(cpa.ChunkSize)
 	cntChunks := int(fileInfo.Size() / cz)

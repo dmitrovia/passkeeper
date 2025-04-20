@@ -60,7 +60,7 @@ func (proc *InitProc) parseResp(
 ) error {
 	out, err := compress.DeflateDecompress(response.Body)
 	if err != nil {
-		fmt.Println("parseResp->DeflateDecompress: %w", err)
+		return fmt.Errorf("parseResp->DeflateDecompress: %w", err)
 	}
 
 	metas := make(map[string]chunckmeta.ChunkMeta)

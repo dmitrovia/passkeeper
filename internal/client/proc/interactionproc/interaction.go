@@ -2,7 +2,6 @@ package interactionproc
 
 import (
 	"fmt"
-	"maps"
 	"os"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/buildproc"
@@ -253,6 +252,7 @@ func (ip *InteractionProc) loadAndBuild(
 	ip.attr.WgSubProc.Wait()
 
 	close(ip.attr.ErrChan)
+	close(ip.attr.LoadChan)
 
 	for err := range ip.attr.ErrChan {
 		if err != nil {
@@ -273,17 +273,6 @@ func (ip *InteractionProc) loadAndBuild(
 	if err != nil {
 		return fmt.Errorf("UACSM->RPBuilder: %w", err)
 	}
-
-	/*if len(ip.attr.Uploadpa.UploadedMetadata) > 0 {
-		maps.Copy(ip.attr.CurrentMetadata,
-			ip.attr.Uploadpa.UploadedMetadata)
-
-		err = ip.attr.Metamanager.SaveMetadata(
-			ip.attr.CurrentMetadata)
-		if err != nil {
-			return fmt.Errorf("uploadAndChunk->SM: %w", err)
-		}
-	}*/
 
 	fmt.Println("Successfully loaded")
 
@@ -386,26 +375,21 @@ func (ip *InteractionProc) uploadAndChunk() error {
 
 	go ip.runChunker()
 	go ip.runUploader()
-
 	ip.attr.WorkerChunkWg.Wait()
 	ip.attr.Chunkerpa.ChFile.Close()
 	close(ip.attr.ErrChan)
-
-	if len(ip.attr.Uploadpa.UploadedMetadata) > 0 {
-		maps.Copy(ip.attr.CurrentMetadata,
-			ip.attr.Uploadpa.UploadedMetadata)
-
-		err = ip.attr.Metamanager.SaveMetadata(
-			ip.attr.CurrentMetadata)
-		if err != nil {
-			return fmt.Errorf("uploadAndChunk->SM: %w", err)
-		}
-	}
+	close(ip.attr.UploadChan)
 
 	for err := range ip.attr.ErrChan {
 		if err != nil {
 			return err
 		}
+	}
+
+	err = ip.attr.Metamanager.SaveMetadata(
+		ip.attr.CurrentMetadata)
+	if err != nil {
+		return fmt.Errorf("uploadAndChunk->SM: %w", err)
 	}
 
 	fmt.Println("Successfully uploaded")

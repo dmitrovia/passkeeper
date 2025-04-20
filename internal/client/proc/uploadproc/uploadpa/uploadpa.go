@@ -13,7 +13,6 @@ type UploadProcAttr struct {
 	WorkerChunkWg      *sync.WaitGroup
 	ReqTimeout         time.Duration
 	UploadChan         chan chunckmeta.ChunkMeta
-	UploadedMetadata   map[string]chunckmeta.ChunkMeta
 	CurrentMetadata    map[string]chunckmeta.ChunkMeta
 	Mutex              *sync.Mutex
 	ErrChan            chan error
@@ -29,8 +28,6 @@ func (upa *UploadProcAttr) Init(
 
 	upa.ReqTimeout = attr.ReqTimeout
 	upa.ServerURL = attr.ServerAddr
-	upa.UploadedMetadata = make(
-		map[string]chunckmeta.ChunkMeta)
 	upa.CountWorkersUpload = attr.CountWorkersUpload
 	upa.AuthToken = attr.AuthToken
 
