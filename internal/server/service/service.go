@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
+	"github.com/dmitrovia/passkeeper/internal/general/models/secret"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 )
 
@@ -33,6 +34,23 @@ type MetaService interface {
 		clientID int32,
 		fileName string,
 	) (map[string]chunckmeta.ChunkMeta, *[]error, error)
+}
+
+type SecretService interface {
+	CreateSecret(
+		ctx context.Context,
+		secret *secret.Secret) error
+
+	GetSecretByClientOptimized(
+		ctx context.Context,
+		clientID int32,
+	) (*[]secret.Secret, *[]error, error)
+
+	GetSecretByClientIdentifierOptimized(
+		ctx context.Context,
+		clientID int32,
+		identifier string,
+	) (*secret.Secret, *[]error, error)
 }
 
 type FileService interface{}

@@ -65,9 +65,7 @@ func (proc *InitSingleProc) RunProcess() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("RP->InitSingleLoad: %w", errSNOK)
-
-		return err
+		return fmt.Errorf("RP->InitSingleLoad: %w", errSNOK)
 	}
 
 	err = proc.parseResp(resp)

@@ -49,9 +49,7 @@ func (rp *RegisterProc) RunProcess() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("RP->Register: %w", errSNOK)
-
-		return err
+		return fmt.Errorf("RP->Register: %w", errSNOK)
 	}
 
 	fmt.Println("Successfully registered")

@@ -39,9 +39,7 @@ func (proc *InitUploadProc) RunProcess() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("RP->InitUpload: %w", errSNOK)
-
-		return err
+		return fmt.Errorf("RP->InitUpload: %w", errSNOK)
 	}
 
 	return nil
