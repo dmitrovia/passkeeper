@@ -1,4 +1,4 @@
-package getsecretbyidattr
+package uploadsecretattr
 
 import (
 	"time"
@@ -6,12 +6,12 @@ import (
 	"go.uber.org/zap"
 )
 
-type GetSecretByIDAttr struct {
+type UploadSecretAttr struct {
 	ZapLogger *zap.Logger
 	Dbtimeout time.Duration
 }
 
-func (p *GetSecretByIDAttr) Init(
+func (p *UploadSecretAttr) Init(
 	logger *zap.Logger,
 	dbt time.Duration,
 ) {

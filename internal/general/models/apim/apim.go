@@ -20,6 +20,10 @@ type InInitSingleLoad struct {
 	FileName string `json:"fileName"`
 }
 
+type InGetSecretByID struct {
+	Identifier string `json:"identifier"`
+}
+
 type InRegisterUser struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`

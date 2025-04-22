@@ -10,6 +10,10 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/server/config"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecretbyid"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecretbyid/getsecretbyidattr"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecrets"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecrets/getsecretsattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initload"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initload/initloadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initsingleload"
@@ -25,14 +29,18 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/register/registerattr"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/upload"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/upload/uploadattr"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/uploadsecret"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/uploadsecret/uploadsecretattr"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware/authmiddlewareattr"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/loggermiddleware"
 	"github.com/dmitrovia/passkeeper/internal/server/service/authservice"
 	"github.com/dmitrovia/passkeeper/internal/server/service/fileservice"
 	"github.com/dmitrovia/passkeeper/internal/server/service/metaservice"
+	"github.com/dmitrovia/passkeeper/internal/server/service/secretservice"
 	"github.com/dmitrovia/passkeeper/internal/server/storage/filestorage"
 	"github.com/dmitrovia/passkeeper/internal/server/storage/metastorage"
+	"github.com/dmitrovia/passkeeper/internal/server/storage/secretstorage"
 	"github.com/dmitrovia/passkeeper/internal/server/storage/userstorage"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -57,18 +65,19 @@ type ServerProcAttr struct {
 	MetaService         *metaservice.MetaService
 	FileStorage         *filestorage.FileStorage
 	FIleService         *fileservice.FileService
+	SecretService       *secretservice.SecretService
+	SecretStorage       *secretstorage.SecretStorage
 	LoginAttr           *loginattr.LoginAttr
 	RigsterAttr         *registerattr.RegisterAttr
 	UploadAttr          *uploadattr.UploadAttr
 	AuthMidAttr         *authmiddlewareattr.AuthMiddlewareAttr
-	InitUpload          *initupload.InitUpload
 	InitUploadAttr      *inituploadattr.InitUploadAttr
-	InitLoad            *initload.InitLoad
 	InitLoadAttr        *initloadattr.InitLoadAttr
-	InitSingleLoad      *initsingleload.InitSingleLoad
 	InitSingleLoadAttr  *initsingleloadattr.InitSingleLoadAttr
-	Load                *load.Load
 	LoadAttr            *loadattr.LoadAttr
+	UploadSecretAttr    *uploadsecretattr.UploadSecretAttr
+	GetSecretsAttr      *getsecretsattr.GetSecretAttr
+	GetSecretByIDAttr   *getsecretbyidattr.GetSecretByIDAttr
 	Dbtimeout           time.Duration
 	DefReadTimeout      time.Duration
 	DefWriteTimeout     time.Duration
@@ -129,6 +138,7 @@ func (p *ServerProcAttr) Init() error {
 	}
 
 	p.initServices()
+	p.initHandlersAttr()
 	p.AuthMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
 	p.AuthMidAttr.Init(p.ZapLogger,
 		p.AuthService, p.Dbtimeout, p.SecretAuth)
@@ -148,6 +158,8 @@ func (p *ServerProcAttr) Init() error {
 }
 
 func (p *ServerProcAttr) initServices() {
+	p.SecretStorage = &secretstorage.SecretStorage{}
+	p.SecretStorage.Initiate(p.PgxConn)
 	p.FileStorage = &filestorage.FileStorage{}
 	p.FileStorage.Initiate(p.PgxConn)
 	p.MetaStorage = &metastorage.MetaStorage{}
@@ -158,7 +170,8 @@ func (p *ServerProcAttr) initServices() {
 	p.FIleService = fileservice.NewFileService(p.FIleService)
 	p.AuthService = authservice.NewAuthService(
 		p.UserStorage)
-	p.initHandlersAttr()
+	p.SecretService = secretservice.NewSecretService(
+		p.SecretService)
 }
 
 func (p *ServerProcAttr) GetAttrsCFG() error {
@@ -220,7 +233,6 @@ func (p *ServerProcAttr) initAPIMethods(
 ) {
 	get := http.MethodGet
 	post := http.MethodPost
-
 	hNotAllowed := notallowed.NotAllowed{}
 	register := register.NewHandler(
 		p.AuthService, p.RigsterAttr).RegisterHandler
@@ -231,14 +243,19 @@ func (p *ServerProcAttr) initAPIMethods(
 		p.UploadAttr).UploadHandler
 	initUploadH := initupload.NewHandler(p.FIleService,
 		p.InitUploadAttr).InitUploadHandler
-
 	loadH := load.NewHandler(p.MetaService,
 		p.LoadAttr).InitLoadHandler
 	initLoadH := initload.NewHandler(p.MetaService,
 		p.InitLoadAttr).InitLoadHandler
-
 	initSingleH := initsingleload.NewHandler(
 		p.MetaService, p.InitSingleLoadAttr).InitSingleLoadHadnler
+	uploadSecretH := uploadsecret.NewHandler(
+		p.SecretService,
+		p.UploadSecretAttr).UploadSecretHandler
+	getSecretByIDH := getsecretbyid.NewHandler(p.SecretService,
+		p.GetSecretsAttr).GetSecretByIDHadnler
+	getSecretsH := getsecrets.NewHandler(p.SecretService,
+		p.GetSecretsAttr).GetSecretsHandler
 
 	p.setMethod(post, "register", mux, register, false)
 	p.setMethod(post, "login", mux, login, false)
@@ -247,6 +264,11 @@ func (p *ServerProcAttr) initAPIMethods(
 	p.setMethod(get, "load", mux, loadH, true)
 	p.setMethod(get, "initload", mux, initLoadH, true)
 	p.setMethod(get, "initsingleload", mux, initSingleH, true)
+	p.setMethod(get, "getsecretbyid", mux, getSecretByIDH,
+		true)
+	p.setMethod(get, "getsecrets", mux, getSecretsH, true)
+	p.setMethod(post, "uploadsecret", mux, uploadSecretH,
+		true)
 
 	mux.MethodNotAllowedHandler = hNotAllowed
 }
@@ -277,11 +299,16 @@ func (p *ServerProcAttr) initHandlersAttr() {
 	p.InitUploadAttr = &inituploadattr.InitUploadAttr{}
 	p.InitLoadAttr = &initloadattr.InitLoadAttr{}
 	p.LoadAttr = &loadattr.LoadAttr{}
-	p.InitSingleLoad = &initsingleload.InitSingleLoad{}
-
 	attr := &initsingleloadattr.InitSingleLoadAttr{}
 	p.InitSingleLoadAttr = attr
+	p.GetSecretsAttr = &getsecretsattr.GetSecretAttr{}
+	p.GetSecretByIDAttr = &getsecretbyidattr.
+		GetSecretByIDAttr{}
+	p.UploadSecretAttr = &uploadsecretattr.UploadSecretAttr{}
 
+	p.GetSecretsAttr.Init(p.ZapLogger, p.Dbtimeout)
+	p.GetSecretByIDAttr.Init(p.ZapLogger, p.Dbtimeout)
+	p.GetSecretsAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.InitSingleLoadAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.InitUploadAttr.Init(p.ZapLogger,
 		p.Dbtimeout, p.FilesStoragePath)
