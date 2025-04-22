@@ -11,6 +11,7 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/compress"
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
+	"github.com/dmitrovia/passkeeper/internal/general/rsa"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecrets/getsecretsattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
@@ -97,7 +98,12 @@ func (h *GetSecretByID) getResponeBody(
 		return nil, fmt.Errorf("getResponeBody->DC: %w", err)
 	}
 
-	return &compress, nil
+	encrypt, err := rsa.Encrypt(&compress, h.attr.EncKey)
+	if err != nil {
+		return nil, fmt.Errorf("getResponeBody->Encrypt: %w", err)
+	}
+
+	return encrypt, nil
 }
 
 func (h *GetSecretByID) setErr(writer http.ResponseWriter,

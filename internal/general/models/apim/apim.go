@@ -1,19 +1,21 @@
 package apim
 
 type CfgServer struct {
-	ServerAddr       string `json:"address"`
-	DBDSN            string `json:"dbdsn"`
-	FilesStoragePath string `json:"filesStoragePath"`
-	CryptoKeyPath    string `json:"cryptoKeyPath"`
+	ServerAddr           string `json:"address"`
+	DBDSN                string `json:"dbdsn"`
+	FilesStoragePath     string `json:"filesStoragePath"`
+	CryptoKeyPathPrivate string `json:"cryptoKeyPathPrivate"`
+	CryptoKeyPathPublic  string `json:"cryptoKeyPathPublic"`
 }
 
 type CfgClient struct {
-	ServerAddr      string `json:"address"`
-	FilesUploadPath string `json:"filesUploadPath"`
-	MetaPath        string `json:"metaPath"`
-	TokenPath       string `json:"tokenPath"`
-	CryptoKeyPath   string `json:"cryptoKeyPath"`
-	GzipFormats     string `json:"gzipFormats"`
+	ServerAddr           string `json:"address"`
+	FilesUploadPath      string `json:"filesUploadPath"`
+	MetaPath             string `json:"metaPath"`
+	TokenPath            string `json:"tokenPath"`
+	CryptoKeyPathPublic  string `json:"cryptoKeyPathPublic"`
+	CryptoKeyPathPrivate string `json:"cryptoKeyPathPrivate"`
+	GzipFormats          string `json:"gzipFormats"`
 }
 
 type InInitSingleLoad struct {

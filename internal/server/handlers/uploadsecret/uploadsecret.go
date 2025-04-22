@@ -10,6 +10,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/secret"
+	"github.com/dmitrovia/passkeeper/internal/general/rsa"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/uploadsecret/uploadsecretattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
@@ -91,9 +92,14 @@ func (h *UploadSecret) getReqData(
 		return nil, fmt.Errorf("getReqData: %w", errEmptyData)
 	}
 
+	dec, err := rsa.Decrypt(&body, h.attr.DecKey)
+	if err != nil {
+		return nil, fmt.Errorf("getReqData->Decrypt: %w", err)
+	}
+
 	secret := &secret.Secret{}
 
-	err = json.Unmarshal(body, secret)
+	err = json.Unmarshal(*dec, secret)
 	if err != nil {
 		return nil, fmt.Errorf("getReqData->JU: %w", err)
 	}

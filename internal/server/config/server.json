@@ -2,5 +2,5 @@
     "dbdsn": "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable",
     "address" : "localhost:8080",
     "filesStoragePath" : "../../internal/server/files_server",
-    "cryptoKeyPath": "../../internal/server/crypto/keys/private.pem"
+    "cryptoKeyPathPrivate": "../../internal/server/crypto/keys/private.pem"
 } 

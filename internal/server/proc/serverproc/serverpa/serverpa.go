@@ -56,47 +56,49 @@ const initWriteTimeout = 15
 const initIdleTimeout = 60
 
 type ServerProcAttr struct {
-	ZapLogger           *zap.Logger
-	PgxConn             *pgxpool.Pool
-	Server              *http.Server
-	UserStorage         *userstorage.UserStorage
-	AuthService         *authservice.AuthService
-	MetaStorage         *metastorage.MetaStorage
-	MetaService         *metaservice.MetaService
-	FileStorage         *filestorage.FileStorage
-	FIleService         *fileservice.FileService
-	SecretService       *secretservice.SecretService
-	SecretStorage       *secretstorage.SecretStorage
-	LoginAttr           *loginattr.LoginAttr
-	RigsterAttr         *registerattr.RegisterAttr
-	UploadAttr          *uploadattr.UploadAttr
-	AuthMidAttr         *authmiddlewareattr.AuthMiddlewareAttr
-	InitUploadAttr      *inituploadattr.InitUploadAttr
-	InitLoadAttr        *initloadattr.InitLoadAttr
-	InitSingleLoadAttr  *initsingleloadattr.InitSingleLoadAttr
-	LoadAttr            *loadattr.LoadAttr
-	UploadSecretAttr    *uploadsecretattr.UploadSecretAttr
-	GetSecretsAttr      *getsecretsattr.GetSecretAttr
-	GetSecretByIDAttr   *getsecretbyidattr.GetSecretByIDAttr
-	Dbtimeout           time.Duration
-	DefReadTimeout      time.Duration
-	DefWriteTimeout     time.Duration
-	DefIdleTimeout      time.Duration
-	CryptoKeyPath       string
-	PrivateKey          []byte
-	ZapLogInfoLevel     string
-	DefDBDSN            string
-	DefServerAddr       string
-	ServerAddr          string
-	DBDSN               string
-	ConfigPath          string
-	DefConfigPath       string
-	MigrationsDir       string
-	APIUsersURL         string
-	SecretAuth          string
-	FilesStoragePath    string
-	DefFilesStoragePath string
-	TokenExpHour        int
+	ZapLogger            *zap.Logger
+	PgxConn              *pgxpool.Pool
+	Server               *http.Server
+	UserStorage          *userstorage.UserStorage
+	AuthService          *authservice.AuthService
+	MetaStorage          *metastorage.MetaStorage
+	MetaService          *metaservice.MetaService
+	FileStorage          *filestorage.FileStorage
+	FIleService          *fileservice.FileService
+	SecretService        *secretservice.SecretService
+	SecretStorage        *secretstorage.SecretStorage
+	LoginAttr            *loginattr.LoginAttr
+	RigsterAttr          *registerattr.RegisterAttr
+	UploadAttr           *uploadattr.UploadAttr
+	AuthMidAttr          *authmiddlewareattr.AuthMiddlewareAttr
+	InitUploadAttr       *inituploadattr.InitUploadAttr
+	InitLoadAttr         *initloadattr.InitLoadAttr
+	InitSingleLoadAttr   *initsingleloadattr.InitSingleLoadAttr
+	LoadAttr             *loadattr.LoadAttr
+	UploadSecretAttr     *uploadsecretattr.UploadSecretAttr
+	GetSecretsAttr       *getsecretsattr.GetSecretAttr
+	GetSecretByIDAttr    *getsecretbyidattr.GetSecretByIDAttr
+	Dbtimeout            time.Duration
+	DefReadTimeout       time.Duration
+	DefWriteTimeout      time.Duration
+	DefIdleTimeout       time.Duration
+	CryptoKeyPathPrivate string
+	CryptoKeyPathPublic  string
+	PrivateKey           []byte
+	PublicKey            []byte
+	ZapLogInfoLevel      string
+	DefDBDSN             string
+	DefServerAddr        string
+	ServerAddr           string
+	DBDSN                string
+	ConfigPath           string
+	DefConfigPath        string
+	MigrationsDir        string
+	APIUsersURL          string
+	SecretAuth           string
+	FilesStoragePath     string
+	DefFilesStoragePath  string
+	TokenExpHour         int
 }
 
 func (p *ServerProcAttr) Init() error {
@@ -192,11 +194,20 @@ func (p *ServerProcAttr) GetAttrsCFG() error {
 		p.FilesStoragePath = cfg.FilesStoragePath
 	}
 
-	if p.CryptoKeyPath == "" {
-		p.CryptoKeyPath = cfg.CryptoKeyPath
+	if p.CryptoKeyPathPrivate == "" {
+		p.CryptoKeyPathPrivate = cfg.CryptoKeyPathPrivate
 	}
 
-	p.PrivateKey, err = os.ReadFile(p.CryptoKeyPath)
+	if p.CryptoKeyPathPublic == "" {
+		p.CryptoKeyPathPublic = cfg.CryptoKeyPathPublic
+	}
+
+	p.PrivateKey, err = os.ReadFile(p.CryptoKeyPathPrivate)
+	if err != nil {
+		return fmt.Errorf("Init->ReadFile: %w", err)
+	}
+
+	p.PublicKey, err = os.ReadFile(p.CryptoKeyPathPublic)
 	if err != nil {
 		return fmt.Errorf("Init->ReadFile: %w", err)
 	}
@@ -306,9 +317,12 @@ func (p *ServerProcAttr) initHandlersAttr() {
 		GetSecretByIDAttr{}
 	p.UploadSecretAttr = &uploadsecretattr.UploadSecretAttr{}
 
-	p.GetSecretsAttr.Init(p.ZapLogger, p.Dbtimeout)
-	p.GetSecretByIDAttr.Init(p.ZapLogger, p.Dbtimeout)
-	p.GetSecretsAttr.Init(p.ZapLogger, p.Dbtimeout)
+	p.GetSecretsAttr.Init(p.ZapLogger, p.Dbtimeout,
+		&p.PrivateKey)
+	p.GetSecretByIDAttr.Init(p.ZapLogger, p.Dbtimeout,
+		&p.PrivateKey)
+	p.GetSecretsAttr.Init(p.ZapLogger, p.Dbtimeout,
+		&p.PublicKey)
 	p.InitSingleLoadAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.InitUploadAttr.Init(p.ZapLogger,
 		p.Dbtimeout, p.FilesStoragePath)

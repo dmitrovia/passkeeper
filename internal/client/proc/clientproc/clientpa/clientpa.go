@@ -19,34 +19,36 @@ const (
 )
 
 type ClientProcAttr struct {
-	ZapLogger           *zap.Logger
-	TempFilesPath       string
-	FilesUploadPath     string
-	SelectFilePath      string
-	DefFilesUploadPath  string
-	IsAuth              bool
-	AuthToken           string
-	AuthTokenPath       string
-	AuthTokenDefPath    string
-	ZapLogInfoLevel     string
-	ConfigPath          string
-	DefConfigPath       string
-	ServerAddr          string
-	DefServerAddr       string
-	MetaPath            string
-	DefMetaPath         string
-	CryptoKeyPath       string
-	GzipFormats         string
-	PrivateKey          []byte
-	CountWorkersChunker int
-	CountWorkersUpload  int
-	CountWorkersLoad    int
-	DefChunkSize        int
-	MaxRetries          int
-	SelectedProc        *int
-	WgSubProc           *sync.WaitGroup
-	WGMainProc          *sync.WaitGroup
-	ReqTimeout          time.Duration
+	ZapLogger            *zap.Logger
+	TempFilesPath        string
+	FilesUploadPath      string
+	SelectFilePath       string
+	DefFilesUploadPath   string
+	IsAuth               bool
+	AuthToken            string
+	AuthTokenPath        string
+	AuthTokenDefPath     string
+	ZapLogInfoLevel      string
+	ConfigPath           string
+	DefConfigPath        string
+	ServerAddr           string
+	DefServerAddr        string
+	MetaPath             string
+	DefMetaPath          string
+	CryptoKeyPathPublic  string
+	CryptoKeyPathPrivate string
+	GzipFormats          string
+	PrivateKey           []byte
+	PublicKey            []byte
+	CountWorkersChunker  int
+	CountWorkersUpload   int
+	CountWorkersLoad     int
+	DefChunkSize         int
+	MaxRetries           int
+	SelectedProc         *int
+	WgSubProc            *sync.WaitGroup
+	WGMainProc           *sync.WaitGroup
+	ReqTimeout           time.Duration
 }
 
 func (p *ClientProcAttr) Init() error {
@@ -77,7 +79,12 @@ func (p *ClientProcAttr) Init() error {
 		return fmt.Errorf("Init->GetAttrsCFG: %w", err)
 	}
 
-	p.PrivateKey, err = os.ReadFile(p.CryptoKeyPath)
+	p.PublicKey, err = os.ReadFile(p.CryptoKeyPathPublic)
+	if err != nil {
+		return fmt.Errorf("Init->ReadFile: %w", err)
+	}
+
+	p.PrivateKey, err = os.ReadFile(p.CryptoKeyPathPrivate)
 	if err != nil {
 		return fmt.Errorf("Init->ReadFile: %w", err)
 	}
@@ -103,8 +110,12 @@ func (p *ClientProcAttr) GetAttrsCFG() error {
 		p.MetaPath = cfg.MetaPath
 	}
 
-	if p.CryptoKeyPath == "" {
-		p.CryptoKeyPath = cfg.CryptoKeyPath
+	if p.CryptoKeyPathPublic == "" {
+		p.CryptoKeyPathPublic = cfg.CryptoKeyPathPublic
+	}
+
+	if p.CryptoKeyPathPrivate == "" {
+		p.CryptoKeyPathPrivate = cfg.CryptoKeyPathPrivate
 	}
 
 	if p.AuthTokenPath == "" {

@@ -3,6 +3,7 @@
     "address" : "http://localhost:8080",
     "metaPath" : "../../internal/client/meta_client/meta.json",
     "tokenPath" : "../../internal/client/auth/token.json",
-    "cryptoKeyPath": "../../internal/client/crypto/keys/public.pem",
+    "cryptoKeyPathPublic": "../../internal/client/crypto/keys/public.pem",
+    "cryptoKeyPathPrivate": "../../internal/client/crypto/keys/private.pem",
     "gzipFormats" : ".html,.css,.js,.txt,.xml,.csv,.java,.json,.log,.doc,.pdf"
 } 

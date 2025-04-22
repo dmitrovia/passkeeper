@@ -20,8 +20,8 @@ func GeneratePair() error {
 	const fmd os.FileMode = 0o666
 
 	pkb := 4096
-	privateFN := "keys/private.pem"
-	publicFN := "keys/public.pem"
+	privateFN := "keys/private_new.pem"
+	publicFN := "keys/public_new.pem"
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, pkb)
 	if err != nil {
