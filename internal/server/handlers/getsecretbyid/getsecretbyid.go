@@ -12,7 +12,7 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
-	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecrets/getsecretsattr"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecretbyid/getsecretbyidattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/dmitrovia/passkeeper/internal/server/service"
@@ -26,12 +26,12 @@ var errEmptyData = errors.New("data is empty")
 
 type GetSecretByID struct {
 	secretService service.SecretService
-	attr          *getsecretsattr.GetSecretAttr
+	attr          *getsecretbyidattr.GetSecretByIDAttr
 }
 
 func NewHandler(
 	s service.SecretService,
-	inAttr *getsecretsattr.GetSecretAttr,
+	inAttr *getsecretbyidattr.GetSecretByIDAttr,
 ) *GetSecretByID {
 	return &GetSecretByID{secretService: s, attr: inAttr}
 }
@@ -126,9 +126,14 @@ func (h *GetSecretByID) getReqData(
 		return nil, fmt.Errorf("getReqData: %w", errEmptyData)
 	}
 
+	dec, err := rsa.Decrypt(&body, h.attr.DecKey)
+	if err != nil {
+		return nil, fmt.Errorf("getReqData->Decrypt: %w", err)
+	}
+
 	reqData := &apim.InGetSecretByID{}
 
-	err = json.Unmarshal(body, reqData)
+	err = json.Unmarshal(*dec, &reqData)
 	if err != nil {
 		return nil, fmt.Errorf("getReqData->JU: %w", err)
 	}

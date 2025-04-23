@@ -13,13 +13,13 @@ type InitLoad struct {
 	attr *einitloadattr.InitLoadAttr
 }
 
-func NewInitLoad(
+func NewEndpoint(
 	attr *einitloadattr.InitLoadAttr,
 ) *InitLoad {
 	return &InitLoad{attr: attr}
 }
 
-func (u *InitLoad) InitLoad(
+func (u *InitLoad) CallEndpoint(
 	ctx context.Context,
 ) (
 	*http.Response,
@@ -31,7 +31,7 @@ func (u *InitLoad) InitLoad(
 		u.attr.URL,
 		&bytes.Buffer{})
 	if err != nil {
-		return nil, fmt.Errorf("InitLoad->NRWC: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->NRWC: %w", err)
 	}
 
 	req.Header.Set("Authorization", u.attr.Token)
@@ -39,7 +39,7 @@ func (u *InitLoad) InitLoad(
 
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("InitLoad->Do: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->Do: %w", err)
 	}
 
 	return resp, nil

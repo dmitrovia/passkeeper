@@ -42,7 +42,7 @@ func (s *SecretService) GetSecretByClientOptimized(
 		err := s.repository.GetSecretByClientOptimized(
 		ctx, clientID)
 	if err != nil {
-		return secrets, errors, fmt.Errorf("%s: %w", txtErr, err)
+		return nil, nil, fmt.Errorf("%s: %w", txtErr, err)
 	}
 
 	return secrets, errors, nil
@@ -60,7 +60,7 @@ func (
 		err := s.repository.GetSecretByClientIdentifierOptimized(
 		ctx, clientID, identifier)
 	if err != nil {
-		return secret, errors, fmt.Errorf("%s: %w", txtErr, err)
+		return nil, nil, fmt.Errorf("%s: %w", txtErr, err)
 	}
 
 	return secret, errors, nil

@@ -79,13 +79,13 @@ func (up *UploadProc) uploadChunk(
 	uplattr.Init(uplattr.URL, client,
 		up.attr.AuthToken, data)
 
-	uploader := euploader.NewUploader(uplattr)
+	uploader := euploader.NewEndpoint(uplattr)
 
 	ctx, cancel := context.WithTimeout(
 		context.Background(), up.attr.ReqTimeout)
 	defer cancel()
 
-	resp, err := uploader.UploadChunk(ctx)
+	resp, err := uploader.CallEndpoint(ctx)
 	if err != nil {
 		up.attr.ErrChan <- err
 

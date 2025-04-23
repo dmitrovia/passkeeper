@@ -57,7 +57,7 @@ func (proc *InitSingleProc) RunProcess() error {
 		context.Background(), proc.attr.ReqTimeout)
 	defer cancel()
 
-	resp, err := proc.attr.InitSingleLoad.InitSingleLoad(ctx)
+	resp, err := proc.attr.InitSingleLoad.CallEndpoint(ctx)
 	if err != nil {
 		return fmt.Errorf("RP->InitSingleLoad: %w", err)
 	}

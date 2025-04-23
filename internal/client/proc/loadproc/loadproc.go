@@ -83,13 +83,13 @@ func (proc *LoadProc) loadChunk(
 	loadattr.Init(loadattr.URL, client,
 		proc.attr.AuthToken, data)
 
-	loader := eload.NewLoader(loadattr)
+	loader := eload.NewEndpoint(loadattr)
 
 	ctx, cancel := context.WithTimeout(
 		context.Background(), proc.attr.ReqTimeout)
 	defer cancel()
 
-	resp, err := loader.LoadChunk(ctx)
+	resp, err := loader.CallEndpoint(ctx)
 	if err != nil {
 		proc.attr.ErrChan <- err
 

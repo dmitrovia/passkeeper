@@ -1,4 +1,4 @@
-package elogin
+package euploadsercret
 
 import (
 	"bytes"
@@ -6,20 +6,20 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dmitrovia/passkeeper/internal/client/endpoints/elogin/eloginattr"
+	"github.com/dmitrovia/passkeeper/internal/client/endpoints/euploadsercret/euploadsercretattr"
 )
 
-type Login struct {
-	attr *eloginattr.LoginAttr
+type UploadSecret struct {
+	attr *euploadsercretattr.UploadSecretAttr
 }
 
 func NewEndpoint(
-	attr *eloginattr.LoginAttr,
-) *Login {
-	return &Login{attr: attr}
+	attr *euploadsercretattr.UploadSecretAttr,
+) *UploadSecret {
+	return &UploadSecret{attr: attr}
 }
 
-func (u *Login) CallEndpoint(
+func (u *UploadSecret) CallEndpoint(
 	ctx context.Context,
 ) (
 	*http.Response,
@@ -34,6 +34,7 @@ func (u *Login) CallEndpoint(
 		return nil, fmt.Errorf("CallEndpoint->NRWC: %w", err)
 	}
 
+	req.Header.Set("Authorization", u.attr.Token)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := u.attr.Client.Do(req)

@@ -13,13 +13,13 @@ type Uploader struct {
 	attr *euploaderattr.UploaderAttr
 }
 
-func NewUploader(
+func NewEndpoint(
 	attr *euploaderattr.UploaderAttr,
 ) *Uploader {
 	return &Uploader{attr: attr}
 }
 
-func (u *Uploader) UploadChunk(
+func (u *Uploader) CallEndpoint(
 	ctx context.Context,
 ) (
 	*http.Response,
@@ -31,7 +31,7 @@ func (u *Uploader) UploadChunk(
 		u.attr.URL,
 		bytes.NewReader(*u.attr.Data))
 	if err != nil {
-		return nil, fmt.Errorf("UploadChunk->NRWC: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->NRWC: %w", err)
 	}
 
 	req.Header.Set("Authorization", u.attr.Token)
@@ -39,7 +39,7 @@ func (u *Uploader) UploadChunk(
 
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("UploadChunk->Do: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->Do: %w", err)
 	}
 
 	return resp, nil

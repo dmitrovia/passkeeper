@@ -33,6 +33,6 @@ func (rpa *InitSingleLoadProcAttr) Init(
 	rpa.InitSingleLoadAttr = sattr
 	url := rpa.ServerURL + "/api/user/initsingleload"
 	rpa.InitSingleLoadAttr.Init(url, rpa.Client, rpa.AuthToken)
-	rpa.InitSingleLoad = einitsingleload.NewInitSingleLoad(
+	rpa.InitSingleLoad = einitsingleload.NewEndpoint(
 		rpa.InitSingleLoadAttr)
 }

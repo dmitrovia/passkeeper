@@ -1,4 +1,4 @@
-package elogin
+package egetsecrets
 
 import (
 	"bytes"
@@ -6,20 +6,20 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dmitrovia/passkeeper/internal/client/endpoints/elogin/eloginattr"
+	"github.com/dmitrovia/passkeeper/internal/client/endpoints/egetsecrets/egetsecretsattr"
 )
 
-type Login struct {
-	attr *eloginattr.LoginAttr
+type GetSecrets struct {
+	attr *egetsecretsattr.GetSecretsAttr
 }
 
 func NewEndpoint(
-	attr *eloginattr.LoginAttr,
-) *Login {
-	return &Login{attr: attr}
+	attr *egetsecretsattr.GetSecretsAttr,
+) *GetSecrets {
+	return &GetSecrets{attr: attr}
 }
 
-func (u *Login) CallEndpoint(
+func (u *GetSecrets) CallEndpoint(
 	ctx context.Context,
 ) (
 	*http.Response,
@@ -27,13 +27,14 @@ func (u *Login) CallEndpoint(
 ) {
 	req, err := http.NewRequestWithContext(
 		ctx,
-		http.MethodPost,
+		http.MethodGet,
 		u.attr.URL,
-		bytes.NewReader(*u.attr.Data))
+		&bytes.Buffer{})
 	if err != nil {
 		return nil, fmt.Errorf("CallEndpoint->NRWC: %w", err)
 	}
 
+	req.Header.Set("Authorization", u.attr.Token)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := u.attr.Client.Do(req)

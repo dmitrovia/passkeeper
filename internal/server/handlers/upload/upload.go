@@ -123,7 +123,7 @@ func (h *Upload) getReqData(
 
 	chunk := &chunckmeta.ChunkMeta{}
 
-	err = json.Unmarshal(body, chunk)
+	err = json.Unmarshal(body, &chunk)
 	if err != nil {
 		return nil, fmt.Errorf("getReqData->JU: %w", err)
 	}

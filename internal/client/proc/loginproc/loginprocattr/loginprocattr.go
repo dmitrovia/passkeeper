@@ -30,10 +30,10 @@ func (rpa *LoginProcAttr) Init(
 	rpa.LoginAttr = &eloginattr.LoginAttr{}
 	url := rpa.ServerURL + "/api/user/login"
 	rpa.LoginAttr.Init(url, rpa.Client)
-	rpa.Login = elogin.NewLogin(rpa.LoginAttr)
+	rpa.Login = elogin.NewEndpoint(rpa.LoginAttr)
 	rpa.TokenSavePath = attr.AuthTokenPath
 	rpa.AttrClintProc = attr
-	rpa.EncKey = &attr.PrivateKey
+	rpa.EncKey = &attr.PublicKey
 
 	return nil
 }

@@ -28,8 +28,8 @@ func (rpa *RegisterProcAttr) Init(
 	rpa.RegisterAttr = &eregisterattr.RegisterAttr{}
 	url := rpa.ServerURL + "/api/user/register"
 	rpa.RegisterAttr.Init(url, rpa.Client)
-	rpa.Register = eregister.NewRegister(rpa.RegisterAttr)
-	rpa.EncKey = &attr.PrivateKey
+	rpa.Register = eregister.NewEndpoint(rpa.RegisterAttr)
+	rpa.EncKey = &attr.PublicKey
 
 	return nil
 }

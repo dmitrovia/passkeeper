@@ -14,13 +14,16 @@ import (
 )
 
 const (
-	registerOption    int = 1
-	loginOption       int = 2
-	uploadOption      int = 3
-	logoutOption      int = 4
-	loadOption        int = 5
-	exitOption        int = 99
-	nonExistentOption     = 999
+	registerOption      int = 1
+	loginOption         int = 2
+	uploadOption        int = 3
+	logoutOption        int = 4
+	loadOption          int = 5
+	uploadSecretOption  int = 6
+	getSecretsOption    int = 7
+	GetSecretByIDOption int = 8
+	exitOption          int = 99
+	nonExistentOption       = 999
 )
 
 type InteractionProc struct {
@@ -87,6 +90,9 @@ func (ip *InteractionProc) printOptions() {
 
 	fmt.Println("3.Send data to server")
 	fmt.Println("5.Get data from server")
+	fmt.Println("6.Upload secret")
+	fmt.Println("7.Get all secrets")
+	fmt.Println("8.Get secret by identifier")
 	fmt.Println("4.Logout")
 	fmt.Println("99.Exit")
 	fmt.Println("")
@@ -99,7 +105,12 @@ func (ip *InteractionProc) checkIncorrectOption(
 	checkBan := ip.attr.AttrClintProc.IsAuth &&
 		(option == registerOption || option == loginOption)
 	checkBan1 := !ip.attr.AttrClintProc.IsAuth &&
-		(option == uploadOption)
+		(option == uploadOption ||
+			option == logoutOption ||
+			option == loadOption ||
+			option == uploadSecretOption ||
+			option == getSecretsOption ||
+			option == GetSecretByIDOption)
 
 	if checkBan || checkBan1 {
 		notOption := nonExistentOption
@@ -114,17 +125,17 @@ func (ip *InteractionProc) selectOption() bool {
 
 	switch *ip.attr.AttrClintProc.SelectedProc {
 	case registerOption:
-		fmt.Println("Register")
-
 		err = ip.runRegister()
 	case loginOption:
-		fmt.Println("Login")
-
 		err = ip.runLogin()
 	case logoutOption:
-		fmt.Println("Logout")
-
 		err = ip.runLogout()
+	case uploadSecretOption:
+		err = ip.runUploadSecret()
+	case getSecretsOption:
+		err = ip.runGetSecrets()
+	case GetSecretByIDOption:
+		err = ip.runGetSecretByID()
 	case exitOption:
 		fmt.Println("Press ctrl+c to exit")
 
@@ -486,6 +497,57 @@ func (ip *InteractionProc) runLogout() error {
 	err = ip.attr.Logoutproc.RunProcess()
 	if err != nil {
 		return fmt.Errorf("RunLogout->RP: %w", err)
+	}
+
+	return nil
+}
+
+func (ip *InteractionProc) runGetSecrets() error {
+	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
+
+	err := ip.attr.InitGetSecrets()
+	if err != nil {
+		return fmt.Errorf("runGetSecrets->IGS: %w", err)
+	}
+
+	err = ip.attr.GetSecretsProc.RunProcess()
+	if err != nil {
+		return fmt.Errorf("runGetSecrets->RP: %w", err)
+	}
+
+	return nil
+}
+
+func (ip *InteractionProc) runGetSecretByID() error {
+	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
+
+	err := ip.attr.InitGetSecretByID()
+	if err != nil {
+		return fmt.Errorf("runGetSecretByID->ISBI: %w", err)
+	}
+
+	err = ip.attr.GetSecretByIDProc.RunProcess()
+	if err != nil {
+		return fmt.Errorf("runGetSecretByID->RP: %w", err)
+	}
+
+	return nil
+}
+
+func (ip *InteractionProc) runUploadSecret() error {
+	ip.attr.WgSubProc.Add(1)
+	defer ip.attr.WgSubProc.Done()
+
+	err := ip.attr.InitUploadSecret()
+	if err != nil {
+		return fmt.Errorf("runUploadSecret->IL: %w", err)
+	}
+
+	err = ip.attr.UploadsecretProc.RunProcess()
+	if err != nil {
+		return fmt.Errorf("runUploadSecret->RP: %w", err)
 	}
 
 	return nil

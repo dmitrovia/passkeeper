@@ -34,7 +34,7 @@ func (proc *InitProc) RunProcess() error {
 		context.Background(), proc.attr.ReqTimeout)
 	defer cancel()
 
-	resp, err := proc.attr.InitLoad.InitLoad(ctx)
+	resp, err := proc.attr.InitLoad.CallEndpoint(ctx)
 	if err != nil {
 		return fmt.Errorf("RP->InitLoad: %w", err)
 	}

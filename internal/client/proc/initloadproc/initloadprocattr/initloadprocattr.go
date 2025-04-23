@@ -31,6 +31,6 @@ func (ilp *InitLoadProcAttr) Init(
 	ilp.InitLoadAttr = sattr
 	url := ilp.ServerURL + "/api/user/initload"
 	ilp.InitLoadAttr.Init(url, ilp.Client, ilp.AuthToken)
-	ilp.InitLoad = einitload.NewInitLoad(
+	ilp.InitLoad = einitload.NewEndpoint(
 		ilp.InitLoadAttr)
 }

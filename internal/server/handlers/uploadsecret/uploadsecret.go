@@ -99,7 +99,7 @@ func (h *UploadSecret) getReqData(
 
 	secret := &secret.Secret{}
 
-	err = json.Unmarshal(*dec, secret)
+	err = json.Unmarshal(*dec, &secret)
 	if err != nil {
 		return nil, fmt.Errorf("getReqData->JU: %w", err)
 	}

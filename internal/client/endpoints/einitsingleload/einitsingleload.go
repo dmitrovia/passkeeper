@@ -13,13 +13,13 @@ type InitSingleLoad struct {
 	attr *einitsingleloadattr.InitSingleLoadAttr
 }
 
-func NewInitSingleLoad(
+func NewEndpoint(
 	attr *einitsingleloadattr.InitSingleLoadAttr,
 ) *InitSingleLoad {
 	return &InitSingleLoad{attr: attr}
 }
 
-func (u *InitSingleLoad) InitSingleLoad(
+func (u *InitSingleLoad) CallEndpoint(
 	ctx context.Context,
 ) (
 	*http.Response,
@@ -31,7 +31,7 @@ func (u *InitSingleLoad) InitSingleLoad(
 		u.attr.URL,
 		bytes.NewReader(*u.attr.Data))
 	if err != nil {
-		return nil, fmt.Errorf("InitSingleLoad->NRWC: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->NRWC: %w", err)
 	}
 
 	req.Header.Set("Authorization", u.attr.Token)
@@ -39,7 +39,7 @@ func (u *InitSingleLoad) InitSingleLoad(
 
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("InitSingleLoad->Do: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->Do: %w", err)
 	}
 
 	return resp, nil

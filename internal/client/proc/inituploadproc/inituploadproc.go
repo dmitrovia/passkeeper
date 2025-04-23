@@ -31,7 +31,7 @@ func (proc *InitUploadProc) RunProcess() error {
 		context.Background(), proc.attr.ReqTimeout)
 	defer cancel()
 
-	resp, err := proc.attr.Inituploader.InitUpload(ctx)
+	resp, err := proc.attr.Inituploader.CallEndpoint(ctx)
 	if err != nil {
 		return fmt.Errorf("RP->InitUpload: %w", err)
 	}

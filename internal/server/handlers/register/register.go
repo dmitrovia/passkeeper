@@ -163,7 +163,7 @@ func getReqData(
 		return fmt.Errorf("getReqData->Decrypt: %w", err)
 	}
 
-	err = json.Unmarshal(*dec, reqAttr)
+	err = json.Unmarshal(*dec, &reqAttr)
 	if err != nil {
 		return fmt.Errorf("getReqData->json.Unmarshal: %w", err)
 	}

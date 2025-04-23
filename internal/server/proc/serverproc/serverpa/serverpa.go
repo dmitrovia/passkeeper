@@ -169,11 +169,11 @@ func (p *ServerProcAttr) initServices() {
 	p.UserStorage = &userstorage.UserStorage{}
 	p.UserStorage.Initiate(p.PgxConn)
 	p.MetaService = metaservice.NewMetaService(p.MetaStorage)
-	p.FIleService = fileservice.NewFileService(p.FIleService)
+	p.FIleService = fileservice.NewFileService(p.FileStorage)
 	p.AuthService = authservice.NewAuthService(
 		p.UserStorage)
 	p.SecretService = secretservice.NewSecretService(
-		p.SecretService)
+		p.SecretStorage)
 }
 
 func (p *ServerProcAttr) GetAttrsCFG() error {
@@ -264,7 +264,7 @@ func (p *ServerProcAttr) initAPIMethods(
 		p.SecretService,
 		p.UploadSecretAttr).UploadSecretHandler
 	getSecretByIDH := getsecretbyid.NewHandler(p.SecretService,
-		p.GetSecretsAttr).GetSecretByIDHadnler
+		p.GetSecretByIDAttr).GetSecretByIDHadnler
 	getSecretsH := getsecrets.NewHandler(p.SecretService,
 		p.GetSecretsAttr).GetSecretsHandler
 
@@ -318,11 +318,11 @@ func (p *ServerProcAttr) initHandlersAttr() {
 	p.UploadSecretAttr = &uploadsecretattr.UploadSecretAttr{}
 
 	p.GetSecretsAttr.Init(p.ZapLogger, p.Dbtimeout,
-		&p.PrivateKey)
-	p.GetSecretByIDAttr.Init(p.ZapLogger, p.Dbtimeout,
-		&p.PrivateKey)
-	p.GetSecretsAttr.Init(p.ZapLogger, p.Dbtimeout,
 		&p.PublicKey)
+	p.GetSecretByIDAttr.Init(p.ZapLogger, p.Dbtimeout,
+		&p.PublicKey, &p.PrivateKey)
+	p.UploadSecretAttr.Init(p.ZapLogger, p.Dbtimeout,
+		&p.PrivateKey)
 	p.InitSingleLoadAttr.Init(p.ZapLogger, p.Dbtimeout)
 	p.InitUploadAttr.Init(p.ZapLogger,
 		p.Dbtimeout, p.FilesStoragePath)

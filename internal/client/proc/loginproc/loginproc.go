@@ -43,7 +43,7 @@ func (lp *LoginProc) RunProcess() error {
 		return fmt.Errorf("RP->Input: %w", err)
 	}
 
-	resp, err := lp.attr.Login.LoginUser(ctx)
+	resp, err := lp.attr.Login.CallEndpoint(ctx)
 	if err != nil {
 		return fmt.Errorf("RP->LoginUser: %w", err)
 	}

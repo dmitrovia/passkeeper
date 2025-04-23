@@ -28,6 +28,6 @@ func (rpa *InitUploadProcAttr) Init(
 	rpa.Inituploaderattr = &einituploaderattr.InitUploadAttr{}
 	url := rpa.ServerURL + "/api/user/initupload"
 	rpa.Inituploaderattr.Init(url, rpa.Client, rpa.AuthToken)
-	rpa.Inituploader = einituploader.NewInitUploader(
+	rpa.Inituploader = einituploader.NewEndpoint(
 		rpa.Inituploaderattr)
 }

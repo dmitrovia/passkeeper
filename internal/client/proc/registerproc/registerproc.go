@@ -41,7 +41,7 @@ func (rp *RegisterProc) RunProcess() error {
 		return fmt.Errorf("RP->Input: %w", err)
 	}
 
-	resp, err := rp.attr.Register.RegisterUser(ctx)
+	resp, err := rp.attr.Register.CallEndpoint(ctx)
 	if err != nil {
 		return fmt.Errorf("RP->RegisterUser: %w", err)
 	}

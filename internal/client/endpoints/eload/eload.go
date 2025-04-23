@@ -13,13 +13,13 @@ type Loader struct {
 	attr *eloadattr.LoadAttr
 }
 
-func NewLoader(
+func NewEndpoint(
 	attr *eloadattr.LoadAttr,
 ) *Loader {
 	return &Loader{attr: attr}
 }
 
-func (u *Loader) LoadChunk(
+func (u *Loader) CallEndpoint(
 	ctx context.Context,
 ) (
 	*http.Response,
@@ -31,7 +31,7 @@ func (u *Loader) LoadChunk(
 		u.attr.URL,
 		bytes.NewReader(*u.attr.Data))
 	if err != nil {
-		return nil, fmt.Errorf("LoadChunk->NRWC: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->NRWC: %w", err)
 	}
 
 	req.Header.Set("Authorization", u.attr.Token)
@@ -39,7 +39,7 @@ func (u *Loader) LoadChunk(
 
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("LoadChunk->Do: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->Do: %w", err)
 	}
 
 	return resp, nil

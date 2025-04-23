@@ -13,13 +13,13 @@ type Register struct {
 	attr *eregisterattr.RegisterAttr
 }
 
-func NewRegister(
+func NewEndpoint(
 	attr *eregisterattr.RegisterAttr,
 ) *Register {
 	return &Register{attr: attr}
 }
 
-func (u *Register) RegisterUser(
+func (u *Register) CallEndpoint(
 	ctx context.Context,
 ) (
 	*http.Response,
@@ -31,14 +31,14 @@ func (u *Register) RegisterUser(
 		u.attr.URL,
 		bytes.NewReader(*u.attr.Data))
 	if err != nil {
-		return nil, fmt.Errorf("RegisterUser->NRWC: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->NRWC: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("RegisterUser->Do: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->Do: %w", err)
 	}
 
 	return resp, nil

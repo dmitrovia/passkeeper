@@ -121,7 +121,7 @@ func (h *InitSingleLoad) getReqData(
 
 	reqData := &apim.InInitSingleLoad{}
 
-	err = json.Unmarshal(body, reqData)
+	err = json.Unmarshal(body, &reqData)
 	if err != nil {
 		return nil, fmt.Errorf("getReqData->JU: %w", err)
 	}

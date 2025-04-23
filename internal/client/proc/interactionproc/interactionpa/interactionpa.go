@@ -9,6 +9,10 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/getsecretbyidproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/getsecretbyidproc/getsecretbyidprocattr"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/getsecretsproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/getsecretsproc/getsecretsprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/initloadproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/initloadproc/initloadprocattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/initsingleloadproc"
@@ -25,6 +29,8 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/proc/registerproc/registerprocpattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadproc/uploadpa"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadsecretproc"
+	"github.com/dmitrovia/passkeeper/internal/client/proc/uploadsecretproc/uploadsecretprocattr"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
@@ -41,6 +47,17 @@ type InteractionProcAttr struct {
 	UploadChan         chan *chunckmeta.ChunkMeta
 	ErrChan            chan error
 	SpecificFileUpload bool
+	// upload secret
+	UploadsecretProc     *uploadsecretproc.UploadSecretProc
+	UploadsecretProcAttr *uploadsecretprocattr.
+				UploadSecretProcAttr
+	// get secret by id
+	GetSecretByIDProc     *getsecretbyidproc.GetSecretByID
+	GetSecretByIDProcAttr *getsecretbyidprocattr.
+				GetSecretByIDProcAttr
+	// get all secrets
+	GetSecretsProc     *getsecretsproc.GetSecrets
+	GetSecretsProcAttr *getsecretsprocattr.GetSecretsProcAttr
 	// singleinitload
 	InitSingleLoadproc *initsingleloadproc.InitSingleProc
 	InitSingleLoadpa   *initsingleloadprocattr.
@@ -128,6 +145,44 @@ func (ipa *InteractionProcAttr) SetRestrictions() error {
 			value.LoadIsAllow = false
 		}
 	}
+
+	return nil
+}
+
+func (ipa *InteractionProcAttr,
+) InitGetSecrets() error {
+	ipa.GetSecretsProcAttr = &getsecretsprocattr.
+		GetSecretsProcAttr{}
+
+	ipa.GetSecretsProcAttr.Init(ipa.AttrClintProc)
+
+	ipa.GetSecretsProc = getsecretsproc.NewProc(
+		ipa.GetSecretsProcAttr)
+
+	return nil
+}
+
+func (ipa *InteractionProcAttr,
+) InitGetSecretByID() error {
+	ipa.GetSecretByIDProcAttr = &getsecretbyidprocattr.
+		GetSecretByIDProcAttr{}
+
+	ipa.GetSecretByIDProcAttr.Init(ipa.AttrClintProc)
+
+	ipa.GetSecretByIDProc = getsecretbyidproc.NewProc(
+		ipa.GetSecretByIDProcAttr)
+
+	return nil
+}
+
+func (ipa *InteractionProcAttr) InitUploadSecret() error {
+	ipa.UploadsecretProcAttr = &uploadsecretprocattr.
+		UploadSecretProcAttr{}
+
+	ipa.UploadsecretProcAttr.Init(ipa.AttrClintProc)
+
+	ipa.UploadsecretProc = uploadsecretproc.NewProc(
+		ipa.UploadsecretProcAttr)
 
 	return nil
 }

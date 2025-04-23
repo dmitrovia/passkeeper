@@ -13,13 +13,13 @@ type InitUploader struct {
 	attr *einituploaderattr.InitUploadAttr
 }
 
-func NewInitUploader(
+func NewEndpoint(
 	attr *einituploaderattr.InitUploadAttr,
 ) *InitUploader {
 	return &InitUploader{attr: attr}
 }
 
-func (u *InitUploader) InitUpload(
+func (u *InitUploader) CallEndpoint(
 	ctx context.Context,
 ) (
 	*http.Response,
@@ -31,7 +31,7 @@ func (u *InitUploader) InitUpload(
 		u.attr.URL,
 		&bytes.Buffer{})
 	if err != nil {
-		return nil, fmt.Errorf("InitUpload->NRWC: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->NRWC: %w", err)
 	}
 
 	req.Header.Set("Authorization", u.attr.Token)
@@ -39,7 +39,7 @@ func (u *InitUploader) InitUpload(
 
 	resp, err := u.attr.Client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("InitUpload->Do: %w", err)
+		return nil, fmt.Errorf("CallEndpoint->Do: %w", err)
 	}
 
 	return resp, nil
