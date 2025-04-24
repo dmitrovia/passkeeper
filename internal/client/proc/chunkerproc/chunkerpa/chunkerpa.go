@@ -23,6 +23,7 @@ type ChunkerProcAttr struct {
 	UploadChan          chan *chunckmeta.ChunkMeta
 	ErrChan             chan error
 	CurrentMetadata     map[string]chunckmeta.ChunkMeta
+	Aes256keyBytes      []byte
 }
 
 func (cpa *ChunkerProcAttr) Init(
@@ -58,6 +59,7 @@ func (cpa *ChunkerProcAttr) Init(
 	cpa.CntChunks = cntChunks
 
 	cpa.CountWorkersChunker = attr.CountWorkersChunker
+	cpa.Aes256keyBytes = attr.Aes256keyBytes
 
 	return nil
 }

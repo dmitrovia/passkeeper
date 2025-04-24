@@ -19,6 +19,7 @@ type LoadProcAttr struct {
 	AuthToken        string
 	TempFilesPath    string
 	GzipFormats      string
+	Aes256keyBytes   []byte
 }
 
 func (lpa *LoadProcAttr) Init(
@@ -32,4 +33,5 @@ func (lpa *LoadProcAttr) Init(
 	lpa.AuthToken = attr.AuthToken
 	lpa.TempFilesPath = attr.TempFilesPath
 	lpa.GzipFormats = attr.GzipFormats
+	lpa.Aes256keyBytes = attr.Aes256keyBytes
 }

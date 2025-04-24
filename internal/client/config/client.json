@@ -5,5 +5,6 @@
     "tokenPath" : "../../internal/client/auth/token.json",
     "cryptoKeyPathPublic": "../../internal/client/crypto/keys/public.pem",
     "cryptoKeyPathPrivate": "../../internal/client/crypto/keys/private.pem",
-    "gzipFormats" : ".html,.css,.js,.txt,.xml,.csv,.java,.json,.log,.doc,.pdf"
+    "gzipFormats" : ".html,.css,.js,.txt,.xml,.csv,.java,.json,.log,.doc,.pdf",
+    "aes256key" : "gLn2xbvYdE556NYzlaQKPwIFuSAY6NXJ"
 } 

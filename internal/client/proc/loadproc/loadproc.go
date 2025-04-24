@@ -15,6 +15,7 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/eload"
 	"github.com/dmitrovia/passkeeper/internal/client/endpoints/eload/eloadattr"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/loadproc/loadprocattr"
+	"github.com/dmitrovia/passkeeper/internal/general/aes256"
 	"github.com/dmitrovia/passkeeper/internal/general/compress"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
@@ -130,11 +131,17 @@ func (proc *LoadProc) parseRespAndSaveFile(
 		return fmt.Errorf("PRASF->Unmarshal: %w", err)
 	}
 
+	dec, err := aes256.Decrypt(respChunk.Data,
+		&proc.attr.Aes256keyBytes)
+	if err != nil {
+		return fmt.Errorf("PRASF->aes256Decrypt: %w", err)
+	}
+
 	isDecompress := strings.Contains(proc.attr.GzipFormats,
 		filepath.Ext(*respChunk.OrigFileName))
 	if isDecompress {
 		decompress, err := compress.DeflateDecompress(
-			bytes.NewReader(*respChunk.Data),
+			bytes.NewReader(*dec),
 		)
 		if err != nil {
 			return fmt.Errorf("parseRespAndSaveFile->DD: %w", err)
@@ -142,7 +149,7 @@ func (proc *LoadProc) parseRespAndSaveFile(
 
 		orig.Data = &decompress
 	} else {
-		orig.Data = respChunk.Data
+		orig.Data = dec
 	}
 
 	newPath := fmt.Sprintf("%s%s", proc.attr.TempFilesPath,

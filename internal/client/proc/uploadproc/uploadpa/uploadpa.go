@@ -19,6 +19,7 @@ type UploadProcAttr struct {
 	ServerURL          string
 	CountChunk         int
 	AuthToken          string
+	Aes256keyBytes     []byte
 }
 
 func (upa *UploadProcAttr) Init(
@@ -30,6 +31,7 @@ func (upa *UploadProcAttr) Init(
 	upa.ServerURL = attr.ServerAddr
 	upa.CountWorkersUpload = attr.CountWorkersUpload
 	upa.AuthToken = attr.AuthToken
+	upa.Aes256keyBytes = attr.Aes256keyBytes
 
 	return nil
 }

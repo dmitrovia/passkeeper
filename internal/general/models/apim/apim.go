@@ -16,6 +16,7 @@ type CfgClient struct {
 	CryptoKeyPathPublic  string `json:"cryptoKeyPathPublic"`
 	CryptoKeyPathPrivate string `json:"cryptoKeyPathPrivate"`
 	GzipFormats          string `json:"gzipFormats"`
+	Aes256key            string `json:"aes256key"`
 }
 
 type InInitSingleLoad struct {

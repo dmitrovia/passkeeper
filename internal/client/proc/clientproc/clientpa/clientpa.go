@@ -37,6 +37,8 @@ type ClientProcAttr struct {
 	DefMetaPath          string
 	CryptoKeyPathPublic  string
 	CryptoKeyPathPrivate string
+	Aes256key            string
+	Aes256keyBytes       []byte
 	GzipFormats          string
 	PrivateKey           []byte
 	PublicKey            []byte
@@ -79,6 +81,8 @@ func (p *ClientProcAttr) Init() error {
 		return fmt.Errorf("Init->GetAttrsCFG: %w", err)
 	}
 
+	p.Aes256keyBytes = []byte(p.Aes256key)
+
 	p.PublicKey, err = os.ReadFile(p.CryptoKeyPathPublic)
 	if err != nil {
 		return fmt.Errorf("Init->ReadFile: %w", err)
@@ -116,6 +120,10 @@ func (p *ClientProcAttr) GetAttrsCFG() error {
 
 	if p.CryptoKeyPathPrivate == "" {
 		p.CryptoKeyPathPrivate = cfg.CryptoKeyPathPrivate
+	}
+
+	if p.Aes256key == "" {
+		p.Aes256key = cfg.Aes256key
 	}
 
 	if p.AuthTokenPath == "" {

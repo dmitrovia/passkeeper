@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/chunkerproc/chunkerpa"
+	"github.com/dmitrovia/passkeeper/internal/general/aes256"
 	"github.com/dmitrovia/passkeeper/internal/general/compress"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
@@ -113,6 +114,14 @@ func (proc *ChunkerProc) toChunk(
 	} else {
 		chunk.Data = &chBytes
 	}
+
+	dec, err := aes256.Encrypt(chunk.Data,
+		&proc.attr.Aes256keyBytes)
+	if err != nil {
+		return fmt.Errorf("PRASF->aes256Decrypt: %w", err)
+	}
+
+	chunk.Data = dec
 
 	proc.attr.UploadChan <- chunk
 
