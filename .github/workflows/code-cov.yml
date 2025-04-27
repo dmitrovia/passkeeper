@@ -18,12 +18,13 @@ jobs:
      steps:
         - name: Build server binary
           run: |
-              go run generate/generate.go
-              mv generate/public.pem internal/client/crypto/keys
-              mv generate/private.pem internal/server/crypto/keys
-              go run generate/generate.go
-              mv generate/private.pem internal/client/crypto/keys
-              mv generate/public.pem internal/server/crypto/keys
+              cd cmd/server
+              go build -buildvcs=false -o server
+
+        - name: Build cleitn binary
+          run: |
+            cd cmd/client
+            go build -buildvcs=false  -o client
 
         - uses: actions/checkout@v4
         - uses: actions/setup-go@v5
@@ -32,9 +33,12 @@ jobs:
         - name: Run coverage
           run: |
             go env -w CGO_ENABLED=0
-            cd internal/asymcrypto/
-            go run generate.go
-            cd ../..
+            go run generate/generate.go
+            mv generate/public.pem internal/client/crypto/keys
+            mv generate/private.pem internal/server/crypto/keys
+            go run generate/generate.go
+            mv generate/private.pem internal/client/crypto/keys
+            mv generate/public.pem internal/server/crypto/keys
             go test -v -coverprofile coverage.out -coverpkg= ./test/... ./internal/...
             go tool cover -html coverage.out -o coverage.html
         - name: Upload coverage to Codecov
