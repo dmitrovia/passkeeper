@@ -18,11 +18,12 @@ jobs:
      steps:
         - name: Build server binary
           run: |
-            cd internal/asymcrypto/
-            go run generate.go
-            cd ../..
-            cd cmd/server
-            go build -buildvcs=false -o server
+              go run generate/generate.go
+              mv generate/public.pem internal/client/crypto/keys
+              mv generate/private.pem internal/server/crypto/keys
+              go run generate/generate.go
+              mv generate/private.pem internal/client/crypto/keys
+              mv generate/public.pem internal/server/crypto/keys
 
         - uses: actions/checkout@v4
         - uses: actions/setup-go@v5
