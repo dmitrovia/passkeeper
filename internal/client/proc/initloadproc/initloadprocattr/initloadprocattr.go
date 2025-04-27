@@ -24,7 +24,8 @@ func (ilp *InitLoadProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) {
 	ilp.AuthToken = attr.AuthToken
-	ilp.Client = &http.Client{}
+	httpClient := attr.GetHTTPClient()
+	ilp.Client = &httpClient
 	ilp.ReqTimeout = attr.ReqTimeout
 	ilp.ServerURL = attr.ServerAddr
 	sattr := &einitloadattr.InitLoadAttr{}

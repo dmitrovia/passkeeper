@@ -6,6 +6,7 @@ type CfgServer struct {
 	FilesStoragePath     string `json:"filesStoragePath"`
 	CryptoKeyPathPrivate string `json:"cryptoKeyPathPrivate"`
 	CryptoKeyPathPublic  string `json:"cryptoKeyPathPublic"`
+	SecretAuth           string `json:"secretAuth"`
 }
 
 type CfgClient struct {

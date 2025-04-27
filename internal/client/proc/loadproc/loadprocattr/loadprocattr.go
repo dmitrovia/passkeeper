@@ -20,11 +20,13 @@ type LoadProcAttr struct {
 	TempFilesPath    string
 	GzipFormats      string
 	Aes256keyBytes   []byte
+	ClientProcAttr   *clientpa.ClientProcAttr
 }
 
 func (lpa *LoadProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) {
+	lpa.ClientProcAttr = attr
 	lpa.ReqTimeout = attr.ReqTimeout
 	lpa.ServerURL = attr.ServerAddr
 	lpa.LoadedMetadata = make(

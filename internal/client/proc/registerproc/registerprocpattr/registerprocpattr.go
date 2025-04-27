@@ -21,7 +21,8 @@ type RegisterProcAttr struct {
 func (rpa *RegisterProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) error {
-	rpa.Client = &http.Client{}
+	httpClient := attr.GetHTTPClient()
+	rpa.Client = &httpClient
 
 	rpa.ReqTimeout = attr.ReqTimeout
 	rpa.ServerURL = attr.ServerAddr

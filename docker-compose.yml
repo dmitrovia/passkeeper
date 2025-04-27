@@ -23,7 +23,7 @@ services:
       environment:
         DATABASE_URL: "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable"
       ports:
-        - "8080:8080"
+        - "8443:8443"
       network_mode: "host"
       restart: always
       depends_on:

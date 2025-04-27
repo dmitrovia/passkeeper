@@ -81,7 +81,7 @@ func (sp *ServerProc) waitClose(
 func (sp *ServerProc) runServer(
 	attr *serverpa.ServerProcAttr,
 ) {
-	err := attr.Server.ListenAndServe()
+	err := attr.Server.ListenAndServeTLS("", "")
 
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		loggerf.Log("runServer->GetServer.LAS", err)

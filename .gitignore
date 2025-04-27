@@ -31,6 +31,10 @@ docker/docker-compose.yml
 
 # pem
 *.pem
+*.crt
+*.key
+*.csr
+*.srl
 
 # bin
 bin

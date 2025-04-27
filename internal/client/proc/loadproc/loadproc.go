@@ -72,7 +72,8 @@ func (proc *LoadProc) loadChunk(
 ) {
 	defer proc.attr.WorkerChunkWg.Done()
 
-	client := &http.Client{}
+	httpClient := proc.attr.ClientProcAttr.GetHTTPClient()
+	client := &httpClient
 	loadattr := &eloadattr.LoadAttr{}
 	loadattr.URL = proc.attr.ServerURL + "/api/user/load"
 

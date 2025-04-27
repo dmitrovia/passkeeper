@@ -5,5 +5,5 @@ COPY go.mod ./
 RUN go mod download
 COPY . .
 RUN go build -o ./cmd/server/main ./cmd/server/.
-EXPOSE 8080
+EXPOSE 8443
 CMD ["./cmd/server/main"]

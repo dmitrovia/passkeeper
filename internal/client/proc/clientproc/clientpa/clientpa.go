@@ -1,8 +1,11 @@
 package clientpa
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -51,6 +54,7 @@ type ClientProcAttr struct {
 	WgSubProc            *sync.WaitGroup
 	WGMainProc           *sync.WaitGroup
 	ReqTimeout           time.Duration
+	Cert                 []byte
 }
 
 func (p *ClientProcAttr) Init() error {
@@ -66,6 +70,14 @@ func (p *ClientProcAttr) Init() error {
 	p.CountWorkersLoad = 5
 	p.WgSubProc = &sync.WaitGroup{}
 	p.WGMainProc = &sync.WaitGroup{}
+
+	cert, err := os.ReadFile(
+		"../../internal/client/tls/ca.crt")
+	if err != nil {
+		return fmt.Errorf("Init.ReadFile: %w", err)
+	}
+
+	p.Cert = cert
 
 	logger, err := logger.Initialize(p.ZapLogInfoLevel)
 	if err != nil {
@@ -176,4 +188,21 @@ func (p *ClientProcAttr) InitFlags() {
 		"auth token path.",
 	)
 	flag.Parse()
+}
+
+func (p *ClientProcAttr) GetHTTPClient() http.Client {
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(p.Cert)
+
+	tlsConfig := &tls.Config{
+		RootCAs: caCertPool,
+	}
+
+	tr := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+
+	client := &http.Client{Transport: tr}
+
+	return *client
 }

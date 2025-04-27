@@ -1,6 +1,6 @@
 {
     "filesUploadPath" : "../../files_client_upload/",
-    "address" : "http://localhost:8080",
+    "address" : "https://localhost:8443",
     "metaPath" : "../../internal/client/meta_client/meta.json",
     "tokenPath" : "../../internal/client/auth/token.json",
     "cryptoKeyPathPublic": "../../internal/client/crypto/keys/public.pem",

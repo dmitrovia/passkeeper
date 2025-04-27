@@ -20,13 +20,14 @@ type UploadProcAttr struct {
 	CountChunk         int
 	AuthToken          string
 	Aes256keyBytes     []byte
+	ClientProcAttr     *clientpa.ClientProcAttr
 }
 
 func (upa *UploadProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) error {
 	upa.Mutex = &sync.Mutex{}
-
+	upa.ClientProcAttr = attr
 	upa.ReqTimeout = attr.ReqTimeout
 	upa.ServerURL = attr.ServerAddr
 	upa.CountWorkersUpload = attr.CountWorkersUpload

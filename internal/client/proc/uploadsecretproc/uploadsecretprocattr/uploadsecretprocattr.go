@@ -22,7 +22,8 @@ type UploadSecretProcAttr struct {
 func (rpa *UploadSecretProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) {
-	rpa.Client = &http.Client{}
+	httpClient := attr.GetHTTPClient()
+	rpa.Client = &httpClient
 
 	rpa.ReqTimeout = attr.ReqTimeout
 	rpa.ServerURL = attr.ServerAddr

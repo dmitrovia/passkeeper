@@ -63,7 +63,8 @@ func (up *UploadProc) uploadChunk(
 ) {
 	defer up.attr.WorkerChunkWg.Done()
 
-	client := &http.Client{}
+	httpClient := up.attr.ClientProcAttr.GetHTTPClient()
+	client := &httpClient
 	uplattr := &euploaderattr.UploaderAttr{}
 	uplattr.URL = up.attr.ServerURL + "/api/user/upload"
 

@@ -2,6 +2,7 @@ package serverpa
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"net/http"
@@ -99,10 +100,12 @@ type ServerProcAttr struct {
 	FilesStoragePath     string
 	DefFilesStoragePath  string
 	TokenExpHour         int
+	Cert                 tls.Certificate
 }
 
 func (p *ServerProcAttr) Init() error {
-	p.SecretAuth = "qwerty"
+	// need to change
+	p.SecretAuth = ""
 	p.TokenExpHour = 24
 	p.ZapLogInfoLevel = "info"
 	p.DefServerAddr = ""
@@ -117,6 +120,15 @@ func (p *ServerProcAttr) Init() error {
 	p.DefWriteTimeout = initWriteTimeout * time.Second
 	p.DefIdleTimeout = initIdleTimeout * time.Second
 
+	cert, err := tls.LoadX509KeyPair(
+		"../../internal/server/tls/server.crt",
+		"../../internal/server/tls/server.key")
+	if err != nil {
+		return fmt.Errorf("Init->LoadX509KeyPair: %w", err)
+	}
+
+	p.Cert = cert
+
 	logger, err := logger.Initialize(p.ZapLogInfoLevel)
 	if err != nil {
 		return fmt.Errorf("Init->logger.Initialize: %w", err)
@@ -130,8 +142,6 @@ func (p *ServerProcAttr) Init() error {
 	if err != nil {
 		return fmt.Errorf("Init->GetAttrsCFG: %w", err)
 	}
-
-	fmt.Println(p.DBDSN)
 
 	ctxDB, cancel := context.WithTimeout(
 		context.Background(), p.Dbtimeout)
@@ -148,6 +158,16 @@ func (p *ServerProcAttr) Init() error {
 	p.AuthMidAttr.Init(p.ZapLogger,
 		p.AuthService, p.Dbtimeout, p.SecretAuth)
 
+	p.initServer()
+
+	return nil
+}
+
+func (p *ServerProcAttr) initServer() {
+	config := &tls.Config{
+		Certificates: []tls.Certificate{p.Cert},
+	}
+
 	mux := mux.NewRouter()
 	p.initAPIMethods(mux)
 	p.Server = &http.Server{
@@ -157,9 +177,8 @@ func (p *ServerProcAttr) Init() error {
 		ReadTimeout:  p.DefReadTimeout,
 		WriteTimeout: p.DefWriteTimeout,
 		IdleTimeout:  p.DefIdleTimeout,
+		TLSConfig:    config,
 	}
-
-	return nil
 }
 
 func (p *ServerProcAttr) initENV() {
@@ -201,6 +220,10 @@ func (p *ServerProcAttr) GetAttrsCFG() error {
 
 	if p.ServerAddr == "" {
 		p.ServerAddr = cfg.ServerAddr
+	}
+
+	if p.SecretAuth == "" {
+		p.SecretAuth = cfg.SecretAuth
 	}
 
 	if p.FilesStoragePath == "" {

@@ -25,7 +25,8 @@ func (rpa *GetSecretByIDProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) {
 	rpa.AuthToken = attr.AuthToken
-	rpa.Client = &http.Client{}
+	httpClient := attr.GetHTTPClient()
+	rpa.Client = &httpClient
 	rpa.ReqTimeout = attr.ReqTimeout
 	rpa.ServerURL = attr.ServerAddr
 	sattr := &egetsecretbyidattr.GetSecretByIDAttr{}
