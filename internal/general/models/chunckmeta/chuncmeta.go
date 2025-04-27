@@ -3,6 +3,7 @@ package chunckmeta
 import (
 	"time"
 
+	"github.com/dmitrovia/passkeeper/internal/general/validate"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 )
 
@@ -44,4 +45,16 @@ func (cm *ChunkMeta) ClearAllExceptMeta() {
 	cm.Data = nil
 	cm.User = nil
 	cm.Createddate = nil
+}
+
+func (cm *ChunkMeta) FNIsValid() bool {
+	pattern := "^\\/$"
+
+	res, err := validate.IsMatchesTemplate(
+		*cm.FileName, pattern)
+	if err != nil && !res {
+		return false
+	}
+
+	return true
 }

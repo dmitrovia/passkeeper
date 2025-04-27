@@ -23,6 +23,8 @@ const (
 	statusISE = http.StatusInternalServerError
 )
 
+var errFileName = errors.New("file name incorrect")
+
 type Upload struct {
 	fileService service.FileService
 	metaService service.MetaService
@@ -55,6 +57,13 @@ func (h *Upload) UploadHandler(
 	chunk, err := h.getReqData(req)
 	if err != nil {
 		h.setErr(writer, err, "getReqData")
+
+		return
+	}
+
+	res := chunk.FNIsValid()
+	if !res {
+		h.setErr(writer, errFileName, "FNIsValid")
 
 		return
 	}

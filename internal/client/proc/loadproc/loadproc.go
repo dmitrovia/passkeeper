@@ -18,7 +18,6 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/aes256"
 	"github.com/dmitrovia/passkeeper/internal/general/compress"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
-	"github.com/dmitrovia/passkeeper/internal/general/validate"
 )
 
 var errSNOK = errors.New("status is not OK")
@@ -155,11 +154,8 @@ func (proc *LoadProc) parseRespAndSaveFile(
 		orig.Data = dec
 	}
 
-	pattern := "^\\/$"
-
-	res, err := validate.IsMatchesTemplate(
-		*respChunk.FileName, pattern)
-	if err != nil && !res {
+	res := respChunk.FNIsValid()
+	if !res {
 		return errFileName
 	}
 

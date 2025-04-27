@@ -16,16 +16,6 @@ jobs:
   build:
      runs-on: ubuntu-latest
      steps:
-        - name: Build server binary
-          run: |
-              cd cmd/server
-              go build -buildvcs=false -o server
-
-        - name: Build cleitn binary
-          run: |
-            cd cmd/client
-            go build -buildvcs=false  -o client
-
         - uses: actions/checkout@v4
         - uses: actions/setup-go@v5
           with:
