@@ -124,11 +124,14 @@ func (p *ServerProcAttr) Init() error {
 
 	p.ZapLogger = logger
 	p.InitFlags()
+	p.initENV()
 
 	err = p.GetAttrsCFG()
 	if err != nil {
 		return fmt.Errorf("Init->GetAttrsCFG: %w", err)
 	}
+
+	fmt.Println(p.DBDSN)
 
 	ctxDB, cancel := context.WithTimeout(
 		context.Background(), p.Dbtimeout)
@@ -157,6 +160,14 @@ func (p *ServerProcAttr) Init() error {
 	}
 
 	return nil
+}
+
+func (p *ServerProcAttr) initENV() {
+	dburl := os.Getenv("DATABASE_URL")
+	fmt.Println(dburl)
+	if dburl != "" {
+		p.DBDSN = dburl
+	}
 }
 
 func (p *ServerProcAttr) initServices() {
