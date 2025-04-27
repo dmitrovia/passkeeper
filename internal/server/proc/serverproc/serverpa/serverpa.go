@@ -164,7 +164,9 @@ func (p *ServerProcAttr) Init() error {
 
 func (p *ServerProcAttr) initENV() {
 	dburl := os.Getenv("DATABASE_URL")
+
 	fmt.Println(dburl)
+
 	if dburl != "" {
 		p.DBDSN = dburl
 	}

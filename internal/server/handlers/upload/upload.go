@@ -25,6 +25,8 @@ const (
 
 var errFileName = errors.New("file name incorrect")
 
+var errLogin = errors.New("login incorrect")
+
 type Upload struct {
 	fileService service.FileService
 	metaService service.MetaService
@@ -64,6 +66,13 @@ func (h *Upload) UploadHandler(
 	res := chunk.FNIsValid()
 	if !res {
 		h.setErr(writer, errFileName, "FNIsValid")
+
+		return
+	}
+
+	res = user.IsValidLogin()
+	if !res {
+		h.setErr(writer, errLogin, "FNIsValid")
 
 		return
 	}

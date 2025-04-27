@@ -101,18 +101,32 @@ func (proc *ChunkerProc) toChunk(
 		fileName, proc.attr.FileName, encodeHash, index, nil,
 	)
 
+	err = proc.compressAndEncrypt(chunk, &chBytes)
+	if err != nil {
+		return fmt.Errorf("toChunk->compressAndEncrypt: %w", err)
+	}
+
+	proc.attr.UploadChan <- chunk
+
+	return nil
+}
+
+func (proc *ChunkerProc) compressAndEncrypt(
+	chunk *chunckmeta.ChunkMeta,
+	chBytes *[]byte,
+) error {
 	isCompress := strings.Contains(proc.attr.GzipFormats,
 		proc.attr.FileFormat)
 	if isCompress {
 		compressData, err := compress.DeflateCompress(
-			chBytes)
+			*chBytes)
 		if err != nil {
 			return fmt.Errorf("toChunk->DC: %w", err)
 		}
 
 		chunk.Data = &compressData
 	} else {
-		chunk.Data = &chBytes
+		chunk.Data = chBytes
 	}
 
 	dec, err := aes256.Encrypt(chunk.Data,
@@ -122,8 +136,6 @@ func (proc *ChunkerProc) toChunk(
 	}
 
 	chunk.Data = dec
-
-	proc.attr.UploadChan <- chunk
 
 	return nil
 }

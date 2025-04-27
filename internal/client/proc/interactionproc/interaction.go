@@ -68,7 +68,8 @@ func (ip *InteractionProc) chooseProc() error {
 			return fmt.Errorf("chooseProc->Fscan: %w", err1)
 		}
 
-		ip.checkIncorrectOption(inValue)
+		ip.checkIncorrectOptionAuth(inValue)
+		ip.checkIncorrectOptionNotAuth(inValue)
 
 		isExit := ip.selectOption()
 		if isExit {
@@ -99,20 +100,13 @@ func (ip *InteractionProc) printOptions() {
 	fmt.Println("--------------------------------------------")
 }
 
-func (ip *InteractionProc) checkIncorrectOption(
+func (ip *InteractionProc) checkIncorrectOptionAuth(
 	option int,
 ) {
 	checkBan := ip.attr.AttrClintProc.IsAuth &&
 		(option == registerOption || option == loginOption)
-	checkBan1 := !ip.attr.AttrClintProc.IsAuth &&
-		(option == uploadOption ||
-			option == logoutOption ||
-			option == loadOption ||
-			option == uploadSecretOption ||
-			option == getSecretsOption ||
-			option == GetSecretByIDOption)
 
-	if checkBan || checkBan1 {
+	if checkBan {
 		notOption := nonExistentOption
 		ip.attr.AttrClintProc.SelectedProc = &notOption
 	} else {
@@ -120,6 +114,26 @@ func (ip *InteractionProc) checkIncorrectOption(
 	}
 }
 
+func (ip *InteractionProc) checkIncorrectOptionNotAuth(
+	option int,
+) {
+	checkBan := !ip.attr.AttrClintProc.IsAuth &&
+		(option == uploadOption ||
+			option == logoutOption ||
+			option == loadOption ||
+			option == uploadSecretOption ||
+			option == getSecretsOption ||
+			option == GetSecretByIDOption)
+
+	if checkBan {
+		notOption := nonExistentOption
+		ip.attr.AttrClintProc.SelectedProc = &notOption
+	} else {
+		ip.attr.AttrClintProc.SelectedProc = &option
+	}
+}
+
+//nolint:cyclop
 func (ip *InteractionProc) selectOption() bool {
 	var err error
 

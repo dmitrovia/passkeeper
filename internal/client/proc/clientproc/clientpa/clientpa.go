@@ -81,6 +81,13 @@ func (p *ClientProcAttr) Init() error {
 		return fmt.Errorf("Init->GetAttrsCFG: %w", err)
 	}
 
+	token, err := authcfg.GetToken(p.AuthTokenPath)
+	if err != nil {
+		return fmt.Errorf("GetAttrsCFG->GetToken: %w", err)
+	}
+
+	p.SetAuth(token)
+
 	p.Aes256keyBytes = []byte(p.Aes256key)
 
 	p.PublicKey, err = os.ReadFile(p.CryptoKeyPathPublic)
@@ -133,13 +140,6 @@ func (p *ClientProcAttr) GetAttrsCFG() error {
 	if p.GzipFormats == "" {
 		p.GzipFormats = cfg.GzipFormats
 	}
-
-	token, err := authcfg.GetToken(p.AuthTokenPath)
-	if err != nil {
-		return fmt.Errorf("GetAttrsCFG->GetToken: %w", err)
-	}
-
-	p.SetAuth(token)
 
 	return nil
 }
