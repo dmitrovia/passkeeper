@@ -2,8 +2,8 @@
 /api/user/getsecrets
 /api/user/uploadsecret
 
-/api/user/login
-/api/user/register
+/api/user/login +
+/api/user/register +
 
 /api/user/initsingleload
 /api/user/initload

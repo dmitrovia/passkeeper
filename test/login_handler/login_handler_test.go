@@ -11,10 +11,11 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
-	"github.com/dmitrovia/passkeeper/internal/server/handlers/register"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/login"
 	"github.com/dmitrovia/passkeeper/internal/server/migrator"
 	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
 	"github.com/gorilla/mux"
@@ -51,14 +52,6 @@ func getTestData(encKey *[]byte) *[]testData {
 	incd1 := GetIncorrectDataWithCrypto(encKey)
 
 	return &[]testData{
-		{
-			tn:     "1",
-			login:  "test" + randomString(),
-			pass:   "temppass",
-			expcod: stok,
-			exbody: "",
-			data:   nil,
-		},
 		{
 			tn:     "2",
 			login:  "test" + randomString(),
@@ -107,13 +100,23 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody: "",
 			data:   nil,
 		},
+		{
+			tn:     "8",
+			login:  "test",
+			pass:   "test",
+			expcod: stok,
+			exbody: "",
+			data:   nil,
+		},
 	}
 }
 
 //nolint:funlen
-func TestRegisterHandler(t *testing.T) {
+func TestLoginHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
+
+	time.Sleep(20 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
@@ -140,8 +143,8 @@ func TestRegisterHandler(t *testing.T) {
 
 	testCases := getTestData(&encKey)
 
-	register := register.NewHandler(
-		attr.AuthService, attr.RigsterAttr).RegisterHandler
+	login := login.NewHandler(
+		attr.AuthService, attr.LoginAttr).LoginHandler
 
 	for _, test := range *testCases {
 		t.Run(http.MethodPost, func(t *testing.T) {
@@ -164,7 +167,7 @@ func TestRegisterHandler(t *testing.T) {
 			req, err := http.NewRequestWithContext(
 				context.Background(),
 				test.meth,
-				url+"/api/user/register", bytes.NewReader(bodyReq))
+				url+"/api/user/login", bytes.NewReader(bodyReq))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -173,8 +176,8 @@ func TestRegisterHandler(t *testing.T) {
 
 			newr := httptest.NewRecorder()
 			router := mux.NewRouter()
-			router.HandleFunc("/api/user/register",
-				register)
+			router.HandleFunc("/api/user/login",
+				login)
 			router.ServeHTTP(newr, req)
 			status := newr.Code
 			body, _ := io.ReadAll(newr.Body)
@@ -211,18 +214,6 @@ func formReqBody(
 	return encrypt, nil
 }
 
-func randomString() string {
-	letters := []rune(
-		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-	b := make([]rune, 5)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-
-	return string(b)
-}
-
 //nolint:errchkjson
 func GetIncorrectData() *[]byte {
 	incd := &apim.IncorrectData{}
@@ -241,4 +232,16 @@ func GetIncorrectDataWithCrypto(encKey *[]byte) *[]byte {
 	encrypt, _ := rsa.Encrypt(&marshal, encKey)
 
 	return encrypt
+}
+
+func randomString() string {
+	letters := []rune(
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+	b := make([]rune, 5)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return string(b)
 }

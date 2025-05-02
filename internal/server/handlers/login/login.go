@@ -12,6 +12,7 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
+	"github.com/dmitrovia/passkeeper/internal/general/validate"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/login/loginattr"
 	"github.com/dmitrovia/passkeeper/internal/server/service"
 	"github.com/golang-jwt/jwt/v4"
@@ -127,7 +128,14 @@ func isValid(reqAttr *apim.InLoginUser) bool {
 		return false
 	}
 
-	return true
+	res := validate.IsValidLogin(reqAttr.Login)
+	if !res {
+		return false
+	}
+
+	res = validate.IsValidPass(reqAttr.Password)
+
+	return res
 }
 
 func getReqData(

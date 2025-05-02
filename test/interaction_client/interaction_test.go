@@ -32,10 +32,8 @@ func TestMain(t *testing.T) {
 	newAttr.AttrClintProc = clintattr
 	newAttr.WgSubProc = &sync.WaitGroup{}
 	testdata := &testm.TestData{}
-	testdata.TestLoginInputRegister = "test" +
-		randomString()
-	testdata.TestPassInputRegister = "test" +
-		randomString()
+	testdata.TestLoginInputRegister = "test"
+	testdata.TestPassInputRegister = "test"
 	newAttr.AttrClintProc.TestData = testdata
 
 	interp := interactionproc.NewProc(newAttr)
