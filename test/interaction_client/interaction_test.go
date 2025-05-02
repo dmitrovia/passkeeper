@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc"
@@ -15,6 +16,8 @@ import (
 func TestMain(t *testing.T) {
 	t.Helper()
 	t.Parallel()
+
+	time.Sleep(5 * time.Second)
 
 	clintattr := &clientpa.ClientProcAttr{}
 

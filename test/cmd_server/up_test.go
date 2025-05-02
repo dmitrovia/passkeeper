@@ -22,5 +22,5 @@ func TestMain(t *testing.T) {
 		}
 	}()
 
-	<-time.After(time.Duration(10) * time.Second)
+	<-time.After(time.Duration(60) * time.Second)
 }
