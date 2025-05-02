@@ -11,12 +11,13 @@ on:
       - dev
 
 jobs:
-  build:
-     runs-on: ubuntu-latest
+  cove-cov:
+    runs-on: ubuntu-latest
+    container: golang:1.22.0
      #env:
       #DATABASE_URL: "postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable"
 
-     services:
+    services:
       postgres:
         image: postgres
         env:
@@ -28,7 +29,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-     steps:
+    steps:
         - uses: actions/checkout@v4
         - uses: actions/setup-go@v5
           with:

@@ -68,6 +68,8 @@ func (m *Migrator) ApplyMigrations(db *sql.DB) error {
 }
 
 func UseMigrations(attr *serverpa.ServerProcAttr) error {
+	fmt.Println(attr.DBDSN)
+
 	migrator, err := MustGetNewMigrator(
 		MigrationsFS, attr.MigrationsDir)
 	if err != nil {
