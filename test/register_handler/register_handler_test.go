@@ -41,6 +41,7 @@ const path = "../../internal/client/crypto/keys/public.pem"
 const (
 	statusISE = http.StatusInternalServerError
 	statusBR  = http.StatusBadRequest
+	statusC   = http.StatusConflict
 )
 
 //nolint:lll,funlen
@@ -112,7 +113,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			tn:     "8",
 			login:  "test",
 			pass:   "test",
-			expcod: stok,
+			expcod: statusC,
 			exbody: "",
 			data:   nil,
 		},
