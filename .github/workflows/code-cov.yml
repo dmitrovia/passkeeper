@@ -35,8 +35,8 @@ jobs:
         - name: Run coverage
           run: |
             go env -w CGO_ENABLED=0
-            make generate-keys-rsa; make build-client
-            make generate-cert
+            make generate-keys-rsa
+            make build-client
             go test -v -coverprofile coverage.out -coverpkg= ./test/... ./internal/...
             go tool cover -html coverage.out -o coverage.html
         - name: Upload coverage to Codecov
