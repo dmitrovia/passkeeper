@@ -12,6 +12,7 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
+	"github.com/dmitrovia/passkeeper/internal/general/validate"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/register/registerattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
 	"github.com/dmitrovia/passkeeper/internal/server/service"
@@ -53,7 +54,7 @@ func (h *Register) RegisterHandler(
 		return
 	}
 
-	isValid := validate(reqAttr)
+	isValid := isValid(reqAttr)
 	if !isValid {
 		writer.WriteHeader(http.StatusBadRequest)
 
@@ -126,12 +127,19 @@ func setErr(writer http.ResponseWriter,
 	logger.LogE("register->"+method, err, inAttr.ZapLogger)
 }
 
-func validate(reqAttr *apim.InRegisterUser) bool {
+func isValid(reqAttr *apim.InRegisterUser) bool {
 	if reqAttr.Login == "" || reqAttr.Password == "" {
 		return false
 	}
 
-	return true
+	res := validate.IsValidLogin(reqAttr.Login)
+	if !res {
+		return false
+	}
+
+	res = validate.IsValidPass(reqAttr.Password)
+
+	return res
 }
 
 func cryptPass(pass string) (string, error) {

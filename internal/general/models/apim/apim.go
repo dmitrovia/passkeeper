@@ -41,3 +41,7 @@ type InLoginUser struct {
 type CfgToken struct {
 	Token string `json:"token"`
 }
+
+type IncorrectData struct {
+	IncorrectData string `json:"incorrectData"`
+}

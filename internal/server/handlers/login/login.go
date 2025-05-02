@@ -46,7 +46,7 @@ func (h *Login) LoginHandler(
 		return
 	}
 
-	isValid := validate(reqAttr)
+	isValid := isValid(reqAttr)
 	if !isValid {
 		writer.WriteHeader(http.StatusBadRequest)
 
@@ -122,7 +122,7 @@ func checkPass(hash string, pass string) error {
 	return nil
 }
 
-func validate(reqAttr *apim.InLoginUser) bool {
+func isValid(reqAttr *apim.InLoginUser) bool {
 	if reqAttr.Login == "" || reqAttr.Password == "" {
 		return false
 	}

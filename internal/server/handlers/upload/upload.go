@@ -11,6 +11,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
+	"github.com/dmitrovia/passkeeper/internal/general/validate"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/upload/uploadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
@@ -70,7 +71,7 @@ func (h *Upload) UploadHandler(
 		return
 	}
 
-	res = user.IsValidLogin()
+	res = validate.IsValidLogin(*user.Login)
 	if !res {
 		h.setErr(writer, errLogin, "FNIsValid")
 
