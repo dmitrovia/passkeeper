@@ -33,10 +33,13 @@ jobs:
         - uses: actions/checkout@v4
         - uses: actions/setup-go@v5
           with:
-            go-version: 1.23
+            go-version: 1.22
         - name: Run coverage
           run: |
             go env -w CGO_ENABLED=0
+            cd files_client_upload
+            dd if=/dev/zero of=upload_test bs=1M count=1024
+            cd ..
             make generate-keys-rsa
             make build-client
             go test -v -coverprofile coverage.out -coverpkg= ./test/... ./internal/...
