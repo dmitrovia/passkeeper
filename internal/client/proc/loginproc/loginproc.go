@@ -77,16 +77,25 @@ func (lp *LoginProc) input() error {
 
 	fmt.Println("Enter login")
 
-	_, err := fmt.Fscan(os.Stdin, &inLogin)
-	if err != nil {
-		return fmt.Errorf("Input->Fscan(login): %w", err)
+	if lp.attr.AttrClintProc.TestData == nil {
+		_, err := fmt.Fscan(os.Stdin, &inLogin)
+		if err != nil {
+			return fmt.Errorf("Input->Fscan(login): %w", err)
+		}
+	} else {
+		inLogin = lp.attr.AttrClintProc.TestData.
+			TestLoginInputLogin
 	}
 
 	fmt.Println("Enter password")
 
-	_, err = fmt.Fscan(os.Stdin, &inPass)
-	if err != nil {
-		return fmt.Errorf("Input->Fscan(pass): %w", err)
+	if lp.attr.AttrClintProc.TestData == nil {
+		_, err := fmt.Fscan(os.Stdin, &inPass)
+		if err != nil {
+			return fmt.Errorf("Input->Fscan(pass): %w", err)
+		}
+	} else {
+		inPass = lp.attr.AttrClintProc.TestData.TestPassInputLogin
 	}
 
 	data := apim.InLoginUser{}

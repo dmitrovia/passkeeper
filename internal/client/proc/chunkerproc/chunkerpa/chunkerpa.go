@@ -10,10 +10,18 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
+const (
+	defChunkSize = 1024 * 1024        // 1MB
+	def10MB      = 1024 * 1024 * 10   // 10MB
+	def100MB     = 1024 * 1024 * 100  // 100MB
+	def1GB       = 1024 * 1024 * 1024 // 1GB
+)
+
 type ChunkerProcAttr struct {
 	CountWorkersChunker int
 	ChunkSize           int
 	CntChunks           int
+	FileSize            int64
 	FilePath            string
 	FileName            string
 	FileFormat          string
@@ -26,10 +34,27 @@ type ChunkerProcAttr struct {
 	Aes256keyBytes      []byte
 }
 
+func (cpa *ChunkerProcAttr) setChunkSize() {
+	fsz := cpa.FileSize
+
+	if fsz <= def10MB {
+		cpa.ChunkSize = defChunkSize
+
+		return
+	}
+
+	if fsz <= def100MB {
+		cpa.ChunkSize = def10MB
+
+		return
+	}
+
+	cpa.ChunkSize = def100MB
+}
+
 func (cpa *ChunkerProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) error {
-	cpa.ChunkSize = attr.DefChunkSize
 	cpa.FilePath = attr.
 		SelectFilePath
 
@@ -48,8 +73,10 @@ func (cpa *ChunkerProcAttr) Init(
 	cpa.FileName = fileInfo.Name()
 	cpa.FileFormat = filepath.Ext(cpa.FilePath)
 
+	cpa.FileSize = fileInfo.Size()
+	cpa.setChunkSize()
 	cz := int64(cpa.ChunkSize)
-	cntChunks := int(fileInfo.Size() / cz)
+	cntChunks := int(cpa.FileSize / cz)
 
 	if fileInfo.Size()%cz != 0 {
 		cntChunks++

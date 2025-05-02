@@ -19,11 +19,13 @@ type GetSecretByIDProcAttr struct {
 	SpecificFileLoadName string
 	EncKey               *[]byte
 	DecKey               *[]byte
+	AttrClintProc        *clientpa.ClientProcAttr
 }
 
 func (rpa *GetSecretByIDProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) {
+	rpa.AttrClintProc = attr
 	rpa.AuthToken = attr.AuthToken
 	httpClient := attr.GetHTTPClient()
 	rpa.Client = &httpClient

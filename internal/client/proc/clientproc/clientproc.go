@@ -54,7 +54,7 @@ func (proc *ClientProc) runInteraction() {
 
 	err := ip.RunProcess()
 	if err != nil {
-		loggerf.Log("runServer->interaction.RunProcess", err)
+		loggerf.Log("runInteraction->interaction.RP", err)
 	}
 }
 
@@ -68,7 +68,7 @@ func (proc *ClientProc) waitClose() {
 	for {
 		_, ok := <-channelCancel
 		if ok {
-			exitV := 99
+			exitV := "99"
 			proc.attr.SelectedProc = &exitV
 
 			proc.attr.WGMainProc.Done()

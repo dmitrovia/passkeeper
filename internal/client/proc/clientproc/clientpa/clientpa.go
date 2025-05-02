@@ -12,13 +12,13 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
+	"github.com/dmitrovia/passkeeper/internal/general/models/testm"
 	"github.com/dmitrovia/passkeeper/internal/server/config"
 	"go.uber.org/zap"
 )
 
 const (
-	ReqTimeout   = 10
-	defChunkSize = 1024 * 1024
+	ReqTimeout = 10
 )
 
 type ClientProcAttr struct {
@@ -50,11 +50,12 @@ type ClientProcAttr struct {
 	CountWorkersLoad     int
 	DefChunkSize         int
 	MaxRetries           int
-	SelectedProc         *int
+	SelectedProc         *string
 	WgSubProc            *sync.WaitGroup
 	WGMainProc           *sync.WaitGroup
 	ReqTimeout           time.Duration
 	Cert                 []byte
+	TestData             *testm.TestData
 }
 
 func (p *ClientProcAttr) Init() error {
@@ -63,7 +64,6 @@ func (p *ClientProcAttr) Init() error {
 	p.DefConfigPath = "../../internal/client/config/" +
 		"client.json"
 	p.TempFilesPath = "../../internal/client/files_temp/"
-	p.DefChunkSize = defChunkSize
 	p.MaxRetries = 3
 	p.CountWorkersChunker = 5
 	p.CountWorkersUpload = 5

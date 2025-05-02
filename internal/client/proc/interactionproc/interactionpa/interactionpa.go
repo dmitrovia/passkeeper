@@ -112,6 +112,7 @@ func (ipa *InteractionProcAttr) SortLoadMetadata() error {
 	return nil
 }
 
+//nolint:nestif
 func (ipa *InteractionProcAttr) SetRestrictions() error {
 	names, err := ipa.GetExistingFilenames()
 	if err != nil {
@@ -129,9 +130,14 @@ func (ipa *InteractionProcAttr) SetRestrictions() error {
 			fmt.Println("FILE:" + key)
 			fmt.Println(str)
 
-			_, err1 := fmt.Fscan(os.Stdin, &inValue)
-			if err1 != nil {
-				continue
+			if ipa.AttrClintProc.TestData == nil {
+				_, err1 := fmt.Fscan(os.Stdin, &inValue)
+				if err1 != nil {
+					continue
+				}
+			} else {
+				inValue = ipa.AttrClintProc.TestData.
+					TestSetRestrictionsInput
 			}
 
 			if inValue == "2" {

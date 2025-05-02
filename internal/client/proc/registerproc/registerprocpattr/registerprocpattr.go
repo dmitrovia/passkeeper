@@ -10,17 +10,19 @@ import (
 )
 
 type RegisterProcAttr struct {
-	ReqTimeout   time.Duration
-	Client       *http.Client
-	ServerURL    string
-	RegisterAttr *eregisterattr.RegisterAttr
-	Register     *eregister.Register
-	EncKey       *[]byte
+	ReqTimeout    time.Duration
+	Client        *http.Client
+	ServerURL     string
+	RegisterAttr  *eregisterattr.RegisterAttr
+	Register      *eregister.Register
+	EncKey        *[]byte
+	AttrClintProc *clientpa.ClientProcAttr
 }
 
 func (rpa *RegisterProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) error {
+	rpa.AttrClintProc = attr
 	httpClient := attr.GetHTTPClient()
 	rpa.Client = &httpClient
 

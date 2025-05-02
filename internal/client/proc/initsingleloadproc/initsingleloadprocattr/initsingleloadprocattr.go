@@ -20,11 +20,13 @@ type InitSingleLoadProcAttr struct {
 	AuthToken            string
 	SpecificFileLoadName string
 	LoadMetadata         map[string]chunckmeta.ChunkMeta
+	AttrClintProc        *clientpa.ClientProcAttr
 }
 
 func (rpa *InitSingleLoadProcAttr) Init(
 	attr *clientpa.ClientProcAttr,
 ) {
+	rpa.AttrClintProc = attr
 	rpa.AuthToken = attr.AuthToken
 	httpClient := attr.GetHTTPClient()
 	rpa.Client = &httpClient

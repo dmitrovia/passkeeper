@@ -67,16 +67,26 @@ func (lp *UploadSecretProc) input() error {
 
 	fmt.Println("Enter identifier of secret")
 
-	_, err := fmt.Fscan(os.Stdin, &inIdentifier)
-	if err != nil {
-		return fmt.Errorf("Input->Fscan(identifier): %w", err)
+	if lp.attr.AttrClintProc.TestData == nil {
+		_, err := fmt.Fscan(os.Stdin, &inIdentifier)
+		if err != nil {
+			return fmt.Errorf("Input->Fscan(identifier): %w", err)
+		}
+	} else {
+		inIdentifier = lp.attr.AttrClintProc.TestData.
+			TestInIdentifierInputUploadSecret
 	}
 
 	fmt.Println("Enter value")
 
-	_, err = fmt.Fscan(os.Stdin, &inValue)
-	if err != nil {
-		return fmt.Errorf("Input->Fscan(value secret): %w", err)
+	if lp.attr.AttrClintProc.TestData == nil {
+		_, err := fmt.Fscan(os.Stdin, &inValue)
+		if err != nil {
+			return fmt.Errorf("Input->Fscan(value secret): %w", err)
+		}
+	} else {
+		inValue = lp.attr.AttrClintProc.TestData.
+			TestInValueInputUploadSecret
 	}
 
 	secret := &secret.Secret{}

@@ -64,16 +64,26 @@ func (rp *RegisterProc) input() error {
 
 	fmt.Println("Enter login")
 
-	_, err := fmt.Fscan(os.Stdin, &inLogin)
-	if err != nil {
-		return fmt.Errorf("RP->Fscan(login): %w", err)
+	if rp.attr.AttrClintProc.TestData == nil {
+		_, err := fmt.Fscan(os.Stdin, &inLogin)
+		if err != nil {
+			return fmt.Errorf("RP->Fscan(login): %w", err)
+		}
+	} else {
+		inLogin = rp.attr.AttrClintProc.TestData.
+			TestLoginInputRegister
 	}
 
 	fmt.Println("Enter password")
 
-	_, err = fmt.Fscan(os.Stdin, &inPass)
-	if err != nil {
-		return fmt.Errorf("RP->Fscan(pass): %w", err)
+	if rp.attr.AttrClintProc.TestData == nil {
+		_, err := fmt.Fscan(os.Stdin, &inPass)
+		if err != nil {
+			return fmt.Errorf("RP->Fscan(pass): %w", err)
+		}
+	} else {
+		inPass = rp.attr.AttrClintProc.TestData.
+			TestPassInputRegister
 	}
 
 	data := apim.InLoginUser{}

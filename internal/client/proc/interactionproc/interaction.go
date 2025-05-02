@@ -14,16 +14,16 @@ import (
 )
 
 const (
-	registerOption      int = 1
-	loginOption         int = 2
-	uploadOption        int = 3
-	logoutOption        int = 4
-	loadOption          int = 5
-	uploadSecretOption  int = 6
-	getSecretsOption    int = 7
-	GetSecretByIDOption int = 8
-	exitOption          int = 99
-	nonExistentOption       = 999
+	registerOption      string = "1"
+	loginOption         string = "2"
+	uploadOption        string = "3"
+	logoutOption        string = "4"
+	loadOption          string = "5"
+	uploadSecretOption  string = "6"
+	getSecretsOption    string = "7"
+	GetSecretByIDOption string = "8"
+	exitOption          string = "99"
+	nonExistentOption   string = "999"
 )
 
 type InteractionProc struct {
@@ -42,7 +42,7 @@ func (ip *InteractionProc) RunProcess() error {
 	fmt.Println("InteractionProc run")
 	defer fmt.Println("InteractionProc end")
 
-	err := ip.chooseProc()
+	err := ip.ChooseProc()
 	if err != nil {
 		return fmt.Errorf("RP->chooseProc: %w", err)
 	}
@@ -50,7 +50,7 @@ func (ip *InteractionProc) RunProcess() error {
 	return nil
 }
 
-func (ip *InteractionProc) chooseProc() error {
+func (ip *InteractionProc) ChooseProc() error {
 	for {
 		ip.printOptions()
 
@@ -61,11 +61,16 @@ func (ip *InteractionProc) chooseProc() error {
 			return nil
 		}
 
-		var inValue int
+		var inValue string
 
-		_, err1 := fmt.Fscan(os.Stdin, &inValue)
-		if err1 != nil {
-			return fmt.Errorf("chooseProc->Fscan: %w", err1)
+		if ip.attr.AttrClintProc.TestData == nil {
+			_, err1 := fmt.Fscan(os.Stdin, &inValue)
+			if err1 != nil {
+				return fmt.Errorf("chooseProc->Fscan: %w", err1)
+			}
+		} else {
+			inValue = ip.attr.AttrClintProc.TestData.
+				TestChooseProcInput
 		}
 
 		ip.checkIncorrectOptionAuth(inValue)
@@ -101,7 +106,7 @@ func (ip *InteractionProc) printOptions() {
 }
 
 func (ip *InteractionProc) checkIncorrectOptionAuth(
-	option int,
+	option string,
 ) {
 	checkBan := ip.attr.AttrClintProc.IsAuth &&
 		(option == registerOption || option == loginOption)
@@ -115,7 +120,7 @@ func (ip *InteractionProc) checkIncorrectOptionAuth(
 }
 
 func (ip *InteractionProc) checkIncorrectOptionNotAuth(
-	option int,
+	option string,
 ) {
 	checkBan := !ip.attr.AttrClintProc.IsAuth &&
 		(option == uploadOption ||
@@ -139,25 +144,25 @@ func (ip *InteractionProc) selectOption() bool {
 
 	switch *ip.attr.AttrClintProc.SelectedProc {
 	case registerOption:
-		err = ip.runRegister()
+		err = ip.RunRegister()
 	case loginOption:
-		err = ip.runLogin()
+		err = ip.RunLogin()
 	case logoutOption:
-		err = ip.runLogout()
+		err = ip.RunLogout()
 	case uploadSecretOption:
-		err = ip.runUploadSecret()
+		err = ip.RunUploadSecret()
 	case getSecretsOption:
-		err = ip.runGetSecrets()
+		err = ip.RunGetSecrets()
 	case GetSecretByIDOption:
-		err = ip.runGetSecretByID()
+		err = ip.RunGetSecretByID()
 	case exitOption:
 		fmt.Println("Press ctrl+c to exit")
 
 		return true
 	case loadOption:
-		err = ip.loadAndChunksSelectMode()
+		err = ip.LoadAndChunksSelectMode()
 	case uploadOption:
-		err = ip.uploadAndChunksSelectMode()
+		err = ip.UploadAndChunksSelectMode()
 	default:
 		fmt.Println("No such option")
 	}
@@ -175,14 +180,19 @@ func (
 		"a specific file, any other value if all"
 	fmt.Println(str)
 
-	var inValue int
+	var inValue string
 
-	_, err1 := fmt.Fscan(os.Stdin, &inValue)
-	if err1 != nil {
-		return fmt.Errorf("chooseLoadType->Fscan1: %w", err1)
+	if ip.attr.AttrClintProc.TestData == nil {
+		_, err1 := fmt.Fscan(os.Stdin, &inValue)
+		if err1 != nil {
+			return fmt.Errorf("chooseLoadType->Fscan1: %w", err1)
+		}
+	} else {
+		inValue = ip.attr.AttrClintProc.TestData.
+			TestChooseLoadTypeInput
 	}
 
-	if inValue == 1 {
+	if inValue == "1" {
 		ip.attr.SpecificFileLoad = true
 	} else {
 		ip.attr.SpecificFileLoad = false
@@ -215,7 +225,7 @@ func (
 }
 
 func (
-	ip *InteractionProc) loadAndChunksSelectMode() error {
+	ip *InteractionProc) LoadAndChunksSelectMode() error {
 	err := ip.chooseLoadType()
 	if err != nil {
 		return fmt.Errorf("LACSM->chooseLoadType: %w", err)
@@ -316,19 +326,24 @@ func (ip *InteractionProc) loadAndBuild(
 }
 
 func (
-	ip *InteractionProc) uploadAndChunksSelectMode() error {
+	ip *InteractionProc) UploadAndChunksSelectMode() error {
 	str := "Enter 1 if you want to download" +
 		"a specific file, any other value if all"
 	fmt.Println(str)
 
-	var inValue int
+	var inValue string
 
-	_, err1 := fmt.Fscan(os.Stdin, &inValue)
-	if err1 != nil {
-		return fmt.Errorf("UACSM->Fscan1: %w", err1)
+	if ip.attr.AttrClintProc.TestData == nil {
+		_, err1 := fmt.Fscan(os.Stdin, &inValue)
+		if err1 != nil {
+			return fmt.Errorf("UACSM->Fscan1: %w", err1)
+		}
+	} else {
+		inValue = ip.attr.AttrClintProc.TestData.
+			TestUploadAndChunksSelectModeInput
 	}
 
-	if inValue == 1 {
+	if inValue == "1" {
 		ip.attr.SpecificFileUpload = true
 	} else {
 		ip.attr.SpecificFileUpload = false
@@ -376,9 +391,14 @@ func (ip *InteractionProc) uploadSingleFile() error {
 
 	var fileName string
 
-	_, err1 := fmt.Fscan(os.Stdin, &fileName)
-	if err1 != nil {
-		return fmt.Errorf("USF->Fscan: %w", err1)
+	if ip.attr.AttrClintProc.TestData == nil {
+		_, err1 := fmt.Fscan(os.Stdin, &fileName)
+		if err1 != nil {
+			return fmt.Errorf("USF->Fscan: %w", err1)
+		}
+	} else {
+		fileName = ip.attr.AttrClintProc.TestData.
+			TestUploadSingleFileInput
 	}
 
 	fsp := ip.attr.AttrClintProc.FilesUploadPath
@@ -461,7 +481,7 @@ func (ip *InteractionProc) runLoader() {
 	}
 }
 
-func (ip *InteractionProc) runRegister() error {
+func (ip *InteractionProc) RunRegister() error {
 	ip.attr.WgSubProc.Add(1)
 	defer ip.attr.WgSubProc.Done()
 
@@ -478,7 +498,7 @@ func (ip *InteractionProc) runRegister() error {
 	return nil
 }
 
-func (ip *InteractionProc) runLogin() error {
+func (ip *InteractionProc) RunLogin() error {
 	ip.attr.WgSubProc.Add(1)
 	defer ip.attr.WgSubProc.Done()
 
@@ -495,7 +515,7 @@ func (ip *InteractionProc) runLogin() error {
 	return nil
 }
 
-func (ip *InteractionProc) runLogout() error {
+func (ip *InteractionProc) RunLogout() error {
 	ip.attr.WgSubProc.Add(1)
 	defer ip.attr.WgSubProc.Done()
 
@@ -516,7 +536,7 @@ func (ip *InteractionProc) runLogout() error {
 	return nil
 }
 
-func (ip *InteractionProc) runGetSecrets() error {
+func (ip *InteractionProc) RunGetSecrets() error {
 	ip.attr.WgSubProc.Add(1)
 	defer ip.attr.WgSubProc.Done()
 
@@ -533,7 +553,7 @@ func (ip *InteractionProc) runGetSecrets() error {
 	return nil
 }
 
-func (ip *InteractionProc) runGetSecretByID() error {
+func (ip *InteractionProc) RunGetSecretByID() error {
 	ip.attr.WgSubProc.Add(1)
 	defer ip.attr.WgSubProc.Done()
 
@@ -550,7 +570,7 @@ func (ip *InteractionProc) runGetSecretByID() error {
 	return nil
 }
 
-func (ip *InteractionProc) runUploadSecret() error {
+func (ip *InteractionProc) RunUploadSecret() error {
 	ip.attr.WgSubProc.Add(1)
 	defer ip.attr.WgSubProc.Done()
 
