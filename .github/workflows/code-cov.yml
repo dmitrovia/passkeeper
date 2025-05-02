@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  metricstest:
+  code-cov:
     runs-on: ubuntu-latest
     container: golang:1.23.6
 
