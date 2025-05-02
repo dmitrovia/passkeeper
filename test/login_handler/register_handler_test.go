@@ -42,7 +42,7 @@ const (
 	statusBR  = http.StatusBadRequest
 )
 
-//nolint:lll
+//nolint:lll,funlen
 func getTestData(encKey *[]byte) *[]testData {
 	tmp := make([]byte, 0)
 
@@ -71,17 +71,17 @@ func getTestData(encKey *[]byte) *[]testData {
 			tn:     "3",
 			login:  "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest" + randomString(),
 			pass:   "temppass",
-			expcod: statusISE,
+			expcod: statusBR,
 			exbody: "",
-			data:   &tmp,
+			data:   nil,
 		},
 		{
 			tn:     "4",
 			login:  "test" + randomString(),
 			pass:   "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest",
-			expcod: statusISE,
+			expcod: statusBR,
 			exbody: "",
-			data:   &tmp,
+			data:   nil,
 		},
 		{
 			tn:     "5",
@@ -98,6 +98,14 @@ func getTestData(encKey *[]byte) *[]testData {
 			expcod: statusBR,
 			exbody: "",
 			data:   incd1,
+		},
+		{
+			tn:     "7",
+			login:  "",
+			pass:   "",
+			expcod: statusBR,
+			exbody: "",
+			data:   nil,
 		},
 	}
 }

@@ -35,19 +35,19 @@ func IsValidLogin(login string) bool {
 
 	res, err := IsMatchesTemplate(
 		login, pattern)
-	if err != nil && !res {
+	if err != nil || !res {
 		return false
 	}
 
 	return true
 }
 
-func IsValidPass(login string) bool {
+func IsValidPass(pass string) bool {
 	pattern := "^.{1,40}$"
 
 	res, err := IsMatchesTemplate(
-		login, pattern)
-	if err != nil && !res {
+		pass, pattern)
+	if err != nil || !res {
 		return false
 	}
 
