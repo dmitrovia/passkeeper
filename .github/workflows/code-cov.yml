@@ -13,8 +13,8 @@ on:
 jobs:
   build:
      runs-on: ubuntu-latest
-     env:
-      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable"
+     #env:
+      #DATABASE_URL: "postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable"
 
      services:
       postgres:

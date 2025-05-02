@@ -1,5 +1,5 @@
 {
-    "dbdsn": "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable",
+    "dbdsn": "postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable",
     "address" : ":8443",
     "filesStoragePath" : "../../internal/server/files_server",
     "cryptoKeyPathPrivate": "../../internal/server/crypto/keys/private.pem",
