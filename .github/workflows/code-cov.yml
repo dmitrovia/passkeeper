@@ -14,8 +14,8 @@ jobs:
   cove-cov:
     runs-on: ubuntu-latest
     container: golang:1.22.0
-     #env:
-      #DATABASE_URL: "postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable"
+    env:
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable"
 
     services:
       postgres:
