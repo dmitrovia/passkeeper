@@ -11,6 +11,23 @@ on:
       - dev
 
 jobs:
+
+  metricstest:
+    runs-on: ubuntu-latest
+    container: golang:1.23.6
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: praktikum
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
   build:
      runs-on: ubuntu-latest
      steps:
@@ -21,12 +38,8 @@ jobs:
         - name: Run coverage
           run: |
             go env -w CGO_ENABLED=0
-            go run generate/generate.go
-            mv generate/public.pem internal/client/crypto/keys
-            mv generate/private.pem internal/server/crypto/keys
-            go run generate/generate.go
-            mv generate/private.pem internal/client/crypto/keys
-            mv generate/public.pem internal/server/crypto/keys
+            make generate-keys-rsa; make build-client
+            make generate-cert
             go test -v -coverprofile coverage.out -coverpkg= ./test/... ./internal/...
             go tool cover -html coverage.out -o coverage.html
         - name: Upload coverage to Codecov
