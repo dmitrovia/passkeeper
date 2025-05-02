@@ -110,7 +110,7 @@ func getTestData(encKey *[]byte) *[]testData {
 		},
 		{
 			tn:     "8",
-			login:  "upload_test",
+			login:  "test",
 			pass:   "test",
 			expcod: stok,
 			exbody: "",
