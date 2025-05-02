@@ -52,7 +52,7 @@ func (cm *ChunkMeta) FNIsValid() bool {
 
 	res, err := validate.IsMatchesTemplate(
 		*cm.FileName, pattern)
-	if err != nil || !res {
+	if err != nil || res {
 		return false
 	}
 
