@@ -124,7 +124,7 @@ func TestRegisterHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(20 * time.Second)
+	time.Sleep(30 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
