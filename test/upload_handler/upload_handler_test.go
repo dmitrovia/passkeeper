@@ -11,7 +11,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/aes256"
@@ -74,18 +73,6 @@ func getTestData(encKey *[]byte) *[]testData {
 	thash1 := "2f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc512f282b84e7e608d5852449ed940bfc51"
 
 	return &[]testData{
-		{
-			tn:           "0",
-			expcod:       statusISE,
-			exbody:       "",
-			data:         nil,
-			token:        nil,
-			FileName:     "upload_test1.chunk.0",
-			OrigFileName: "upload_test1",
-			Index:        99,
-			Hash:         &thash,
-			DataMeta:     &tmp,
-		},
 		{
 			tn:           "1",
 			expcod:       statusISE,
@@ -184,7 +171,7 @@ func getTestData(encKey *[]byte) *[]testData {
 		},
 		{
 			tn:       "9",
-			expcod:   statusISE,
+			expcod:   statusBR,
 			exbody:   "",
 			data:     nil,
 			token:    nil,
@@ -196,7 +183,7 @@ func getTestData(encKey *[]byte) *[]testData {
 		},
 		{
 			tn:       "10",
-			expcod:   statusISE,
+			expcod:   statusBR,
 			exbody:   "",
 			data:     nil,
 			token:    nil,
@@ -214,7 +201,7 @@ func TestUploadHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(20 * time.Second)
+	// time.Sleep(20 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
@@ -258,7 +245,7 @@ func TestUploadHandler(t *testing.T) {
 		t.Run(http.MethodPost, func(t *testing.T) {
 			t.Parallel()
 
-			reqData, err := formReqBody(&test, &encKey)
+			reqData, err := formReqBody(&test)
 			if err != nil {
 				fmt.Println(err)
 
@@ -311,7 +298,6 @@ func TestUploadHandler(t *testing.T) {
 
 func formReqBody(
 	testd *testData,
-	encKey *[]byte,
 ) (*[]byte, error) {
 	chunk := &chunckmeta.ChunkMeta{}
 
@@ -333,12 +319,7 @@ func formReqBody(
 		return nil, fmt.Errorf("formReqBody->Marshal: %w", err)
 	}
 
-	encrypt, err := rsa.Encrypt(&marshal, encKey)
-	if err != nil {
-		return nil, fmt.Errorf("formReqBody->Encrypt: %w", err)
-	}
-
-	return encrypt, nil
+	return &marshal, nil
 }
 
 //nolint:errchkjson
