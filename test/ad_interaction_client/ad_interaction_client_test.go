@@ -1,10 +1,10 @@
-package cserver_unavailability_test
+package interactionproc_test
 
 import (
-	"errors"
 	"math/rand"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc"
@@ -12,12 +12,12 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/models/testm"
 )
 
-var errCntErrors = errors.New("count of errors")
-
 //nolint:funlen,cyclop
 func TestMain(t *testing.T) {
 	t.Helper()
 	t.Parallel()
+
+	time.Sleep(25 * time.Second)
 
 	clintattr := &clientpa.ClientProcAttr{}
 
@@ -38,29 +38,20 @@ func TestMain(t *testing.T) {
 
 	interp := interactionproc.NewProc(newAttr)
 
-	testdata.
-		TestSetRestrictionsInput = "2" // overwrite all files
-	// when load
-
-	testdata.TestChooseLoadTypeInput = "2" // load all
-
-	errors := make([]error, 0)
-
-	err = interp.LoadAndChunksSelectMode()
-	if err != nil {
-		errors = append(errors, err)
-	}
-
 	testdata.TestChooseProcInput = "99"
 
 	err = interp.RunProcess()
 	if err != nil {
-		t.Errorf("TestMain->RP1: %v", err)
+		t.Errorf("TestMain->RP: %v", err)
+
+		return
 	}
 
 	err = interp.RunRegister()
 	if err != nil {
-		errors = append(errors, err)
+		t.Errorf("TestMain->RunRegister: %v", err)
+
+		return
 	}
 
 	testdata.TestLoginInputLogin = testdata.
@@ -70,41 +61,9 @@ func TestMain(t *testing.T) {
 
 	err = interp.RunLogin()
 	if err != nil {
-		errors = append(errors, err)
-	}
-
-	testdata.TestChooseProcInput = "99"
-
-	err = interp.RunProcess()
-	if err != nil {
-		t.Errorf("TestMain->RP2: %v", err)
-	}
-
-	err = interp.RunLogout()
-	if err != nil {
 		t.Errorf("TestMain->RunLogin: %v", err)
-	}
 
-	err = interp.RunLogin()
-	if err != nil {
-		errors = append(errors, err)
-	}
-
-	testdata.
-		TestUploadAndChunksSelectModeInput = "2" // upload all
-
-	err = interp.UploadAndChunksSelectMode()
-	if err != nil {
-		errors = append(errors, err)
-	}
-
-	testdata.
-		TestUploadAndChunksSelectModeInput = "1" // special
-	testdata.TestUploadSingleFileInput = "upload_test"
-
-	err = interp.UploadAndChunksSelectMode()
-	if err != nil {
-		errors = append(errors, err)
+		return
 	}
 
 	testdata.
@@ -115,7 +74,66 @@ func TestMain(t *testing.T) {
 
 	err = interp.LoadAndChunksSelectMode()
 	if err != nil {
-		errors = append(errors, err)
+		t.Errorf("TestMain->UploadAndChunksSelectMode1: %v", err)
+
+		return
+	}
+
+	testdata.TestChooseProcInput = "99"
+
+	err = interp.RunProcess()
+	if err != nil {
+		t.Errorf("TestMain->RP: %v", err)
+
+		return
+	}
+
+	err = interp.RunLogout()
+	if err != nil {
+		t.Errorf("TestMain->RunLogin: %v", err)
+
+		return
+	}
+
+	err = interp.RunLogin()
+	if err != nil {
+		t.Errorf("TestMain->RunLogin: %v", err)
+
+		return
+	}
+
+	testdata.
+		TestUploadAndChunksSelectModeInput = "2" // upload all
+
+	err = interp.UploadAndChunksSelectMode()
+	if err != nil {
+		t.Errorf("TestMain->UploadAndChunksSelectMode1: %v", err)
+
+		return
+	}
+
+	testdata.
+		TestUploadAndChunksSelectModeInput = "1" // special
+	testdata.TestUploadSingleFileInput = "upload_test"
+
+	err = interp.UploadAndChunksSelectMode()
+	if err != nil {
+		t.Errorf("TestMain->UploadAndChunksSelectMode2: %v", err)
+
+		return
+	}
+
+	testdata.
+		TestSetRestrictionsInput = "2" // overwrite all files
+	// when load
+
+	testdata.TestChooseLoadTypeInput = "2" // load all
+
+	err = interp.LoadAndChunksSelectMode()
+	if err != nil {
+		t.Errorf("TestMain->UploadAndChunksSelectMode1: %v", err)
+
+		return
 	}
 
 	testdata.TestFileNameInput = "upload_test"
@@ -123,7 +141,9 @@ func TestMain(t *testing.T) {
 
 	err = interp.LoadAndChunksSelectMode()
 	if err != nil {
-		errors = append(errors, err)
+		t.Errorf("TestMain->UploadAndChunksSelectMode1: %v", err)
+
+		return
 	}
 
 	testdata.
@@ -134,12 +154,16 @@ func TestMain(t *testing.T) {
 
 	err = interp.RunUploadSecret()
 	if err != nil {
-		errors = append(errors, err)
+		t.Errorf("TestMain->RunUploadSecret: %v", err)
+
+		return
 	}
 
 	err = interp.RunGetSecrets()
 	if err != nil {
-		errors = append(errors, err)
+		t.Errorf("TestMain->RunGetSecrets: %v", err)
+
+		return
 	}
 
 	testdata.TestInIdentifierInput = testdata.
@@ -147,11 +171,9 @@ func TestMain(t *testing.T) {
 
 	err = interp.RunGetSecretByID()
 	if err != nil {
-		errors = append(errors, err)
-	}
+		t.Errorf("TestMain->RunGetSecrets: %v", err)
 
-	if len(errors) != 11 {
-		t.Errorf("TestMain->Init: %v", errCntErrors)
+		return
 	}
 }
 
