@@ -11,11 +11,12 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
+	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecretbyid"
+	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware"
 	"github.com/dmitrovia/passkeeper/internal/server/migrator"
 	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
 	"github.com/gorilla/mux"
@@ -51,7 +52,7 @@ func getTestData(encKey *[]byte) *[]testData {
 		{
 			tn:           "1",
 			inIdentifier: "test" + randomString(),
-			expcod:       statusBR,
+			expcod:       statusISE,
 			exbody:       "",
 			data:         &tmp,
 		},
@@ -65,7 +66,7 @@ func getTestData(encKey *[]byte) *[]testData {
 		{
 			tn:           "3",
 			inIdentifier: "test" + randomString(),
-			expcod:       statusBR,
+			expcod:       statusISE,
 			exbody:       "",
 			data:         incd,
 		},
@@ -91,7 +92,7 @@ func TestLoginHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(20 * time.Second)
+	// time.Sleep(20 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
@@ -115,6 +116,16 @@ func TestLoginHandler(t *testing.T) {
 
 		return
 	}
+
+	path := "../../internal/client/auth/token.json"
+
+	tok, err := authcfg.GetToken(path)
+	if err != nil {
+		t.Errorf("GetToken: %v", err)
+	}
+
+	Token := tok
+	fmt.Println(Token)
 
 	testCases := getTestData(&encKey)
 
@@ -149,9 +160,12 @@ func TestLoginHandler(t *testing.T) {
 			}
 
 			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", Token)
 
 			newr := httptest.NewRecorder()
 			router := mux.NewRouter()
+			router.Use(authmiddleware.AuthMiddleware(
+				attr.AuthMidAttr))
 			router.HandleFunc("/api/user/getsecretbyid",
 				getSecretByIDH)
 			router.ServeHTTP(newr, req)

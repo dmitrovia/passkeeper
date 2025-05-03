@@ -1,4 +1,4 @@
-/api/user/getsecretbyid
+/api/user/getsecretbyid +
 /api/user/getsecrets
 /api/user/uploadsecret
 
