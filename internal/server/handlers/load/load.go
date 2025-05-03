@@ -11,6 +11,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
+	"github.com/dmitrovia/passkeeper/internal/general/validate"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/load/loadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
@@ -76,13 +77,14 @@ func (h *Load) InitLoadHandler(
 	writer.WriteHeader(http.StatusOK)
 }
 
+//nolint:cyclop
 func isValid(chunk *chunckmeta.ChunkMeta,
 ) bool {
+	fmt.Println(chunk)
 	notUsesFields := chunk.ID != nil ||
 		chunk.FilePath != nil ||
 		chunk.User != nil ||
 		chunk.Createddate != nil ||
-		chunk.OrigFileName != nil ||
 		chunk.Index != nil ||
 		chunk.Hash != nil
 
@@ -90,17 +92,23 @@ func isValid(chunk *chunckmeta.ChunkMeta,
 		return false
 	}
 
-	isNil := chunk.FileName == nil
+	isNil := chunk.FileName == nil || chunk.OrigFileName == nil
 	if isNil {
 		return false
 	}
 
-	isEmpty := *chunk.FileName == ""
+	res := validate.IsValidOrigFileName(*chunk.OrigFileName)
+	if !res {
+		return false
+	}
+
+	isEmpty := *chunk.FileName == "" ||
+		*chunk.OrigFileName == ""
 	if isEmpty {
 		return false
 	}
 
-	res := chunk.FNIsValid()
+	res = chunk.FNIsValid()
 
 	return res
 }

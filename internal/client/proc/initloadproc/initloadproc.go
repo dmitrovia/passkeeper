@@ -27,8 +27,8 @@ func NewProc(
 }
 
 func (proc *InitProc) RunProcess() error {
-	fmt.Println("InitProc run")
-	defer fmt.Println("InitProc end")
+	fmt.Println("InitLoadProc run")
+	defer fmt.Println("InitLoadProc end")
 
 	ctx, cancel := context.WithTimeout(
 		context.Background(), proc.attr.ReqTimeout)
