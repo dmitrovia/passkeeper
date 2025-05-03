@@ -173,7 +173,7 @@ func getTestData(encKey *[]byte) *[]testData {
 }
 
 //nolint:funlen,cyclop
-func TestUploadHandler(t *testing.T) {
+func TestLoadHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 

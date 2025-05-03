@@ -62,7 +62,7 @@ func getTestData() *[]testData {
 }
 
 //nolint:funlen
-func TestGetSByIdHandler(t *testing.T) {
+func TestInitLoadHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 

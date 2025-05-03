@@ -116,7 +116,7 @@ func getTestData(encKey *[]byte) *[]testData {
 }
 
 //nolint:funlen,cyclop
-func TestGetSByIdHandler(t *testing.T) {
+func TestInitSingleLoadHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
