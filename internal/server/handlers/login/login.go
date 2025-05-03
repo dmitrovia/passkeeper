@@ -78,6 +78,9 @@ func (h *Login) LoginHandler(
 		return
 	}
 
+	fmt.Println("4444SaveToken")
+	fmt.Println(reqAttr.Login)
+	fmt.Println("4444SaveToken")
 	token, err := generateToken(reqAttr.Login, h.attr)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -105,6 +108,10 @@ func generateToken(
 				time.Hour * time.Duration(
 					attr.TokenExpHour)).Unix(),
 		})
+
+	fmt.Println("5555SaveToken")
+	fmt.Println(attr.Secret)
+	fmt.Println("5555SaveToken")
 
 	token, err := generateToken.SignedString(
 		[]byte(attr.Secret))
