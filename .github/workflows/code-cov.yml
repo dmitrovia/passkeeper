@@ -42,7 +42,7 @@ jobs:
             cd ..
             make generate-keys-rsa
             make build-client
-            go test -v -coverprofile coverage.out -coverpkg= ./test/... ./internal/... -p 10
+            go test -v -coverprofile coverage.out -coverpkg= ./test/... ./internal/... -p 20
             go tool cover -html coverage.out -o coverage.html
         - name: Upload coverage to Codecov
           uses: codecov/codecov-action@v5
