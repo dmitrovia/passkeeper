@@ -153,6 +153,7 @@ func TestGetSByIdHandler(t *testing.T) {
 	}
 
 	Token := tok
+	fmt.Println(Token)
 
 	testCases := getTestData(&encKey)
 
@@ -189,8 +190,12 @@ func TestGetSByIdHandler(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 
 			if test.token != nil {
+				fmt.Println("1111")
+				fmt.Println(test.token)
 				req.Header.Set("Authorization", *test.token)
 			} else {
+				fmt.Println("2222")
+				fmt.Println(Token)
 				req.Header.Set("Authorization", Token)
 			}
 
