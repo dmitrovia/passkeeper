@@ -11,6 +11,7 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/compress"
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
+	"github.com/dmitrovia/passkeeper/internal/general/validate"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/initsingleload/initsingleloadattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
@@ -51,6 +52,12 @@ func (h *InitSingleLoad) InitSingleLoadHadnler(
 		return
 	}
 
+	isValid := isValid(reqAttr)
+	if !isValid {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(
 		req.Context(), h.attr.Dbtimeout)
 	defer cancel()
@@ -68,6 +75,17 @@ func (h *InitSingleLoad) InitSingleLoadHadnler(
 	}
 
 	writer.WriteHeader(http.StatusOK)
+}
+
+func isValid(reqAttr *apim.InInitSingleLoad,
+) bool {
+	if reqAttr.FileName == "" {
+		return false
+	}
+
+	res := validate.IsValidFileName(reqAttr.FileName)
+
+	return res
 }
 
 func (h *InitSingleLoad) getResponeBody(

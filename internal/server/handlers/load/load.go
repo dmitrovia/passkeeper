@@ -51,6 +51,12 @@ func (h *Load) InitLoadHandler(
 		return
 	}
 
+	isValid := isValid(chunkReq)
+	if !isValid {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(
 		req.Context(), h.attr.Dbtimeout)
 	defer cancel()
@@ -68,6 +74,35 @@ func (h *Load) InitLoadHandler(
 	}
 
 	writer.WriteHeader(http.StatusOK)
+}
+
+func isValid(chunk *chunckmeta.ChunkMeta,
+) bool {
+	notUsesFields := chunk.ID != nil ||
+		chunk.FilePath != nil ||
+		chunk.User != nil ||
+		chunk.Createddate != nil ||
+		chunk.OrigFileName != nil ||
+		chunk.Index != nil ||
+		chunk.Hash != nil
+
+	if notUsesFields {
+		return false
+	}
+
+	isNil := chunk.FileName == nil
+	if isNil {
+		return false
+	}
+
+	isEmpty := *chunk.FileName == ""
+	if isEmpty {
+		return false
+	}
+
+	res := chunk.FNIsValid()
+
+	return res
 }
 
 func (h *Load) getResponeBody(

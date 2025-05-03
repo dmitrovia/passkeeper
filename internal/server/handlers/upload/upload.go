@@ -94,12 +94,12 @@ func (h *Upload) UploadHandler(
 func isValid(chunk *chunckmeta.ChunkMeta,
 	user *userm.User,
 ) bool {
-	notUseFilds := chunk.ID != nil ||
+	notUsesFields := chunk.ID != nil ||
 		chunk.FilePath != nil ||
 		chunk.User != nil ||
 		chunk.Createddate != nil
 
-	if notUseFilds {
+	if notUsesFields {
 		return false
 	}
 

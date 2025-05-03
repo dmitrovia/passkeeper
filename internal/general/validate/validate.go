@@ -89,3 +89,15 @@ func IsValidHash(fn string) bool {
 
 	return true
 }
+
+func IsValidFileName(fn string) bool {
+	pattern := "^.{1,200}$"
+
+	res, err := IsMatchesTemplate(
+		fn, pattern)
+	if err != nil || !res {
+		return false
+	}
+
+	return true
+}
