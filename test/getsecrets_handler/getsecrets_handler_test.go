@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
@@ -38,7 +37,7 @@ const (
 
 //nolint:lll
 func getTestData() *[]testData {
-	tok := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDYzNDk5ODEsImlkIjoicXFxIn0.3wwCe1CwvlAlCVBPZA1-fsZSYmYQPBLy42w0jA0oE58"
+	tok := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDYzNTI1MTEsImlkIjoicXFxIn0.6O4koFaQNd4vdWWb2WsftHL0Ewb45_4-tng1qcPn980"
 
 	tok1 := ""
 
@@ -63,7 +62,7 @@ func TestGetSecretsHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(20 * time.Second)
+	// time.Sleep(20 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 

@@ -56,5 +56,13 @@ func (cm *ChunkMeta) FNIsValid() bool {
 		return false
 	}
 
+	pattern = "^.{1,200}$"
+
+	res, err = validate.IsMatchesTemplate(
+		*cm.FileName, pattern)
+	if err != nil || !res {
+		return false
+	}
+
 	return true
 }

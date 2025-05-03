@@ -100,6 +100,8 @@ func (up *UploadProc) uploadChunk(
 		return
 	}
 
+	chunk.ClearData()
+
 	up.attr.Mutex.Lock()
 	up.attr.CurrentMetadata[*chunk.FileName] = *chunk
 	up.attr.Mutex.Unlock()

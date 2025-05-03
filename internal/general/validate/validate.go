@@ -65,3 +65,27 @@ func IsValidPass(pass string) bool {
 
 	return true
 }
+
+func IsValidOrigFileName(fn string) bool {
+	pattern := "^.{1,207}$"
+
+	res, err := IsMatchesTemplate(
+		fn, pattern)
+	if err != nil || !res {
+		return false
+	}
+
+	return true
+}
+
+func IsValidHash(fn string) bool {
+	pattern := "^.{1,200}$"
+
+	res, err := IsMatchesTemplate(
+		fn, pattern)
+	if err != nil || !res {
+		return false
+	}
+
+	return true
+}

@@ -24,9 +24,7 @@ const (
 	statusISE = http.StatusInternalServerError
 )
 
-var errFileName = errors.New("file name incorrect")
-
-var errLogin = errors.New("login incorrect")
+const def1GB = 1024 * 1024 * 1024
 
 type Upload struct {
 	fileService service.FileService
@@ -62,15 +60,9 @@ func (h *Upload) UploadHandler(
 		return
 	}
 
-	res := chunk.FNIsValid()
-	if !res {
-		h.setErr(writer, errFileName, "FNIsValid")
-		return
-	}
-
-	res = validate.IsValidLogin(*user.Login)
-	if !res {
-		h.setErr(writer, errLogin, "FNIsValid")
+	isValid := isValid(chunk, user)
+	if !isValid {
+		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -96,6 +88,61 @@ func (h *Upload) UploadHandler(
 	}
 
 	writer.WriteHeader(http.StatusOK)
+}
+
+//nolint:cyclop
+func isValid(chunk *chunckmeta.ChunkMeta,
+	user *userm.User,
+) bool {
+	notUseFilds := chunk.ID != nil ||
+		chunk.FilePath != nil ||
+		chunk.User != nil ||
+		chunk.Createddate != nil
+
+	if notUseFilds {
+		return false
+	}
+
+	isNil := chunk.FileName == nil ||
+		chunk.OrigFileName == nil ||
+		chunk.Index == nil ||
+		chunk.Hash == nil
+	if isNil {
+		return false
+	}
+
+	isEmpty := *chunk.FileName == "" ||
+		*chunk.OrigFileName == "" ||
+		*chunk.Hash == ""
+	if isEmpty {
+		return false
+	}
+
+	res := validate.IsValidOrigFileName(*chunk.OrigFileName)
+	if !res {
+		return false
+	}
+
+	res = chunk.FNIsValid()
+	if !res {
+		return false
+	}
+
+	res = validate.IsValidHash(*chunk.Hash)
+	if !res {
+		return false
+	}
+
+	if len(*chunk.Data) > def1GB || len(*chunk.Data) == 0 {
+		return false
+	}
+
+	res = validate.IsValidLogin(*user.Login)
+	if !res {
+		return false
+	}
+
+	return res
 }
 
 func (h *Upload) createChunkFile(

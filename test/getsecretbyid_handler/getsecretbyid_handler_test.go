@@ -51,7 +51,7 @@ func getTestData(encKey *[]byte) *[]testData {
 
 	incd1 := GetIncorrectDataWithCrypto(encKey)
 
-	tok := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDYzNDk5ODEsImlkIjoicXFxIn0.3wwCe1CwvlAlCVBPZA1-fsZSYmYQPBLy42w0jA0oE58"
+	tok := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDYzNTI1MTEsImlkIjoicXFxIn0.6O4koFaQNd4vdWWb2WsftHL0Ewb45_4-tng1qcPn980"
 
 	tok1 := ""
 
