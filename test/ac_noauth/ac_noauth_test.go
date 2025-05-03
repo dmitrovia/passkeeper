@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc"
@@ -19,7 +20,7 @@ func TestNoAuth(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	// time.Sleep(15 * time.Second)
+	time.Sleep(15 * time.Second)
 
 	clintattr := &clientpa.ClientProcAttr{}
 
