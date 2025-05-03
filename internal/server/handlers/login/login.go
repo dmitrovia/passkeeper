@@ -86,6 +86,10 @@ func (h *Login) LoginHandler(
 		return
 	}
 
+	fmt.Println("33333333333333333SaveToken")
+	fmt.Println(token)
+	fmt.Println("33333333333333333SaveToken")
+
 	writer.Header().Set("Authorization", token)
 	writer.WriteHeader(http.StatusOK)
 }
