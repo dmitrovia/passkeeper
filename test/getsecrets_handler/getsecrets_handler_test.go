@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
@@ -62,7 +63,7 @@ func TestGetSecretsHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	// time.Sleep(20 * time.Second)
+	time.Sleep(20 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
