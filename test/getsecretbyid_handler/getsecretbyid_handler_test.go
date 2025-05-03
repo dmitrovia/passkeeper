@@ -154,10 +154,6 @@ func TestGetSByIdHandler(t *testing.T) {
 
 	Token := tok
 
-	fmt.Println("-------------------------")
-	fmt.Println(Token)
-	fmt.Println("-------------------------")
-
 	testCases := getTestData(&encKey)
 
 	getSecretByIDH := getsecretbyid.NewHandler(
