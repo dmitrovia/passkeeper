@@ -115,7 +115,7 @@ func TestLoginHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(40 * time.Second)
+	time.Sleep(30 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
