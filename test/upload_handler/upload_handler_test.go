@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/aes256"
@@ -75,6 +76,30 @@ func getTestData(encKey *[]byte) *[]testData {
 	return &[]testData{
 		{
 			tn:           "1",
+			expcod:       statusBR,
+			exbody:       "",
+			data:         nil,
+			token:        nil,
+			FileName:     "",
+			OrigFileName: "",
+			Index:        99,
+			Hash:         &thash,
+			DataMeta:     &tmp,
+		},
+		{
+			tn:           "2",
+			expcod:       statusBR,
+			exbody:       "",
+			data:         nil,
+			token:        nil,
+			FileName:     "",
+			OrigFileName: "",
+			Index:        99,
+			Hash:         &thash,
+			DataMeta:     &dmeta,
+		},
+		{
+			tn:           "3",
 			expcod:       statusISE,
 			exbody:       "",
 			data:         &tmp,
@@ -86,7 +111,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			DataMeta:     &dmeta,
 		},
 		{
-			tn:           "2",
+			tn:           "4",
 			expcod:       statusBR,
 			exbody:       "",
 			data:         incd,
@@ -98,7 +123,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			DataMeta:     &dmeta,
 		},
 		{
-			tn:           "3",
+			tn:           "5",
 			expcod:       statusISE,
 			exbody:       "",
 			data:         incd1,
@@ -110,7 +135,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			DataMeta:     &dmeta,
 		},
 		{
-			tn:           "4",
+			tn:           "6",
 			expcod:       statusU,
 			exbody:       "",
 			data:         nil,
@@ -122,7 +147,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			DataMeta:     &dmeta,
 		},
 		{
-			tn:           "5",
+			tn:           "7",
 			expcod:       statusU,
 			exbody:       "",
 			data:         nil,
@@ -134,7 +159,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			DataMeta:     &dmeta,
 		},
 		{
-			tn:           "6",
+			tn:           "8",
 			expcod:       statusBR,
 			exbody:       "",
 			data:         nil,
@@ -146,7 +171,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			DataMeta:     &dmeta,
 		},
 		{
-			tn:           "7",
+			tn:           "9",
 			expcod:       statusBR,
 			exbody:       "",
 			data:         nil,
@@ -158,7 +183,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			DataMeta:     &dmeta,
 		},
 		{
-			tn:           "8",
+			tn:           "10",
 			expcod:       statusBR,
 			exbody:       "",
 			data:         nil,
@@ -170,7 +195,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			DataMeta:     &dmeta,
 		},
 		{
-			tn:       "9",
+			tn:       "11",
 			expcod:   statusBR,
 			exbody:   "",
 			data:     nil,
@@ -182,7 +207,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			DataMeta: &dmeta,
 		},
 		{
-			tn:       "10",
+			tn:       "12",
 			expcod:   statusBR,
 			exbody:   "",
 			data:     nil,
@@ -201,7 +226,7 @@ func TestUploadHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	// time.Sleep(20 * time.Second)
+	time.Sleep(20 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
