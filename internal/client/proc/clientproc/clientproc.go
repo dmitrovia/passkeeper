@@ -70,7 +70,6 @@ func (proc *ClientProc) waitClose() {
 		if ok {
 			exitV := "99"
 			proc.attr.SelectedProc = &exitV
-
 			proc.attr.WGMainProc.Done()
 
 			return

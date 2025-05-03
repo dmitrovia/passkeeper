@@ -11,7 +11,6 @@ func main() {
 	err := sp.RunProcess()
 	if err != nil {
 		loggerf.Log("serverproc.RunProcess", err)
-
 		return
 	}
 }

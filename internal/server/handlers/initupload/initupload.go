@@ -35,7 +35,6 @@ func (h *InitUpload) InitUploadHandler(
 	user, ok := req.Context().Value(ctxm.UserKey).(*userm.User)
 	if !ok || user == nil {
 		writer.WriteHeader(http.StatusBadRequest)
-
 		return
 	}
 
@@ -45,7 +44,6 @@ func (h *InitUpload) InitUploadHandler(
 		err := os.Mkdir(path, os.ModePerm)
 		if err != nil {
 			h.setErr(writer, err, "Mkdir")
-
 			return
 		}
 	}

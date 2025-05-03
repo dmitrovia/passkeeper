@@ -43,7 +43,6 @@ func (proc *InitProc) RunProcess() error {
 
 	if resp.StatusCode != http.StatusOK {
 		err := fmt.Errorf("RP->InitLoad: %w", errSNOK)
-
 		return err
 	}
 

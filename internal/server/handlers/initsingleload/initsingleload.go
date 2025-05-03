@@ -42,14 +42,12 @@ func (h *InitSingleLoad) InitSingleLoadHadnler(
 	user, ok := req.Context().Value(ctxm.UserKey).(*userm.User)
 	if !ok || user == nil {
 		writer.WriteHeader(http.StatusBadRequest)
-
 		return
 	}
 
 	reqAttr, err := h.getReqData(req)
 	if err != nil {
 		h.setErr(writer, err, "getReqData")
-
 		return
 	}
 
@@ -60,14 +58,12 @@ func (h *InitSingleLoad) InitSingleLoadHadnler(
 	body, err := h.getResponeBody(ctx, user, reqAttr)
 	if err != nil {
 		h.setErr(writer, err, "getResponeBody")
-
 		return
 	}
 
 	_, err = writer.Write(*body)
 	if err != nil {
 		h.setErr(writer, err, "Write")
-
 		return
 	}
 

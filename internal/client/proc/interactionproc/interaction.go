@@ -57,7 +57,6 @@ func (ip *InteractionProc) ChooseProc() error {
 		if ip.attr.AttrClintProc.SelectedProc != nil &&
 			*ip.attr.AttrClintProc.SelectedProc == exitOption {
 			fmt.Println("Press ctrl+c to exit")
-
 			return nil
 		}
 
@@ -157,7 +156,6 @@ func (ip *InteractionProc) selectOption() bool {
 		err = ip.RunGetSecretByID()
 	case exitOption:
 		fmt.Println("Press ctrl+c to exit")
-
 		return true
 	case loadOption:
 		err = ip.LoadAndChunksSelectMode()
@@ -458,7 +456,6 @@ func (ip *InteractionProc) runChunker() {
 	err := ip.attr.Chproc.RunProcess()
 	if err != nil {
 		loggerf.Log("RunChunker->RP", err)
-
 		return
 	}
 }
@@ -467,7 +464,6 @@ func (ip *InteractionProc) runUploader() {
 	err := ip.attr.Uploadproc.RunProcess()
 	if err != nil {
 		loggerf.Log("RunUploader->RP", err)
-
 		return
 	}
 }
@@ -476,7 +472,6 @@ func (ip *InteractionProc) runLoader() {
 	err := ip.attr.LoadProc.RunProcess()
 	if err != nil {
 		loggerf.Log("RunLoader->RP", err)
-
 		return
 	}
 }

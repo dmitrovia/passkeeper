@@ -62,6 +62,7 @@ func (up *UploadProc) uploadChunk(
 	chunk *chunckmeta.ChunkMeta,
 ) {
 	defer up.attr.WorkerChunkWg.Done()
+	defer chunk.ClearData()
 
 	httpClient := up.attr.ClientProcAttr.GetHTTPClient()
 	client := &httpClient
@@ -71,9 +72,6 @@ func (up *UploadProc) uploadChunk(
 	data, err := up.toJSON(chunk)
 	if err != nil {
 		up.attr.ErrChan <- err
-
-		chunk.ClearData()
-
 		return
 	}
 
@@ -89,9 +87,6 @@ func (up *UploadProc) uploadChunk(
 	resp, err := uploader.CallEndpoint(ctx)
 	if err != nil {
 		up.attr.ErrChan <- err
-
-		chunk.ClearData()
-
 		return
 	}
 
@@ -102,12 +97,8 @@ func (up *UploadProc) uploadChunk(
 		err := fmt.Errorf("RWP->UploadChunk: %w", errSNOK)
 		up.attr.ErrChan <- err
 
-		chunk.ClearData()
-
 		return
 	}
-
-	chunk.ClearData()
 
 	up.attr.Mutex.Lock()
 	up.attr.CurrentMetadata[*chunk.FileName] = *chunk

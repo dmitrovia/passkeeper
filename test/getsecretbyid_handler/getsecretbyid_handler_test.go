@@ -1,4 +1,4 @@
-package loginhandler_test
+package getsecretbyidhandler_test
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
-	"github.com/dmitrovia/passkeeper/internal/server/handlers/register"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecretbyid"
 	"github.com/dmitrovia/passkeeper/internal/server/migrator"
 	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
 	"github.com/gorilla/mux"
@@ -23,15 +23,12 @@ import (
 )
 
 type testData struct {
-	tn     string
-	login  string
-	pass   string
-	expcod int
-	exbody string
-	data   *[]byte
+	tn           string
+	inIdentifier string
+	expcod       int
+	exbody       string
+	data         *[]byte
 }
-
-const stok int = http.StatusOK
 
 const url = "https://localhost:8443"
 
@@ -40,10 +37,9 @@ const path = "../../internal/client/crypto/keys/public.pem"
 const (
 	statusISE = http.StatusInternalServerError
 	statusBR  = http.StatusBadRequest
-	statusC   = http.StatusConflict
 )
 
-//nolint:lll,funlen
+//nolint:lll
 func getTestData(encKey *[]byte) *[]testData {
 	tmp := make([]byte, 0)
 
@@ -53,74 +49,45 @@ func getTestData(encKey *[]byte) *[]testData {
 
 	return &[]testData{
 		{
-			tn:     "1",
-			login:  "test" + randomString(),
-			pass:   "temppass",
-			expcod: stok,
-			exbody: "",
-			data:   nil,
+			tn:           "1",
+			inIdentifier: "test" + randomString(),
+			expcod:       statusBR,
+			exbody:       "",
+			data:         &tmp,
 		},
 		{
-			tn:     "2",
-			login:  "test" + randomString(),
-			pass:   "temppass",
-			expcod: statusISE,
-			exbody: "",
-			data:   &tmp,
+			tn:           "2",
+			inIdentifier: "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest" + randomString(),
+			expcod:       statusBR,
+			exbody:       "",
+			data:         nil,
 		},
 		{
-			tn:     "3",
-			login:  "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest" + randomString(),
-			pass:   "temppass",
-			expcod: statusBR,
-			exbody: "",
-			data:   nil,
+			tn:           "3",
+			inIdentifier: "test" + randomString(),
+			expcod:       statusBR,
+			exbody:       "",
+			data:         incd,
 		},
 		{
-			tn:     "4",
-			login:  "test" + randomString(),
-			pass:   "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest",
-			expcod: statusBR,
-			exbody: "",
-			data:   nil,
+			tn:           "4",
+			inIdentifier: "test" + randomString(),
+			expcod:       statusBR,
+			exbody:       "",
+			data:         incd1,
 		},
 		{
-			tn:     "5",
-			login:  "test" + randomString(),
-			pass:   "temppass",
-			expcod: statusISE,
-			exbody: "",
-			data:   incd,
-		},
-		{
-			tn:     "6",
-			login:  "test" + randomString(),
-			pass:   "temppass",
-			expcod: statusBR,
-			exbody: "",
-			data:   incd1,
-		},
-		{
-			tn:     "7",
-			login:  "",
-			pass:   "",
-			expcod: statusBR,
-			exbody: "",
-			data:   nil,
-		},
-		{
-			tn:     "8",
-			login:  "test",
-			pass:   "test",
-			expcod: statusC,
-			exbody: "",
-			data:   nil,
+			tn:           "5",
+			inIdentifier: "",
+			expcod:       statusBR,
+			exbody:       "",
+			data:         nil,
 		},
 	}
 }
 
 //nolint:funlen
-func TestRegisterHandler(t *testing.T) {
+func TestLoginHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
@@ -151,8 +118,9 @@ func TestRegisterHandler(t *testing.T) {
 
 	testCases := getTestData(&encKey)
 
-	register := register.NewHandler(
-		attr.AuthService, attr.RigsterAttr).RegisterHandler
+	getSecretByIDH := getsecretbyid.NewHandler(
+		attr.SecretService,
+		attr.GetSecretByIDAttr).GetSecretByIDHadnler
 
 	for _, test := range *testCases {
 		t.Run(http.MethodPost, func(t *testing.T) {
@@ -174,8 +142,8 @@ func TestRegisterHandler(t *testing.T) {
 
 			req, err := http.NewRequestWithContext(
 				context.Background(),
-				http.MethodPost,
-				url+"/api/user/register", bytes.NewReader(bodyReq))
+				http.MethodGet,
+				url+"/api/user/getsecretbyid", bytes.NewReader(bodyReq))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -184,8 +152,8 @@ func TestRegisterHandler(t *testing.T) {
 
 			newr := httptest.NewRecorder()
 			router := mux.NewRouter()
-			router.HandleFunc("/api/user/register",
-				register)
+			router.HandleFunc("/api/user/getsecretbyid",
+				getSecretByIDH)
 			router.ServeHTTP(newr, req)
 			status := newr.Code
 			body, _ := io.ReadAll(newr.Body)
@@ -205,33 +173,20 @@ func formReqBody(
 	testd *testData,
 	encKey *[]byte,
 ) (*[]byte, error) {
-	data := apim.InLoginUser{}
-	data.Login = testd.login
-	data.Password = testd.pass
+	outAttr := &apim.InGetSecretByID{}
+	outAttr.Identifier = testd.inIdentifier
 
-	marshal, err := json.Marshal(data)
+	marshal, err := json.Marshal(outAttr)
 	if err != nil {
-		return nil, fmt.Errorf("Input->Marshal: %w", err)
+		return nil, fmt.Errorf("formReqBody->Marshal: %w", err)
 	}
 
 	encrypt, err := rsa.Encrypt(&marshal, encKey)
 	if err != nil {
-		return nil, fmt.Errorf("Input->Encrypt: %w", err)
+		return nil, fmt.Errorf("formReqBody->Encrypt: %w", err)
 	}
 
 	return encrypt, nil
-}
-
-func randomString() string {
-	letters := []rune(
-		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-	b := make([]rune, 5)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-
-	return string(b)
 }
 
 //nolint:errchkjson
@@ -252,4 +207,16 @@ func GetIncorrectDataWithCrypto(encKey *[]byte) *[]byte {
 	encrypt, _ := rsa.Encrypt(&marshal, encKey)
 
 	return encrypt
+}
+
+func randomString() string {
+	letters := []rune(
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+	b := make([]rune, 5)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return string(b)
 }

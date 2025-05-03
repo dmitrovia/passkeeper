@@ -39,13 +39,11 @@ func (cpa *ChunkerProcAttr) setChunkSize() {
 
 	if fsz <= def10MB {
 		cpa.ChunkSize = defChunkSize
-
 		return
 	}
 
 	if fsz <= def100MB {
 		cpa.ChunkSize = def10MB
-
 		return
 	}
 

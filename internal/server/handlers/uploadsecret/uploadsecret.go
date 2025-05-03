@@ -45,14 +45,12 @@ func (h *UploadSecret) UploadSecretHandler(
 	user, ok := req.Context().Value(ctxm.UserKey).(*userm.User)
 	if !ok || user == nil {
 		writer.WriteHeader(http.StatusBadRequest)
-
 		return
 	}
 
 	secret, err := h.getReqData(req)
 	if err != nil {
 		h.setErr(writer, err, "getReqData")
-
 		return
 	}
 
@@ -65,7 +63,6 @@ func (h *UploadSecret) UploadSecretHandler(
 	err = h.secretService.CreateSecret(ctx, secret)
 	if err != nil {
 		h.setErr(writer, err, "CreateSecret")
-
 		return
 	}
 

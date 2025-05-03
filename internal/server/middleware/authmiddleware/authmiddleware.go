@@ -32,7 +32,6 @@ func AuthMiddleware(
 
 			if authHeader == "" {
 				setErrStr(writer, attr, "header Authorization is empty")
-
 				return
 			}
 
@@ -49,7 +48,6 @@ func AuthMiddleware(
 			token, err := parseToken(authToken[0], attr)
 			if err != nil {
 				setErr(writer, attr, err)
-
 				return
 			}
 
@@ -61,13 +59,11 @@ func AuthMiddleware(
 			user, isValid, err := isValidToken(ctx, token, attr)
 			if err != nil {
 				setErr(writer, attr, err)
-
 				return
 			}
 
 			if !isValid {
 				setErrStr(writer, attr, "token is invalid")
-
 				return
 			}
 

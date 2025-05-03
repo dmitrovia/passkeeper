@@ -56,6 +56,8 @@ linters-settings:
     ignoreInterfaceRegexps:
       - ^(?i)c(?-i)ach(ing|e)
 
+  nlreturn:
+    block-size: 5
 
   forbidigo:
 

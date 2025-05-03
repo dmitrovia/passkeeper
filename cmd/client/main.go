@@ -11,7 +11,6 @@ func main() {
 	err := cp.RunProcess()
 	if err != nil {
 		loggerf.Log("clientproc.RunProcess", err)
-
 		return
 	}
 }

@@ -328,8 +328,7 @@ func (ipa *InteractionProcAttr) GetExistingFilenames() (
 	entries, err := os.ReadDir(
 		ipa.AttrClintProc.FilesUploadPath)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"GetExistingFilenames->ReadDir: %w", err)
+		return nil, fmt.Errorf("GEF->ReadDir: %w", err)
 	}
 
 	names := make(map[string]struct{})

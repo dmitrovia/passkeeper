@@ -80,7 +80,6 @@ func (proc *LoadProc) loadChunk(
 	data, err := proc.toJSON(chunk)
 	if err != nil {
 		proc.attr.ErrChan <- err
-
 		return
 	}
 
@@ -96,7 +95,6 @@ func (proc *LoadProc) loadChunk(
 	resp, err := loader.CallEndpoint(ctx)
 	if err != nil {
 		proc.attr.ErrChan <- err
-
 		return
 	}
 
@@ -113,7 +111,6 @@ func (proc *LoadProc) loadChunk(
 	err = proc.parseRespAndSaveFile(chunk, resp)
 	if err != nil {
 		proc.attr.ErrChan <- err
-
 		return
 	}
 }
@@ -173,7 +170,7 @@ func (proc *LoadProc) parseRespAndSaveFile(
 		return fmt.Errorf("parseRespAndSaveFile->CCF: %w", err)
 	}
 
-	defer respChunk.ClearData()
+	respChunk.ClearData()
 
 	return nil
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
+	"github.com/dmitrovia/passkeeper/internal/general/validate"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecretbyid/getsecretbyidattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
@@ -43,14 +44,18 @@ func (h *GetSecretByID) GetSecretByIDHadnler(
 	user, ok := req.Context().Value(ctxm.UserKey).(*userm.User)
 	if !ok || user == nil {
 		writer.WriteHeader(http.StatusBadRequest)
-
 		return
 	}
 
 	reqAttr, err := h.getReqData(req)
 	if err != nil {
 		h.setErr(writer, err, "getReqData")
+		return
+	}
 
+	isValid := isValid(reqAttr)
+	if !isValid {
+		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -61,18 +66,26 @@ func (h *GetSecretByID) GetSecretByIDHadnler(
 	body, err := h.getResponeBody(ctx, user, reqAttr)
 	if err != nil {
 		h.setErr(writer, err, "getResponeBody")
-
 		return
 	}
 
 	_, err = writer.Write(*body)
 	if err != nil {
 		h.setErr(writer, err, "Write")
-
 		return
 	}
 
 	writer.WriteHeader(http.StatusOK)
+}
+
+func isValid(reqAttr *apim.InGetSecretByID) bool {
+	if reqAttr.Identifier == "" {
+		return false
+	}
+
+	res := validate.IsValidSecretID(reqAttr.Identifier)
+
+	return res
 }
 
 func (h *GetSecretByID) getResponeBody(

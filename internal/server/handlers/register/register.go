@@ -50,14 +50,12 @@ func (h *Register) RegisterHandler(
 	err := getReqData(req, reqAttr, h.attr)
 	if err != nil {
 		setErr(writer, h.attr, err, "getReqData")
-
 		return
 	}
 
 	isValid := isValid(reqAttr)
 	if !isValid {
 		writer.WriteHeader(http.StatusBadRequest)
-
 		return
 	}
 
@@ -69,27 +67,23 @@ func (h *Register) RegisterHandler(
 		reqAttr.Login)
 	if err != nil {
 		setErr(writer, h.attr, err, "UserIsExist")
-
 		return
 	}
 
 	if exist {
 		writer.WriteHeader(http.StatusConflict)
-
 		return
 	}
 
 	err = createUser(ctx, h, reqAttr)
 	if err != nil {
 		setErr(writer, h.attr, err, "CreateUser")
-
 		return
 	}
 
 	token, err := generateToken(reqAttr.Login, h.attr)
 	if err != nil {
 		setErr(writer, h.attr, err, "generateToken")
-
 		return
 	}
 

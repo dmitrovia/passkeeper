@@ -28,7 +28,6 @@ type testData struct {
 	pass   string
 	expcod int
 	exbody string
-	meth   string
 	data   *[]byte
 }
 
@@ -53,7 +52,7 @@ func getTestData(encKey *[]byte) *[]testData {
 
 	return &[]testData{
 		{
-			tn:     "2",
+			tn:     "1",
 			login:  "test" + randomString(),
 			pass:   "temppass",
 			expcod: statusISE,
@@ -61,7 +60,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			data:   &tmp,
 		},
 		{
-			tn:     "3",
+			tn:     "2",
 			login:  "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest" + randomString(),
 			pass:   "temppass",
 			expcod: statusBR,
@@ -69,7 +68,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			data:   nil,
 		},
 		{
-			tn:     "4",
+			tn:     "3",
 			login:  "test" + randomString(),
 			pass:   "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest",
 			expcod: statusBR,
@@ -77,7 +76,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			data:   nil,
 		},
 		{
-			tn:     "5",
+			tn:     "4",
 			login:  "test" + randomString(),
 			pass:   "temppass",
 			expcod: statusISE,
@@ -85,7 +84,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			data:   incd,
 		},
 		{
-			tn:     "6",
+			tn:     "5",
 			login:  "test" + randomString(),
 			pass:   "temppass",
 			expcod: statusBR,
@@ -93,7 +92,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			data:   incd1,
 		},
 		{
-			tn:     "7",
+			tn:     "6",
 			login:  "",
 			pass:   "",
 			expcod: statusBR,
@@ -101,7 +100,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			data:   nil,
 		},
 		{
-			tn:     "8",
+			tn:     "7",
 			login:  "test",
 			pass:   "test",
 			expcod: stok,
@@ -166,7 +165,7 @@ func TestLoginHandler(t *testing.T) {
 
 			req, err := http.NewRequestWithContext(
 				context.Background(),
-				test.meth,
+				http.MethodPost,
 				url+"/api/user/login", bytes.NewReader(bodyReq))
 			if err != nil {
 				t.Fatal(err)

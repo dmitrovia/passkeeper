@@ -53,15 +53,15 @@ func (
 	ctx context.Context,
 	clientID int32,
 	identifier string,
-) (*secret.Secret, *[]error, error) {
+) (*[]secret.Secret, *[]error, error) {
 	txtErr := "GSBCIO->r.GetSecretByClientIdentifierOptimized"
 
-	secret, errors,
+	secrets, errors,
 		err := s.repository.GetSecretByClientIdentifierOptimized(
 		ctx, clientID, identifier)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%s: %w", txtErr, err)
 	}
 
-	return secret, errors, nil
+	return secrets, errors, nil
 }

@@ -53,28 +53,24 @@ func (h *Upload) UploadHandler(
 	user, ok := req.Context().Value(ctxm.UserKey).(*userm.User)
 	if !ok || user == nil {
 		writer.WriteHeader(http.StatusBadRequest)
-
 		return
 	}
 
 	chunk, err := h.getReqData(req)
 	if err != nil {
 		h.setErr(writer, err, "getReqData")
-
 		return
 	}
 
 	res := chunk.FNIsValid()
 	if !res {
 		h.setErr(writer, errFileName, "FNIsValid")
-
 		return
 	}
 
 	res = validate.IsValidLogin(*user.Login)
 	if !res {
 		h.setErr(writer, errLogin, "FNIsValid")
-
 		return
 	}
 
@@ -90,14 +86,12 @@ func (h *Upload) UploadHandler(
 	err = h.createChunkFile(chunk)
 	if err != nil {
 		h.setErr(writer, err, "createChunkFile")
-
 		return
 	}
 
 	err = h.metaService.CreateMeta(ctx, chunk)
 	if err != nil {
 		h.setErr(writer, err, "CreateMeta")
-
 		return
 	}
 

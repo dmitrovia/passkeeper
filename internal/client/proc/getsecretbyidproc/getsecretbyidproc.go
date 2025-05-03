@@ -55,7 +55,6 @@ func (lp *GetSecretByID) RunProcess() error {
 
 	if resp.StatusCode != http.StatusOK {
 		err := fmt.Errorf("RP->GetSecretByID: %w", errSNOK)
-
 		return err
 	}
 
@@ -72,7 +71,7 @@ func (lp *GetSecretByID) RunProcess() error {
 func (lp *GetSecretByID) parseResp(
 	resp *http.Response,
 ) error {
-	secret := &secret.Secret{}
+	secrets := []secret.Secret{}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -91,16 +90,15 @@ func (lp *GetSecretByID) parseResp(
 		return fmt.Errorf("PR->DeflateDecompress: %w", err)
 	}
 
-	err = json.Unmarshal(decompress, &secret)
+	err = json.Unmarshal(decompress, &secrets)
 	if err != nil {
 		return fmt.Errorf("PR->Unmarshal: %w", err)
 	}
 
-	if secret.Identifier != nil {
+	for _, secret := range secrets {
 		fmt.Println(*secret.Identifier)
 		fmt.Println(*secret.Value)
-	} else {
-		fmt.Println("Secret not found")
+		fmt.Println("-------------------------------------------")
 	}
 
 	return nil

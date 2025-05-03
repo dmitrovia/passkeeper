@@ -48,7 +48,6 @@ func (lp *GetSecrets) RunProcess() error {
 
 	if resp.StatusCode != http.StatusOK {
 		err := fmt.Errorf("RP->GetSecrets: %w", errSNOK)
-
 		return err
 	}
 

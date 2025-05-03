@@ -51,7 +51,6 @@ func (lp *UploadSecretProc) RunProcess() error {
 
 	if resp.StatusCode != http.StatusOK {
 		err := fmt.Errorf("RP->UploadSecret: %w", errSNOK)
-
 		return err
 	}
 

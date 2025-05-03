@@ -30,6 +30,18 @@ func matchString(pattern string, s string) (bool, error) {
 	return false, fmt.Errorf("MatchString: %w", err)
 }
 
+func IsValidSecretID(sid string) bool {
+	pattern := "^[0-9a-zA-Z/ ]{1,40}$"
+
+	res, err := IsMatchesTemplate(
+		sid, pattern)
+	if err != nil || !res {
+		return false
+	}
+
+	return true
+}
+
 func IsValidLogin(login string) bool {
 	pattern := "^[0-9a-zA-Z/ ]{1,40}$"
 

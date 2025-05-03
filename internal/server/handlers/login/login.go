@@ -50,7 +50,6 @@ func (h *Login) LoginHandler(
 	isValid := isValid(reqAttr)
 	if !isValid {
 		writer.WriteHeader(http.StatusBadRequest)
-
 		return
 	}
 
@@ -68,7 +67,6 @@ func (h *Login) LoginHandler(
 
 	if !exist {
 		writer.WriteHeader(http.StatusInternalServerError)
-
 		return
 	}
 

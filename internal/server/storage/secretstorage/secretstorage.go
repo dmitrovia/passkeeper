@@ -88,7 +88,7 @@ func (
 	ctx context.Context,
 	clientID int32,
 	identifier string,
-) (*secret.Secret, *[]error, error) {
+) (*[]secret.Secret, *[]error, error) {
 	var outValue *string
 
 	txt := "GetSecretByClientIdentifierOptimized->Query"
@@ -105,11 +105,13 @@ func (
 
 	defer rows.Close()
 
-	secret := &secret.Secret{}
+	secrets := make([]secret.Secret, 0)
 	errors := make([]error, 0)
 
 	for rows.Next() {
-		err = rows.Scan(&outValue)
+		secret := secret.Secret{}
+
+		err = rows.Scan(&identifier, &outValue)
 		if err != nil {
 			errors = append(errors, err)
 
@@ -118,7 +120,8 @@ func (
 
 		secret.Identifier = &identifier
 		secret.Value = outValue
+		secrets = append(secrets, secret)
 	}
 
-	return secret, &errors, nil
+	return &secrets, &errors, nil
 }

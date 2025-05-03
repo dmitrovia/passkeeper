@@ -42,14 +42,12 @@ func (h *Load) InitLoadHandler(
 	user, ok := req.Context().Value(ctxm.UserKey).(*userm.User)
 	if !ok || user == nil {
 		writer.WriteHeader(http.StatusBadRequest)
-
 		return
 	}
 
 	chunkReq, err := getReqData(req)
 	if err != nil {
 		h.setErr(writer, err, "getReqData")
-
 		return
 	}
 
@@ -60,14 +58,12 @@ func (h *Load) InitLoadHandler(
 	body, err := h.getResponeBody(ctx, user, chunkReq)
 	if err != nil {
 		h.setErr(writer, err, "getResponeBody")
-
 		return
 	}
 
 	_, err = writer.Write(*body)
 	if err != nil {
 		h.setErr(writer, err, "Write")
-
 		return
 	}
 

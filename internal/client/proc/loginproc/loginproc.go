@@ -52,7 +52,6 @@ func (lp *LoginProc) RunProcess() error {
 
 	if resp.StatusCode != http.StatusOK {
 		err := fmt.Errorf("RP->Login: %w", errSNOK)
-
 		return err
 	}
 

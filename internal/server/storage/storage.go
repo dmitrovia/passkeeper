@@ -57,5 +57,5 @@ type SecretStorage interface {
 		ctx context.Context,
 		clientID int32,
 		identifier string,
-	) (*secret.Secret, *[]error, error)
+	) (*[]secret.Secret, *[]error, error)
 }

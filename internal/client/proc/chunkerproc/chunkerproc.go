@@ -78,7 +78,6 @@ func (proc *ChunkerProc) toChunk(
 
 	if bytesRead == 0 {
 		proc.attr.WorkerChunkWg.Done()
-
 		return nil
 	}
 
@@ -93,7 +92,6 @@ func (proc *ChunkerProc) toChunk(
 
 	if exists || oldChunk.Hash == &encodeHash {
 		proc.attr.WorkerChunkWg.Done()
-
 		return nil
 	}
 
