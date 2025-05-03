@@ -1,6 +1,6 @@
 /api/user/getsecretbyid +
-/api/user/getsecrets
-/api/user/uploadsecret
+/api/user/getsecrets +
+/api/user/uploadsecret +
 
 /api/user/login +
 /api/user/register +

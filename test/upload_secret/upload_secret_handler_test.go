@@ -1,4 +1,4 @@
-package getsecretbyidhandler_test
+package uploadsecret_test
 
 import (
 	"bytes"
@@ -14,8 +14,9 @@ import (
 
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
+	"github.com/dmitrovia/passkeeper/internal/general/models/secret"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
-	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecretbyid"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/uploadsecret"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware"
 	"github.com/dmitrovia/passkeeper/internal/server/migrator"
 	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
@@ -30,6 +31,7 @@ type testData struct {
 	exbody       string
 	data         *[]byte
 	token        *string
+	secret       string
 }
 
 const url = "https://localhost:8443"
@@ -41,6 +43,8 @@ const (
 	statusBR  = http.StatusBadRequest
 	statusU   = http.StatusUnauthorized
 )
+
+const strLen = 5
 
 //nolint:lll,funlen
 func getTestData(encKey *[]byte) *[]testData {
@@ -62,6 +66,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody:       "",
 			data:         &tmp,
 			token:        nil,
+			secret:       "test",
 		},
 		{
 			tn:           "2",
@@ -70,6 +75,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody:       "",
 			data:         nil,
 			token:        nil,
+			secret:       "test",
 		},
 		{
 			tn:           "3",
@@ -78,6 +84,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody:       "",
 			data:         incd,
 			token:        nil,
+			secret:       "test",
 		},
 		{
 			tn:           "4",
@@ -86,6 +93,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody:       "",
 			data:         incd1,
 			token:        nil,
+			secret:       "test",
 		},
 		{
 			tn:           "5",
@@ -94,6 +102,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody:       "",
 			data:         nil,
 			token:        nil,
+			secret:       "test",
 		},
 		{
 			tn:           "6",
@@ -102,6 +111,7 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody:       "",
 			data:         nil,
 			token:        &tok,
+			secret:       "test",
 		},
 		{
 			tn:           "7",
@@ -110,12 +120,22 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody:       "",
 			data:         nil,
 			token:        &tok1,
+			secret:       "test",
+		},
+		{
+			tn:           "8",
+			inIdentifier: "test2233",
+			expcod:       statusBR,
+			exbody:       "",
+			data:         nil,
+			token:        nil,
+			secret:       "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest",
 		},
 	}
 }
 
 //nolint:funlen,cyclop
-func TestGetSByIdHandler(t *testing.T) {
+func TestUploadSecretHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
@@ -155,9 +175,9 @@ func TestGetSByIdHandler(t *testing.T) {
 
 	testCases := getTestData(&encKey)
 
-	getSecretByIDH := getsecretbyid.NewHandler(
+	uploadSecretH := uploadsecret.NewHandler(
 		attr.SecretService,
-		attr.GetSecretByIDAttr).GetSecretByIDHadnler
+		attr.UploadSecretAttr).UploadSecretHandler
 
 	for _, test := range *testCases {
 		t.Run(http.MethodPost, func(t *testing.T) {
@@ -179,8 +199,8 @@ func TestGetSByIdHandler(t *testing.T) {
 
 			req, err := http.NewRequestWithContext(
 				context.Background(),
-				http.MethodGet,
-				url+"/api/user/getsecretbyid", bytes.NewReader(bodyReq))
+				http.MethodPost,
+				url+"/api/user/uploadsecret", bytes.NewReader(bodyReq))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -197,8 +217,8 @@ func TestGetSByIdHandler(t *testing.T) {
 			router := mux.NewRouter()
 			router.Use(authmiddleware.AuthMiddleware(
 				attr.AuthMidAttr))
-			router.HandleFunc("/api/user/getsecretbyid",
-				getSecretByIDH)
+			router.HandleFunc("/api/user/uploadsecret",
+				uploadSecretH)
 			router.ServeHTTP(newr, req)
 			status := newr.Code
 			body, _ := io.ReadAll(newr.Body)
@@ -218,10 +238,11 @@ func formReqBody(
 	testd *testData,
 	encKey *[]byte,
 ) (*[]byte, error) {
-	outAttr := &apim.InGetSecretByID{}
-	outAttr.Identifier = testd.inIdentifier
+	secret := &secret.Secret{}
+	secret.Identifier = &testd.inIdentifier
+	secret.Value = &testd.secret
 
-	marshal, err := json.Marshal(outAttr)
+	marshal, err := json.Marshal(secret)
 	if err != nil {
 		return nil, fmt.Errorf("formReqBody->Marshal: %w", err)
 	}
@@ -258,7 +279,7 @@ func randomString() string {
 	letters := []rune(
 		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-	b := make([]rune, 5)
+	b := make([]rune, strLen)
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]
 	}

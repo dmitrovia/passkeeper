@@ -11,6 +11,7 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/logger"
 	"github.com/dmitrovia/passkeeper/internal/general/models/secret"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
+	"github.com/dmitrovia/passkeeper/internal/general/validate"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/uploadsecret/uploadsecretattr"
 	"github.com/dmitrovia/passkeeper/internal/server/models/ctxm"
 	"github.com/dmitrovia/passkeeper/internal/server/models/userm"
@@ -54,6 +55,12 @@ func (h *UploadSecret) UploadSecretHandler(
 		return
 	}
 
+	isValid := isValid(secret)
+	if !isValid {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(
 		req.Context(), h.attr.Dbtimeout)
 	defer cancel()
@@ -67,6 +74,25 @@ func (h *UploadSecret) UploadSecretHandler(
 	}
 
 	writer.WriteHeader(http.StatusOK)
+}
+
+func isValid(reqAttr *secret.Secret) bool {
+	if reqAttr.Identifier == nil || reqAttr.Value == nil {
+		return false
+	}
+
+	if *reqAttr.Identifier == "" || *reqAttr.Value == "" {
+		return false
+	}
+
+	res := validate.IsValidSecretID(*reqAttr.Identifier)
+	if !res {
+		return false
+	}
+
+	res = validate.IsValidPass(*reqAttr.Value)
+
+	return res
 }
 
 func (h *UploadSecret) setErr(writer http.ResponseWriter,
