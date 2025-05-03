@@ -121,6 +121,9 @@ func generateToken(
 
 	token, err := generateToken.SignedString(
 		[]byte(attr.Secret))
+	fmt.Println("GENERATE")
+	fmt.Println(token)
+	fmt.Println("GENERATE")
 	if err != nil {
 		return token, fmt.Errorf("generateToken->SS: %w", err)
 	}
