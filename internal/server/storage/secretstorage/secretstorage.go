@@ -111,7 +111,7 @@ func (
 	for rows.Next() {
 		secret := secret.Secret{}
 
-		err = rows.Scan(&identifier, &outValue)
+		err = rows.Scan(&outValue)
 		if err != nil {
 			errors = append(errors, err)
 
