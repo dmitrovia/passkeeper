@@ -57,14 +57,6 @@ func (lp *LoginProc) RunProcess() error {
 
 	token := resp.Header.Get("Authorization")
 
-	fmt.Println("22222222222222SaveToken")
-	fmt.Println(token)
-	fmt.Println("22222222222222SaveToken")
-
-	fmt.Println("22222222222222SaveToken")
-	fmt.Println(lp.attr.TokenSavePath)
-	fmt.Println("22222222222222SaveToken")
-
 	err = authcfg.SaveToken(lp.attr.TokenSavePath, token)
 	if err != nil {
 		return fmt.Errorf("RP->SaveToken: %w", err)

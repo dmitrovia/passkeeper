@@ -78,9 +78,6 @@ func (h *Login) LoginHandler(
 		return
 	}
 
-	fmt.Println("4444SaveToken")
-	fmt.Println(reqAttr.Login)
-	fmt.Println("4444SaveToken")
 	token, err := generateToken(reqAttr.Login, h.attr)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -88,10 +85,6 @@ func (h *Login) LoginHandler(
 
 		return
 	}
-
-	fmt.Println("33333333333333333SaveToken")
-	fmt.Println(token)
-	fmt.Println("33333333333333333SaveToken")
 
 	writer.Header().Set("Authorization", token)
 	writer.WriteHeader(http.StatusOK)
@@ -101,11 +94,6 @@ func generateToken(
 	id string,
 	attr *loginattr.LoginAttr,
 ) (string, error) {
-	fmt.Println("7777777saveToken")
-	fmt.Println(id)
-	fmt.Println(attr.TokenExpHour)
-	fmt.Println("7777777saveToken")
-
 	generateToken := jwt.NewWithClaims(
 		jwt.SigningMethodHS256, jwt.MapClaims{
 			"id": id,
@@ -114,16 +102,8 @@ func generateToken(
 					attr.TokenExpHour)).Unix(),
 		})
 
-	fmt.Println("5555SaveToken")
-	fmt.Println(generateToken)
-	fmt.Println(attr.Secret)
-	fmt.Println("5555SaveToken")
-
 	token, err := generateToken.SignedString(
 		[]byte(attr.Secret))
-	fmt.Println("GENERATE")
-	fmt.Println(token)
-	fmt.Println("GENERATE")
 	if err != nil {
 		return token, fmt.Errorf("generateToken->SS: %w", err)
 	}

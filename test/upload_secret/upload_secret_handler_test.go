@@ -186,7 +186,7 @@ func TestUploadSecretHandler(t *testing.T) {
 
 			reqData, err := formReqBody(&test, &encKey)
 			if err != nil {
-				fmt.Println(err)
+				t.Errorf("formReqBody: %v", err)
 
 				return
 			}

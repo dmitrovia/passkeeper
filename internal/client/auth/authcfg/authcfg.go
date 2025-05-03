@@ -21,10 +21,6 @@ func GetToken(path string) (string, error) {
 }
 
 func SaveToken(path string, token string) error {
-	fmt.Println("111111111111111111111111111SaveToken")
-	fmt.Println(token)
-	fmt.Println("111111111111111111111111111SaveToken")
-
 	err := uploadToken(path, token)
 	if err != nil {
 		return fmt.Errorf("SaveToken->loadToken: %w", err)

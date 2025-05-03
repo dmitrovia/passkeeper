@@ -153,7 +153,10 @@ func TestGetSByIdHandler(t *testing.T) {
 	}
 
 	Token := tok
+
+	fmt.Println("-------------------------")
 	fmt.Println(Token)
+	fmt.Println("-------------------------")
 
 	testCases := getTestData(&encKey)
 
@@ -167,7 +170,7 @@ func TestGetSByIdHandler(t *testing.T) {
 
 			reqData, err := formReqBody(&test, &encKey)
 			if err != nil {
-				fmt.Println(err)
+				t.Errorf("formReqBody: %v", err)
 
 				return
 			}
@@ -190,12 +193,8 @@ func TestGetSByIdHandler(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 
 			if test.token != nil {
-				fmt.Println("1111")
-				fmt.Println(test.token)
 				req.Header.Set("Authorization", *test.token)
 			} else {
-				fmt.Println("2222")
-				fmt.Println(Token)
 				req.Header.Set("Authorization", Token)
 			}
 

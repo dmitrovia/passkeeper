@@ -222,7 +222,7 @@ func TestLoadHandler(t *testing.T) {
 
 			reqData, err := formReqBody(&test)
 			if err != nil {
-				fmt.Println(err)
+				t.Errorf("formReqBody: %v", err)
 
 				return
 			}
