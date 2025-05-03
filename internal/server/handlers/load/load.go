@@ -80,7 +80,6 @@ func (h *Load) InitLoadHandler(
 //nolint:cyclop
 func isValid(chunk *chunckmeta.ChunkMeta,
 ) bool {
-	fmt.Println(chunk)
 	notUsesFields := chunk.ID != nil ||
 		chunk.FilePath != nil ||
 		chunk.User != nil ||
