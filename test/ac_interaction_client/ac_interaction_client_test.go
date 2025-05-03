@@ -38,19 +38,6 @@ func TestMain(t *testing.T) {
 
 	interp := interactionproc.NewProc(newAttr)
 
-	testdata.
-		TestSetRestrictionsInput = "2" // overwrite all files
-	// when load
-
-	testdata.TestChooseLoadTypeInput = "2" // load all
-
-	err = interp.LoadAndChunksSelectMode()
-	if err != nil {
-		t.Errorf("TestMain->UploadAndChunksSelectMode1: %v", err)
-
-		return
-	}
-
 	testdata.TestChooseProcInput = "99"
 
 	err = interp.RunProcess()
@@ -75,6 +62,19 @@ func TestMain(t *testing.T) {
 	err = interp.RunLogin()
 	if err != nil {
 		t.Errorf("TestMain->RunLogin: %v", err)
+
+		return
+	}
+
+	testdata.
+		TestSetRestrictionsInput = "2" // overwrite all files
+	// when load
+
+	testdata.TestChooseLoadTypeInput = "2" // load all
+
+	err = interp.LoadAndChunksSelectMode()
+	if err != nil {
+		t.Errorf("TestMain->UploadAndChunksSelectMode1: %v", err)
 
 		return
 	}
