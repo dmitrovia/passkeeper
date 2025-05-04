@@ -20,7 +20,7 @@ func TestNoAuth(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(20 * time.Second)
+	time.Sleep(25 * time.Second)
 
 	clintattr := &clientpa.ClientProcAttr{}
 

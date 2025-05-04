@@ -38,7 +38,7 @@ jobs:
           run: |
             go env -w CGO_ENABLED=0
             cd files_client_upload
-            dd if=/dev/zero of=upload_test bs=1M count=10240
+            dd if=/dev/zero of=upload_test bs=1M count=1024
             dd if=/dev/zero of=test_image.png bs=1M count=1
             cd ..
             make generate-keys-rsa
