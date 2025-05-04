@@ -76,7 +76,11 @@ func (lp *LoginProc) input() error {
 
 	fmt.Println("Enter login")
 
-	if lp.attr.AttrClintProc.TestData == nil {
+	td := lp.attr.AttrClintProc.TestData != nil &&
+		lp.attr.AttrClintProc.TestData.
+			TestLoginInputLogin != ""
+
+	if !td {
 		_, err := fmt.Fscan(os.Stdin, &inLogin)
 		if err != nil {
 			return fmt.Errorf("Input->Fscan(login): %w", err)
@@ -88,7 +92,11 @@ func (lp *LoginProc) input() error {
 
 	fmt.Println("Enter password")
 
-	if lp.attr.AttrClintProc.TestData == nil {
+	td1 := lp.attr.AttrClintProc.TestData != nil &&
+		lp.attr.AttrClintProc.TestData.
+			TestPassInputLogin != ""
+
+	if !td1 {
 		_, err := fmt.Fscan(os.Stdin, &inPass)
 		if err != nil {
 			return fmt.Errorf("Input->Fscan(pass): %w", err)

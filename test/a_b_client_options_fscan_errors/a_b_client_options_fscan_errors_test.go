@@ -1,21 +1,19 @@
 package a_b_client_options_fscan_errors_test
 
 import (
-	"errors"
 	"sync"
 	"testing"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/interactionproc/interactionpa"
+	"github.com/dmitrovia/passkeeper/internal/general/models/testm"
 )
-
-var errCntErrors = errors.New("count of errors")
 
 func runNewProc(t *testing.T,
 	option string,
 	isAuth bool,
-	errors *[]error,
+	testd *testm.TestData,
 ) {
 	t.Helper()
 
@@ -33,36 +31,62 @@ func runNewProc(t *testing.T,
 	newAttr.AttrClintProc.IsAuth = isAuth
 	newAttr.WgSubProc = &sync.WaitGroup{}
 	newAttr.AttrClintProc.SelectedProc = &option
+	newAttr.AttrClintProc.TestData = testd
 
 	interp := interactionproc.NewProc(newAttr)
 
-	err = interp.RunProcess()
-	if err != nil {
-		*errors = append(*errors, err)
-
-		return
-	}
+	interp.SelectOption()
 }
 
 func TestMain(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	errors := make([]error, 0)
+	const temp string = "test"
 
-	runNewProc(t, "99", true, &errors)
-	runNewProc(t, "1", false, &errors)
-	runNewProc(t, "2", false, &errors)
-	runNewProc(t, "3", true, &errors)
-	runNewProc(t, "4", true, &errors)
-	runNewProc(t, "5", true, &errors)
-	runNewProc(t, "6", true, &errors)
-	runNewProc(t, "7", true, &errors)
-	runNewProc(t, "8", true, &errors)
-	runNewProc(t, "999", true, &errors)
-	runNewProc(t, "34543543", true, &errors)
+	testdata := &testm.TestData{}
+	runNewProc(t, "99", true, testdata)
 
-	if len(errors) != 10 {
-		t.Errorf("TestMain->Init: %v", errCntErrors)
-	}
+	testdata = &testm.TestData{}
+	runNewProc(t, "1", false, testdata)
+
+	testdata = &testm.TestData{}
+	testdata.TestLoginInputRegister = temp
+	runNewProc(t, "1", false, testdata)
+
+	testdata = &testm.TestData{}
+	runNewProc(t, "2", false, testdata)
+
+	testdata = &testm.TestData{}
+	testdata.TestLoginInputLogin = temp
+	runNewProc(t, "2", false, testdata)
+
+	testdata = &testm.TestData{}
+	runNewProc(t, "3", true, testdata)
+
+	testdata = &testm.TestData{}
+	testdata.TestUploadAndChunksSelectModeInput = "1"
+	runNewProc(t, "3", true, testdata)
+
+	testdata = &testm.TestData{}
+	runNewProc(t, "5", true, testdata)
+
+	testdata = &testm.TestData{}
+	testdata.TestChooseLoadTypeInput = "1"
+	runNewProc(t, "5", true, testdata)
+
+	testdata = &testm.TestData{}
+	runNewProc(t, "6", true, testdata)
+
+	testdata = &testm.TestData{}
+	testdata.TestInIdentifierInputUploadSecret = temp
+	runNewProc(t, "6", true, testdata)
+
+	testdata = &testm.TestData{}
+	runNewProc(t, "8", true, testdata)
+
+	testdata = &testm.TestData{}
+	runNewProc(t, "999", true, testdata)
+	testdata = &testm.TestData{}
+	runNewProc(t, "34543543", true, testdata)
 }

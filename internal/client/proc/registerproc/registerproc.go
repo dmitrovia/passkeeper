@@ -64,7 +64,11 @@ func (rp *RegisterProc) input() error {
 
 	fmt.Println("Enter login")
 
-	if rp.attr.AttrClintProc.TestData == nil {
+	td := rp.attr.AttrClintProc.TestData != nil &&
+		rp.attr.AttrClintProc.TestData.
+			TestLoginInputRegister != ""
+
+	if !td {
 		_, err := fmt.Fscan(os.Stdin, &inLogin)
 		if err != nil {
 			return fmt.Errorf("RP->Fscan(login): %w", err)
@@ -76,7 +80,11 @@ func (rp *RegisterProc) input() error {
 
 	fmt.Println("Enter password")
 
-	if rp.attr.AttrClintProc.TestData == nil {
+	td1 := rp.attr.AttrClintProc.TestData != nil &&
+		rp.attr.AttrClintProc.TestData.
+			TestPassInputRegister != ""
+
+	if !td1 {
 		_, err := fmt.Fscan(os.Stdin, &inPass)
 		if err != nil {
 			return fmt.Errorf("RP->Fscan(pass): %w", err)

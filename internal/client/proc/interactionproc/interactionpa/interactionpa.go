@@ -130,7 +130,11 @@ func (ipa *InteractionProcAttr) SetRestrictions() error {
 			fmt.Println("FILE:" + key)
 			fmt.Println(str)
 
-			if ipa.AttrClintProc.TestData == nil {
+			td := ipa.AttrClintProc.TestData != nil &&
+				ipa.AttrClintProc.TestData.
+					TestSetRestrictionsInput != ""
+
+			if !td {
 				_, err1 := fmt.Fscan(os.Stdin, &inValue)
 				if err1 != nil {
 					continue

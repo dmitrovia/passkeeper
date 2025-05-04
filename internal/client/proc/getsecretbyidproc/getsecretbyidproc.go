@@ -109,14 +109,16 @@ func (lp *GetSecretByID) input() error {
 
 	fmt.Println("Enter identifier of secret")
 
-	if lp.attr.AttrClintProc.TestData == nil {
+	td := lp.attr.AttrClintProc.TestData != nil &&
+		lp.attr.AttrClintProc.TestData.TestInIdentifierInput != ""
+	if td {
+		inIdentifier = lp.attr.AttrClintProc.TestData.
+			TestInIdentifierInput
+	} else {
 		_, err := fmt.Fscan(os.Stdin, &inIdentifier)
 		if err != nil {
 			return fmt.Errorf("Input->Fscan(identifier): %w", err)
 		}
-	} else {
-		inIdentifier = lp.attr.AttrClintProc.TestData.
-			TestInIdentifierInput
 	}
 
 	outAttr := &apim.InGetSecretByID{}

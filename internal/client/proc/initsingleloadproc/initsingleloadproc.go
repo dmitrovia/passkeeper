@@ -36,14 +36,17 @@ func (proc *InitSingleProc) RunProcess() error {
 
 	var fileName string
 
-	if proc.attr.AttrClintProc.TestData == nil {
+	td := proc.attr.AttrClintProc.TestData != nil &&
+		proc.attr.AttrClintProc.TestData.TestFileNameInput != ""
+
+	if !td {
+		fileName = proc.attr.AttrClintProc.TestData.
+			TestFileNameInput
+	} else {
 		_, err1 := fmt.Fscan(os.Stdin, &fileName)
 		if err1 != nil {
 			return fmt.Errorf("RP->Fscan: %w", err1)
 		}
-	} else {
-		fileName = proc.attr.AttrClintProc.TestData.
-			TestFileNameInput
 	}
 
 	proc.attr.SpecificFileLoadName = fileName

@@ -62,7 +62,10 @@ func (ip *InteractionProc) ChooseProc() error {
 
 		var inValue string
 
-		if ip.attr.AttrClintProc.TestData == nil {
+		td := ip.attr.AttrClintProc.TestData != nil &&
+			ip.attr.AttrClintProc.TestData.TestChooseProcInput != ""
+
+		if !td {
 			_, err1 := fmt.Fscan(os.Stdin, &inValue)
 			if err1 != nil {
 				return fmt.Errorf("chooseProc->Fscan: %w", err1)
@@ -75,7 +78,7 @@ func (ip *InteractionProc) ChooseProc() error {
 		ip.checkIncorrectOptionAuth(inValue)
 		ip.checkIncorrectOptionNotAuth(inValue)
 
-		isExit := ip.selectOption()
+		isExit := ip.SelectOption()
 		if isExit {
 			return nil
 		}
@@ -138,7 +141,7 @@ func (ip *InteractionProc) checkIncorrectOptionNotAuth(
 }
 
 //nolint:cyclop
-func (ip *InteractionProc) selectOption() bool {
+func (ip *InteractionProc) SelectOption() bool {
 	var err error
 
 	switch *ip.attr.AttrClintProc.SelectedProc {
@@ -180,7 +183,11 @@ func (
 
 	var inValue string
 
-	if ip.attr.AttrClintProc.TestData == nil {
+	td := ip.attr.AttrClintProc.TestData != nil &&
+		ip.attr.AttrClintProc.TestData.
+			TestChooseLoadTypeInput != ""
+
+	if !td {
 		_, err1 := fmt.Fscan(os.Stdin, &inValue)
 		if err1 != nil {
 			return fmt.Errorf("chooseLoadType->Fscan1: %w", err1)
@@ -331,7 +338,11 @@ func (
 
 	var inValue string
 
-	if ip.attr.AttrClintProc.TestData == nil {
+	td := ip.attr.AttrClintProc.TestData != nil &&
+		ip.attr.AttrClintProc.TestData.
+			TestUploadAndChunksSelectModeInput != ""
+
+	if !td {
 		_, err1 := fmt.Fscan(os.Stdin, &inValue)
 		if err1 != nil {
 			return fmt.Errorf("UACSM->Fscan1: %w", err1)
@@ -389,7 +400,11 @@ func (ip *InteractionProc) uploadSingleFile() error {
 
 	var fileName string
 
-	if ip.attr.AttrClintProc.TestData == nil {
+	td := ip.attr.AttrClintProc.TestData != nil &&
+		ip.attr.AttrClintProc.TestData.
+			TestUploadSingleFileInput != ""
+
+	if !td {
 		_, err1 := fmt.Fscan(os.Stdin, &fileName)
 		if err1 != nil {
 			return fmt.Errorf("USF->Fscan: %w", err1)
