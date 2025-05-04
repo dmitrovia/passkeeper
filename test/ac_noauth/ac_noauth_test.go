@@ -24,7 +24,7 @@ func TestNoAuth(t *testing.T) {
 
 	clintattr := &clientpa.ClientProcAttr{}
 
-	err := clintattr.Init()
+	err := clintattr.Init(true)
 	if err != nil {
 		t.Errorf("TestMain->Init: %v", err)
 

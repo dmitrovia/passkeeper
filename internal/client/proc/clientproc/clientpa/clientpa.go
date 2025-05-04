@@ -58,11 +58,12 @@ type ClientProcAttr struct {
 	TestData             *testm.TestData
 }
 
-func (p *ClientProcAttr) Init() error {
+func (p *ClientProcAttr) Init(flags bool) error {
 	p.ReqTimeout = ReqTimeout * time.Second
 	p.ZapLogInfoLevel = "info"
 	p.DefConfigPath = "../../internal/client/config/" +
 		"client.json"
+	p.ConfigPath = p.DefConfigPath
 	p.TempFilesPath = "../../internal/client/files_temp/"
 	p.MaxRetries = 3
 	p.CountWorkersChunker = 5
@@ -86,7 +87,9 @@ func (p *ClientProcAttr) Init() error {
 
 	p.ZapLogger = logger
 
-	p.InitFlags()
+	if flags {
+		p.InitFlags()
+	}
 
 	err = p.GetAttrsCFG()
 	if err != nil {

@@ -28,7 +28,7 @@ func (proc *ClientProc) RunProcess() error {
 		proc.attr = &clientpa.ClientProcAttr{}
 	}
 
-	err := proc.attr.Init()
+	err := proc.attr.Init(true)
 	if err != nil {
 		return fmt.Errorf("RP->Init: %w", err)
 	}
