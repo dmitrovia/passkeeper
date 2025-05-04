@@ -103,16 +103,17 @@ type ServerProcAttr struct {
 	Cert                 tls.Certificate
 }
 
-func (p *ServerProcAttr) Init() error {
+func (p *ServerProcAttr) Init(flags bool) error {
 	// need to change
 	p.SecretAuth = ""
 	p.TokenExpHour = 24
 	p.ZapLogInfoLevel = "info"
 	p.DefServerAddr = ""
-	p.DefDBDSN = ""
 	p.DefFilesStoragePath = ""
+	p.FilesStoragePath = p.DefFilesStoragePath
 	p.DefConfigPath = "../../internal/server/config/" +
 		"server.json"
+	p.ConfigPath = p.DefConfigPath
 	p.APIUsersURL = "/api/user/"
 	p.MigrationsDir = "db/migrations"
 	p.Dbtimeout = DBtimeout * time.Second
@@ -135,7 +136,10 @@ func (p *ServerProcAttr) Init() error {
 	}
 
 	p.ZapLogger = logger
-	p.InitFlags()
+	if flags {
+		p.InitFlags()
+	}
+
 	p.initENV()
 
 	err = p.GetAttrsCFG()

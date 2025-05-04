@@ -21,9 +21,13 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/upload"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware"
+	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware/authmiddlewareattr"
 	"github.com/dmitrovia/passkeeper/internal/server/migrator"
 	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
+	"github.com/dmitrovia/passkeeper/internal/server/service/authservice"
+	"github.com/dmitrovia/passkeeper/internal/server/storage/userstorage"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,6 +43,7 @@ type testData struct {
 	Hash         *string
 	DataMeta     *[]byte
 	FilePath     *string
+	noAuthMid    bool
 }
 
 const url = "https://localhost:8443"
@@ -218,10 +223,68 @@ func getTestData(encKey *[]byte) *[]testData {
 			FilePath: &fpath,
 			DataMeta: &dmeta,
 		},
+		{
+			tn:        "13",
+			expcod:    statusBR,
+			exbody:    "",
+			data:      nil,
+			token:     nil,
+			FileName:  "upload_test1",
+			Index:     99,
+			Hash:      nil,
+			FilePath:  &fpath,
+			DataMeta:  &dmeta,
+			noAuthMid: true,
+		},
 	}
 }
 
-//nolint:funlen,cyclop
+func getTestData1() *[]testData {
+	tmp := "temp"
+	dmeta := []byte(randomString())
+
+	return &[]testData{
+		{
+			tn:           "14",
+			expcod:       statusISE,
+			exbody:       "",
+			data:         nil,
+			token:        nil,
+			FileName:     "upload_test1",
+			Index:        99,
+			Hash:         &tmp,
+			FilePath:     nil,
+			DataMeta:     &dmeta,
+			OrigFileName: "upload_test1",
+		},
+	}
+}
+
+func newConn(attr *serverpa.ServerProcAttr) error {
+	ctxDB, cancel := context.WithTimeout(
+		context.Background(), attr.Dbtimeout)
+	defer cancel()
+
+	dbConn, err := pgxpool.New(ctxDB,
+		attr.DBDSN)
+	if err != nil {
+		return fmt.Errorf("SetPgxPool->pgxpool.New: %w", err)
+	}
+
+	UserStorage := &userstorage.UserStorage{}
+	UserStorage.Initiate(dbConn)
+
+	attr.AuthService = authservice.NewAuthService(
+		UserStorage)
+
+	attr.AuthMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
+	attr.AuthMidAttr.Init(attr.ZapLogger,
+		attr.AuthService, attr.Dbtimeout, attr.SecretAuth)
+
+	return nil
+}
+
+//nolint:funlen
 func TestUploadHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
@@ -230,7 +293,7 @@ func TestUploadHandler(t *testing.T) {
 
 	attr := &serverpa.ServerProcAttr{}
 
-	err := attr.Init()
+	err := attr.Init(true)
 	if err != nil {
 		t.Errorf("Init: %v", err)
 
@@ -261,6 +324,7 @@ func TestUploadHandler(t *testing.T) {
 	Token := tok
 
 	testCases := getTestData(&encKey)
+	testCases1 := getTestData1()
 
 	uploadH := upload.NewHandler(attr.FIleService,
 		attr.MetaService,
@@ -269,55 +333,87 @@ func TestUploadHandler(t *testing.T) {
 	for _, test := range *testCases {
 		t.Run(http.MethodPost, func(t *testing.T) {
 			t.Parallel()
-
-			reqData, err := formReqBody(&test)
-			if err != nil {
-				t.Errorf("formReqBody: %v", err)
-
-				return
-			}
-
-			var bodyReq []byte
-			if test.data != nil {
-				bodyReq = *test.data
-			} else {
-				bodyReq = *reqData
-			}
-
-			req, err := http.NewRequestWithContext(
-				context.Background(),
-				http.MethodPost,
-				url+"/api/user/upload", bytes.NewReader(bodyReq))
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-
-			if test.token != nil {
-				req.Header.Set("Authorization", *test.token)
-			} else {
-				req.Header.Set("Authorization", Token)
-			}
-
-			newr := httptest.NewRecorder()
-			router := mux.NewRouter()
-			router.Use(authmiddleware.AuthMiddleware(
-				attr.AuthMidAttr))
-			router.HandleFunc("/api/user/upload",
-				uploadH)
-			router.ServeHTTP(newr, req)
-			status := newr.Code
-			body, _ := io.ReadAll(newr.Body)
-
-			assert.Equal(t,
-				test.expcod,
-				status, test.tn+": Response code didn't match expected")
-
-			if test.exbody != "" {
-				assert.JSONEq(t, test.exbody, string(body))
-			}
+			req(t, &test, uploadH, Token, attr)
 		})
+	}
+
+	attr.PgxConn.Close()
+
+	err = newConn(attr)
+	if err != nil {
+		t.Errorf("newConn: %v", err)
+	}
+
+	for _, test := range *testCases1 {
+		t.Run(http.MethodPost, func(t *testing.T) {
+			t.Parallel()
+			req(t, &test, uploadH, Token, attr)
+		})
+	}
+}
+
+//nolint:funlen
+func req(t *testing.T,
+	test *testData,
+	handler func(
+		writer http.ResponseWriter,
+		req *http.Request,
+	),
+	token string,
+	attr *serverpa.ServerProcAttr,
+) {
+	t.Helper()
+
+	reqData, err := formReqBody(test)
+	if err != nil {
+		t.Errorf("formReqBody: %v", err)
+
+		return
+	}
+
+	var bodyReq []byte
+	if test.data != nil {
+		bodyReq = *test.data
+	} else {
+		bodyReq = *reqData
+	}
+
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		url+"/api/user/upload", bytes.NewReader(bodyReq))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	if test.token != nil {
+		req.Header.Set("Authorization", *test.token)
+	} else {
+		req.Header.Set("Authorization", token)
+	}
+
+	newr := httptest.NewRecorder()
+	router := mux.NewRouter()
+
+	if !test.noAuthMid {
+		router.Use(authmiddleware.AuthMiddleware(
+			attr.AuthMidAttr))
+	}
+
+	router.HandleFunc("/api/user/upload",
+		handler)
+	router.ServeHTTP(newr, req)
+	status := newr.Code
+	body, _ := io.ReadAll(newr.Body)
+
+	assert.Equal(t,
+		test.expcod,
+		status, test.tn+": Response code didn't match expected")
+
+	if test.exbody != "" {
+		assert.JSONEq(t, test.exbody, string(body))
 	}
 }
 

@@ -9,13 +9,13 @@ import (
 )
 
 type MetaStorage struct {
-	conn *pgxpool.Pool
+	Conn *pgxpool.Pool
 }
 
 func (m *MetaStorage) Initiate(
 	conn *pgxpool.Pool,
 ) {
-	m.conn = conn
+	m.Conn = conn
 }
 
 func (m *MetaStorage) CreateMeta(
@@ -24,7 +24,7 @@ func (m *MetaStorage) CreateMeta(
 ) error {
 	var lastInsertID *int32
 
-	err := m.conn.QueryRow(
+	err := m.Conn.QueryRow(
 		ctx,
 		"INSERT INTO meta (file_name,orig_file_name,hash_md,"+
 			" index_number,client_user,file_path)"+
@@ -56,7 +56,7 @@ func (m *MetaStorage) GetMetaByClientOptimized(
 
 	txt := "GetMetaByClientOptimized->m.conn.Query"
 
-	rows, err := m.conn.Query(
+	rows, err := m.Conn.Query(
 		ctx, "select m.file_name,m.orig_file_name"+
 			" from meta m"+
 			" where m.client_user=$1",
@@ -97,7 +97,7 @@ func (m *MetaStorage) GetMetaByClientOrigFileNameOptimized(
 
 	txt := "GetMetaByClientLikeFileNameOptimized->Query"
 
-	rows, err := m.conn.Query(
+	rows, err := m.Conn.Query(
 		ctx, "select m.file_name"+
 			" from meta m"+
 			" where m.client_user=$1"+
@@ -145,7 +145,7 @@ func (m *MetaStorage) GetMetaByClientFileNameOptimized(
 
 	txt := "GetMetaByClientFileNameOptimized->Query"
 
-	rows, err := m.conn.Query(
+	rows, err := m.Conn.Query(
 		ctx, "select m.file_name,m.hash_md,m.orig_file_name,"+
 			" m.index_number,m.file_path"+
 			" from meta m"+

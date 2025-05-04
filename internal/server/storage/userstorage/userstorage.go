@@ -12,13 +12,13 @@ import (
 )
 
 type UserStorage struct {
-	conn *pgxpool.Pool
+	Conn *pgxpool.Pool
 }
 
 func (m *UserStorage) Initiate(
 	conn *pgxpool.Pool,
 ) {
-	m.conn = conn
+	m.Conn = conn
 }
 
 const defUserData = "u.id,u.login,u.password,u.createddate"
@@ -29,7 +29,7 @@ func (m *UserStorage) CreateUser(
 ) error {
 	var lastInsertID *int32
 
-	err := m.conn.QueryRow(
+	err := m.Conn.QueryRow(
 		ctx,
 		"INSERT INTO users (login, password)"+
 			" VALUES ($1, $2) RETURNING id",
@@ -56,7 +56,7 @@ func (m *UserStorage) GetUser(
 		outCreateddate    *time.Time
 	)
 
-	err := m.conn.QueryRow(
+	err := m.Conn.QueryRow(
 		ctx,
 		"select "+defUserData+
 			" from users u"+

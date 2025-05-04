@@ -9,13 +9,13 @@ import (
 )
 
 type SecretStorage struct {
-	conn *pgxpool.Pool
+	Conn *pgxpool.Pool
 }
 
 func (ss *SecretStorage) Initiate(
 	conn *pgxpool.Pool,
 ) {
-	ss.conn = conn
+	ss.Conn = conn
 }
 
 func (ss *SecretStorage) CreateSecret(
@@ -24,7 +24,7 @@ func (ss *SecretStorage) CreateSecret(
 ) error {
 	var lastInsertID *int32
 
-	err := ss.conn.QueryRow(
+	err := ss.Conn.QueryRow(
 		ctx,
 		"INSERT INTO secret_info (identifier,value,client_user)"+
 			" VALUES ($1,$2,$3)"+
@@ -51,7 +51,7 @@ func (ss *SecretStorage) GetSecretByClientOptimized(
 
 	txt := "GetSecretByClientOptimized->m.conn.Query"
 
-	rows, err := ss.conn.Query(
+	rows, err := ss.Conn.Query(
 		ctx, "select si.identifier,si.value"+
 			" from secret_info si"+
 			" where si.client_user=$1",
@@ -93,7 +93,7 @@ func (
 
 	txt := "GetSecretByClientIdentifierOptimized->Query"
 
-	rows, err := ss.conn.Query(
+	rows, err := ss.Conn.Query(
 		ctx, "select si.value"+
 			" from secret_info si"+
 			" where si.client_user=$1"+

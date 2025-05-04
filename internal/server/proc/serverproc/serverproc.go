@@ -31,7 +31,7 @@ func (sp *ServerProc) RunProcess() error {
 		sp.attr = &serverpa.ServerProcAttr{}
 	}
 
-	err := sp.attr.Init()
+	err := sp.attr.Init(true)
 	if err != nil {
 		return fmt.Errorf("RP->Init: %w", err)
 	}

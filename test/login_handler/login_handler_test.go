@@ -110,6 +110,70 @@ func getTestData(encKey *[]byte) *[]testData {
 	}
 }
 
+func getTestData1() *[]testData {
+	return &[]testData{
+		{
+			tn:     "8",
+			login:  "test",
+			pass:   "test",
+			expcod: statusISE,
+			exbody: "",
+			data:   nil,
+		},
+	}
+}
+
+func req(t *testing.T,
+	test *testData,
+	handler func(
+		writer http.ResponseWriter,
+		req *http.Request,
+	),
+	encKey []byte,
+) {
+	t.Helper()
+
+	reqData, err := formReqBody(test, &encKey)
+	if err != nil {
+		t.Errorf("formReqBody: %v", err)
+
+		return
+	}
+
+	var bodyReq []byte
+	if test.data != nil {
+		bodyReq = *test.data
+	} else {
+		bodyReq = *reqData
+	}
+
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		url+"/api/user/login", bytes.NewReader(bodyReq))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	newr := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc("/api/user/login",
+		handler)
+	router.ServeHTTP(newr, req)
+	status := newr.Code
+	body, _ := io.ReadAll(newr.Body)
+
+	assert.Equal(t,
+		test.expcod,
+		status, test.tn+": Response code didn't match expected")
+
+	if test.exbody != "" {
+		assert.JSONEq(t, test.exbody, string(body))
+	}
+}
+
 //nolint:funlen
 func TestLoginHandler(t *testing.T) {
 	t.Helper()
@@ -119,7 +183,7 @@ func TestLoginHandler(t *testing.T) {
 
 	attr := &serverpa.ServerProcAttr{}
 
-	err := attr.Init()
+	err := attr.Init(true)
 	if err != nil {
 		t.Errorf("Init: %v", err)
 
@@ -141,53 +205,36 @@ func TestLoginHandler(t *testing.T) {
 	}
 
 	testCases := getTestData(&encKey)
+	testCases1 := getTestData1()
 
-	login := login.NewHandler(
+	login1 := login.NewHandler(
 		attr.AuthService, attr.LoginAttr).LoginHandler
 
 	for _, test := range *testCases {
 		t.Run(http.MethodPost, func(t *testing.T) {
 			t.Parallel()
+			req(t, &test, login1, encKey)
+		})
+	}
 
-			reqData, err := formReqBody(&test, &encKey)
-			if err != nil {
-				t.Errorf("formReqBody: %v", err)
+	attr1 := &serverpa.ServerProcAttr{}
 
-				return
-			}
+	err = attr1.Init(false)
+	if err != nil {
+		t.Errorf("Init: %v", err)
 
-			var bodyReq []byte
-			if test.data != nil {
-				bodyReq = *test.data
-			} else {
-				bodyReq = *reqData
-			}
+		return
+	}
 
-			req, err := http.NewRequestWithContext(
-				context.Background(),
-				http.MethodPost,
-				url+"/api/user/login", bytes.NewReader(bodyReq))
-			if err != nil {
-				t.Fatal(err)
-			}
+	attr1.PgxConn.Close()
 
-			req.Header.Set("Content-Type", "application/json")
+	login2 := login.NewHandler(
+		attr1.AuthService, attr1.LoginAttr).LoginHandler
 
-			newr := httptest.NewRecorder()
-			router := mux.NewRouter()
-			router.HandleFunc("/api/user/login",
-				login)
-			router.ServeHTTP(newr, req)
-			status := newr.Code
-			body, _ := io.ReadAll(newr.Body)
-
-			assert.Equal(t,
-				test.expcod,
-				status, test.tn+": Response code didn't match expected")
-
-			if test.exbody != "" {
-				assert.JSONEq(t, test.exbody, string(body))
-			}
+	for _, test := range *testCases1 {
+		t.Run(http.MethodPost, func(t *testing.T) {
+			t.Parallel()
+			req(t, &test, login2, encKey)
 		})
 	}
 }

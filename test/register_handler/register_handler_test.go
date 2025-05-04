@@ -119,6 +119,19 @@ func getTestData(encKey *[]byte) *[]testData {
 	}
 }
 
+func getTestData1() *[]testData {
+	return &[]testData{
+		{
+			tn:     "9",
+			login:  "test",
+			pass:   "test",
+			expcod: statusISE,
+			exbody: "",
+			data:   nil,
+		},
+	}
+}
+
 //nolint:funlen
 func TestRegisterHandler(t *testing.T) {
 	t.Helper()
@@ -128,7 +141,7 @@ func TestRegisterHandler(t *testing.T) {
 
 	attr := &serverpa.ServerProcAttr{}
 
-	err := attr.Init()
+	err := attr.Init(true)
 	if err != nil {
 		t.Errorf("Init: %v", err)
 
@@ -150,54 +163,88 @@ func TestRegisterHandler(t *testing.T) {
 	}
 
 	testCases := getTestData(&encKey)
+	testCases1 := getTestData1()
 
-	register := register.NewHandler(
+	register1 := register.NewHandler(
 		attr.AuthService, attr.RigsterAttr).RegisterHandler
 
 	for _, test := range *testCases {
 		t.Run(http.MethodPost, func(t *testing.T) {
 			t.Parallel()
-
-			reqData, err := formReqBody(&test, &encKey)
-			if err != nil {
-				t.Errorf("formReqBody: %v", err)
-
-				return
-			}
-
-			var bodyReq []byte
-			if test.data != nil {
-				bodyReq = *test.data
-			} else {
-				bodyReq = *reqData
-			}
-
-			req, err := http.NewRequestWithContext(
-				context.Background(),
-				http.MethodPost,
-				url+"/api/user/register", bytes.NewReader(bodyReq))
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-
-			newr := httptest.NewRecorder()
-			router := mux.NewRouter()
-			router.HandleFunc("/api/user/register",
-				register)
-			router.ServeHTTP(newr, req)
-			status := newr.Code
-			body, _ := io.ReadAll(newr.Body)
-
-			assert.Equal(t,
-				test.expcod,
-				status, test.tn+": Response code didn't match expected")
-
-			if test.exbody != "" {
-				assert.JSONEq(t, test.exbody, string(body))
-			}
+			req(t, &test, register1, encKey)
 		})
+	}
+
+	attr1 := &serverpa.ServerProcAttr{}
+
+	err = attr1.Init(false)
+	if err != nil {
+		t.Errorf("Init: %v", err)
+
+		return
+	}
+
+	attr1.PgxConn.Close()
+
+	register2 := register.NewHandler(
+		attr1.AuthService, attr1.RigsterAttr).RegisterHandler
+
+	for _, test := range *testCases1 {
+		t.Run(http.MethodPost, func(t *testing.T) {
+			t.Parallel()
+			req(t, &test, register2, encKey)
+		})
+	}
+}
+
+func req(t *testing.T,
+	test *testData,
+	handler func(
+		writer http.ResponseWriter,
+		req *http.Request,
+	),
+	encKey []byte,
+) {
+	t.Helper()
+
+	reqData, err := formReqBody(test, &encKey)
+	if err != nil {
+		t.Errorf("formReqBody: %v", err)
+
+		return
+	}
+
+	var bodyReq []byte
+	if test.data != nil {
+		bodyReq = *test.data
+	} else {
+		bodyReq = *reqData
+	}
+
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		url+"/api/user/register", bytes.NewReader(bodyReq))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	newr := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc("/api/user/register",
+		handler)
+	router.ServeHTTP(newr, req)
+	status := newr.Code
+	body, _ := io.ReadAll(newr.Body)
+
+	assert.Equal(t,
+		test.expcod,
+		status, test.tn+": Response code didn't match expected")
+
+	if test.exbody != "" {
+		assert.JSONEq(t, test.exbody, string(body))
 	}
 }
 

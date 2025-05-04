@@ -18,9 +18,13 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
 	"github.com/dmitrovia/passkeeper/internal/server/handlers/getsecretbyid"
 	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware"
+	"github.com/dmitrovia/passkeeper/internal/server/middleware/authmiddleware/authmiddlewareattr"
 	"github.com/dmitrovia/passkeeper/internal/server/migrator"
 	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
+	"github.com/dmitrovia/passkeeper/internal/server/service/authservice"
+	"github.com/dmitrovia/passkeeper/internal/server/storage/userstorage"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,6 +35,7 @@ type testData struct {
 	exbody       string
 	data         *[]byte
 	token        *string
+	noAuthMid    bool
 }
 
 const url = "https://localhost:8443"
@@ -112,10 +117,32 @@ func getTestData(encKey *[]byte) *[]testData {
 			data:         nil,
 			token:        &tok1,
 		},
+		{
+			tn:           "8",
+			inIdentifier: "test",
+			expcod:       statusBR,
+			exbody:       "",
+			data:         nil,
+			token:        nil,
+			noAuthMid:    true,
+		},
 	}
 }
 
-//nolint:funlen,cyclop
+func getTestData1() *[]testData {
+	return &[]testData{
+		{
+			tn:           "8",
+			inIdentifier: "test",
+			expcod:       statusISE,
+			exbody:       "",
+			data:         nil,
+			token:        nil,
+		},
+	}
+}
+
+//nolint:funlen
 func TestGetSByIdHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
@@ -124,7 +151,7 @@ func TestGetSByIdHandler(t *testing.T) {
 
 	attr := &serverpa.ServerProcAttr{}
 
-	err := attr.Init()
+	err := attr.Init(true)
 	if err != nil {
 		t.Errorf("Init: %v", err)
 
@@ -155,6 +182,7 @@ func TestGetSByIdHandler(t *testing.T) {
 	Token := tok
 
 	testCases := getTestData(&encKey)
+	testCases1 := getTestData1()
 
 	getSecretByIDH := getsecretbyid.NewHandler(
 		attr.SecretService,
@@ -163,55 +191,112 @@ func TestGetSByIdHandler(t *testing.T) {
 	for _, test := range *testCases {
 		t.Run(http.MethodPost, func(t *testing.T) {
 			t.Parallel()
-
-			reqData, err := formReqBody(&test, &encKey)
-			if err != nil {
-				t.Errorf("formReqBody: %v", err)
-
-				return
-			}
-
-			var bodyReq []byte
-			if test.data != nil {
-				bodyReq = *test.data
-			} else {
-				bodyReq = *reqData
-			}
-
-			req, err := http.NewRequestWithContext(
-				context.Background(),
-				http.MethodGet,
-				url+"/api/user/getsecretbyid", bytes.NewReader(bodyReq))
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			req.Header.Set("Content-Type", "application/json")
-
-			if test.token != nil {
-				req.Header.Set("Authorization", *test.token)
-			} else {
-				req.Header.Set("Authorization", Token)
-			}
-
-			newr := httptest.NewRecorder()
-			router := mux.NewRouter()
-			router.Use(authmiddleware.AuthMiddleware(
-				attr.AuthMidAttr))
-			router.HandleFunc("/api/user/getsecretbyid",
-				getSecretByIDH)
-			router.ServeHTTP(newr, req)
-			status := newr.Code
-			body, _ := io.ReadAll(newr.Body)
-
-			assert.Equal(t,
-				test.expcod,
-				status, test.tn+": Response code didn't match expected")
-
-			if test.exbody != "" {
-				assert.JSONEq(t, test.exbody, string(body))
-			}
+			req(t, &test, attr, getSecretByIDH, Token, encKey)
 		})
+	}
+
+	attr.PgxConn.Close()
+
+	err = newConn(attr)
+	if err != nil {
+		t.Errorf("newConn: %v", err)
+	}
+
+	for _, test := range *testCases1 {
+		t.Run(http.MethodPost, func(t *testing.T) {
+			t.Parallel()
+			req(t, &test, attr, getSecretByIDH, Token, encKey)
+		})
+	}
+}
+
+func newConn(attr *serverpa.ServerProcAttr) error {
+	ctxDB, cancel := context.WithTimeout(
+		context.Background(), attr.Dbtimeout)
+	defer cancel()
+
+	dbConn, err := pgxpool.New(ctxDB,
+		attr.DBDSN)
+	if err != nil {
+		return fmt.Errorf("SetPgxPool->pgxpool.New: %w", err)
+	}
+
+	UserStorage := &userstorage.UserStorage{}
+	UserStorage.Initiate(dbConn)
+
+	attr.AuthService = authservice.NewAuthService(
+		UserStorage)
+
+	attr.AuthMidAttr = &authmiddlewareattr.AuthMiddlewareAttr{}
+	attr.AuthMidAttr.Init(attr.ZapLogger,
+		attr.AuthService, attr.Dbtimeout, attr.SecretAuth)
+
+	return nil
+}
+
+//nolint:funlen
+func req(t *testing.T,
+	test *testData,
+	attr *serverpa.ServerProcAttr,
+	handler func(
+		writer http.ResponseWriter,
+		req *http.Request,
+	),
+	token string,
+	encKey []byte,
+) {
+	t.Helper()
+
+	reqData, err := formReqBody(test, &encKey)
+	if err != nil {
+		t.Errorf("formReqBody: %v", err)
+
+		return
+	}
+
+	var bodyReq []byte
+	if test.data != nil {
+		bodyReq = *test.data
+	} else {
+		bodyReq = *reqData
+	}
+
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodGet,
+		url+"/api/user/getsecretbyid", bytes.NewReader(bodyReq))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	if test.token != nil {
+		req.Header.Set("Authorization", *test.token)
+	} else {
+		req.Header.Set("Authorization", token)
+	}
+
+	newr := httptest.NewRecorder()
+	router := mux.NewRouter()
+
+	if !test.noAuthMid {
+		router.Use(authmiddleware.AuthMiddleware(
+			attr.AuthMidAttr))
+	}
+
+	router.HandleFunc("/api/user/getsecretbyid",
+		handler)
+	router.ServeHTTP(newr, req)
+	status := newr.Code
+	body, _ := io.ReadAll(newr.Body)
+
+	assert.Equal(t,
+		test.expcod,
+		status, test.tn+": Response code didn't match expected")
+
+	if test.exbody != "" {
+		assert.JSONEq(t, test.exbody, string(body))
 	}
 }
 
