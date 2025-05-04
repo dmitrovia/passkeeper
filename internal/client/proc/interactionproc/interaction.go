@@ -14,6 +14,8 @@ import (
 	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
 )
 
+const sleep = 500
+
 const (
 	registerOption      string = "1"
 	loginOption         string = "2"
@@ -173,7 +175,7 @@ func (ip *InteractionProc) SelectOption() bool {
 		loggerf.Log("selectOption", err)
 	}
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(sleep * time.Millisecond)
 
 	return false
 }
