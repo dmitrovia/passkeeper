@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
@@ -269,7 +270,7 @@ func TestUploadSecretHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	// time.Sleep(60 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 

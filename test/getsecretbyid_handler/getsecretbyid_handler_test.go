@@ -11,7 +11,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
@@ -142,7 +141,7 @@ func getTestData(encKey *[]byte) *[]testData {
 func getTestData1() *[]testData {
 	return &[]testData{
 		{
-			tn:           "10",
+			tn:           "11",
 			inIdentifier: "test",
 			expcod:       statusISE,
 			exbody:       "",
@@ -157,7 +156,7 @@ func TestGetSByIdHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(60 * time.Second)
+	// time.Sleep(60 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
@@ -264,17 +263,17 @@ func req(t *testing.T,
 		return
 	}
 
-	var bodyReq []byte
+	var bodyReq *bytes.Reader
 	if test.data != nil {
-		bodyReq = *test.data
+		bodyReq = bytes.NewReader(*test.data)
 	} else {
-		bodyReq = *reqData
+		bodyReq = bytes.NewReader(*reqData)
 	}
 
 	req, err := http.NewRequestWithContext(
 		context.Background(),
 		http.MethodGet,
-		url+"/api/user/getsecretbyid", bytes.NewReader(bodyReq))
+		url+"/api/user/getsecretbyid", bodyReq)
 	if err != nil {
 		t.Fatal(err)
 	}

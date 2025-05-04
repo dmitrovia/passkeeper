@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
@@ -183,11 +184,12 @@ func req(t *testing.T,
 	}
 }
 
+//nolint:funlen
 func TestLoginHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	// time.Sleep(60 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
