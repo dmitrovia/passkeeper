@@ -11,7 +11,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/auth/authcfg"
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
@@ -38,6 +37,7 @@ type testData struct {
 	token        *string
 	secret       string
 	noAuthMid    bool
+	noEncr       bool
 }
 
 const url = "https://localhost:8443"
@@ -146,6 +146,16 @@ func getTestData(encKey *[]byte) *[]testData {
 			token:        nil,
 			secret:       "test2233",
 			noAuthMid:    true,
+		},
+		{
+			tn:           "9",
+			inIdentifier: "test2233",
+			expcod:       statusISE,
+			exbody:       "",
+			data:         nil,
+			token:        nil,
+			secret:       "test2233",
+			noEncr:       true,
 		},
 	}
 }
@@ -259,7 +269,7 @@ func TestUploadSecretHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(60 * time.Second)
+	// time.Sleep(60 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
@@ -333,6 +343,10 @@ func formReqBody(
 	marshal, err := json.Marshal(secret)
 	if err != nil {
 		return nil, fmt.Errorf("formReqBody->Marshal: %w", err)
+	}
+
+	if testd.noEncr {
+		return &marshal, nil
 	}
 
 	encrypt, err := rsa.Encrypt(&marshal, encKey)

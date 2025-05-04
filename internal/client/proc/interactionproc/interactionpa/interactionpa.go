@@ -219,19 +219,6 @@ func (ipa *InteractionProcAttr) InitLogin() error {
 	return nil
 }
 
-func (ipa *InteractionProcAttr) InitLogout() error {
-	ipa.Logoutpa = &logoutprocattr.LogoutProcAttr{}
-
-	err := ipa.Logoutpa.Init(ipa.AttrClintProc)
-	if err != nil {
-		return fmt.Errorf("InitLogout->Init: %w", err)
-	}
-
-	ipa.Logoutproc = logoutproc.NewProc(ipa.Logoutpa)
-
-	return nil
-}
-
 func (ipa *InteractionProcAttr) InitChunkAndUpload() error {
 	ipa.Chunkerpa = &chunkerpa.ChunkerProcAttr{}
 	ipa.Metamanager = metamanager.NewMetaManager(

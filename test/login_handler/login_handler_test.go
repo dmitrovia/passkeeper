@@ -11,7 +11,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
 	"github.com/dmitrovia/passkeeper/internal/general/rsa"
@@ -29,6 +28,7 @@ type testData struct {
 	expcod int
 	exbody string
 	data   *[]byte
+	noEncr bool
 }
 
 const stok int = http.StatusOK
@@ -107,13 +107,22 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody: "",
 			data:   nil,
 		},
+		{
+			tn:     "8",
+			login:  "test",
+			pass:   "test",
+			expcod: statusISE,
+			exbody: "",
+			data:   nil,
+			noEncr: true,
+		},
 	}
 }
 
 func getTestData1() *[]testData {
 	return &[]testData{
 		{
-			tn:     "8",
+			tn:     "9",
 			login:  "test",
 			pass:   "test",
 			expcod: statusISE,
@@ -174,12 +183,11 @@ func req(t *testing.T,
 	}
 }
 
-//nolint:funlen
 func TestLoginHandler(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(60 * time.Second)
+	// time.Sleep(60 * time.Second)
 
 	attr := &serverpa.ServerProcAttr{}
 
@@ -250,6 +258,10 @@ func formReqBody(
 	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("Input->Marshal: %w", err)
+	}
+
+	if testd.noEncr {
+		return &marshal, nil
 	}
 
 	encrypt, err := rsa.Encrypt(&marshal, encKey)

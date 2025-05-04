@@ -36,6 +36,7 @@ type testData struct {
 	data         *[]byte
 	token        *string
 	noAuthMid    bool
+	noEncr       bool
 }
 
 const url = "https://localhost:8443"
@@ -126,13 +127,22 @@ func getTestData(encKey *[]byte) *[]testData {
 			token:        nil,
 			noAuthMid:    true,
 		},
+		{
+			tn:           "9",
+			inIdentifier: "test",
+			expcod:       statusISE,
+			exbody:       "",
+			data:         nil,
+			token:        nil,
+			noEncr:       true,
+		},
 	}
 }
 
 func getTestData1() *[]testData {
 	return &[]testData{
 		{
-			tn:           "8",
+			tn:           "10",
 			inIdentifier: "test",
 			expcod:       statusISE,
 			exbody:       "",
@@ -310,6 +320,10 @@ func formReqBody(
 	marshal, err := json.Marshal(outAttr)
 	if err != nil {
 		return nil, fmt.Errorf("formReqBody->Marshal: %w", err)
+	}
+
+	if testd.noEncr {
+		return &marshal, nil
 	}
 
 	encrypt, err := rsa.Encrypt(&marshal, encKey)

@@ -29,6 +29,7 @@ type testData struct {
 	expcod int
 	exbody string
 	data   *[]byte
+	noEncr bool
 }
 
 const stok int = http.StatusOK
@@ -116,13 +117,22 @@ func getTestData(encKey *[]byte) *[]testData {
 			exbody: "",
 			data:   nil,
 		},
+		{
+			tn:     "9",
+			login:  "test",
+			pass:   "test",
+			expcod: statusISE,
+			exbody: "",
+			data:   nil,
+			noEncr: true,
+		},
 	}
 }
 
 func getTestData1() *[]testData {
 	return &[]testData{
 		{
-			tn:     "9",
+			tn:     "10",
 			login:  "test",
 			pass:   "test",
 			expcod: statusISE,
@@ -259,6 +269,10 @@ func formReqBody(
 	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("Input->Marshal: %w", err)
+	}
+
+	if testd.noEncr {
+		return &marshal, nil
 	}
 
 	encrypt, err := rsa.Encrypt(&marshal, encKey)
