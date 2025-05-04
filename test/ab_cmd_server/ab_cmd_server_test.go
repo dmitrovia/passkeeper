@@ -11,7 +11,7 @@ func TestMain(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(15 * time.Second)
 
 	go func() {
 		sp := serverproc.NewProc(nil)

@@ -17,7 +17,7 @@ func TestMain(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	time.Sleep(25 * time.Second)
+	time.Sleep(30 * time.Second)
 
 	clintattr := &clientpa.ClientProcAttr{}
 
