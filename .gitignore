@@ -31,6 +31,25 @@ docker/docker-compose.yml
 
 # pem
 *.pem
+*.crt
+*.key
+*.csr
+*.srl
 
 # bin
 bin
+
+internal/server/files_server/*
+!internal/server/files_server/.gitkeep
+files_client_upload/*
+!files_client_upload/.gitkeep
+#internal/client/meta_client/*
+!internal/client/meta_client/.gitkeep
+internal/client/files_temp/*
+!internal/client/files_temp/.gitkeep
+
+
+!internal/server/tls/server.crt
+!internal/server/tls/server.key
+
+!internal/client/tls/ca.crt

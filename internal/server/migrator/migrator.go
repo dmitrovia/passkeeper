@@ -8,11 +8,15 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
+
+//go:embed db/migrations/*.sql
+var MigrationsFS embed.FS
 
 // Migrator - describing the struct migrator.
 type Migrator struct {
@@ -27,7 +31,7 @@ func MustGetNewMigrator(
 ) (*Migrator, error) {
 	driver, err := iofs.New(sqlFiles, dirName)
 	if err != nil {
-		return nil, fmt.Errorf("MustGetNewMigr->iofs.N: %w", err)
+		return nil, fmt.Errorf("MustGetNewMigrator->ION: %w", err)
 	}
 
 	return &Migrator{
@@ -58,6 +62,30 @@ func (m *Migrator) ApplyMigrations(db *sql.DB) error {
 	err = migrator.Up()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("unable to apply migrations: %w", err)
+	}
+
+	return nil
+}
+
+func UseMigrations(attr *serverpa.ServerProcAttr) error {
+	fmt.Println(attr.DBDSN)
+
+	migrator, err := MustGetNewMigrator(
+		MigrationsFS, attr.MigrationsDir)
+	if err != nil {
+		return fmt.Errorf("useMigrations->GetNewMigrato: %w", err)
+	}
+
+	conn, err := sql.Open("postgres", attr.DBDSN)
+	if err != nil {
+		return fmt.Errorf("useMigrations->sql.Open: %w", err)
+	}
+
+	defer conn.Close()
+
+	err = migrator.ApplyMigrations(conn)
+	if err != nil {
+		return fmt.Errorf("useMigrations->ApplyMigratio: %w", err)
 	}
 
 	return nil

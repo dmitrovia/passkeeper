@@ -1,0 +1,316 @@
+package loginhandler_test
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"math/rand"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/dmitrovia/passkeeper/internal/general/models/apim"
+	"github.com/dmitrovia/passkeeper/internal/general/rsa"
+	"github.com/dmitrovia/passkeeper/internal/server/handlers/register"
+	"github.com/dmitrovia/passkeeper/internal/server/migrator"
+	"github.com/dmitrovia/passkeeper/internal/server/proc/serverproc/serverpa"
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
+)
+
+type testData struct {
+	tn     string
+	login  string
+	pass   string
+	expcod int
+	exbody string
+	data   *[]byte
+	noEncr bool
+}
+
+const stok int = http.StatusOK
+
+const url = "https://localhost:8443"
+
+const path = "../../internal/client/crypto/keys/public.pem"
+
+const (
+	statusISE = http.StatusInternalServerError
+	statusBR  = http.StatusBadRequest
+	statusC   = http.StatusConflict
+)
+
+//nolint:lll,funlen
+func getTestData(encKey *[]byte) *[]testData {
+	tmp := make([]byte, 0)
+
+	incd := GetIncorrectData()
+
+	incd1 := GetIncorrectDataWithCrypto(encKey)
+
+	return &[]testData{
+		{
+			tn:     "1",
+			login:  "test" + randomString(),
+			pass:   "temppass",
+			expcod: stok,
+			exbody: "",
+			data:   nil,
+		},
+		{
+			tn:     "2",
+			login:  "test" + randomString(),
+			pass:   "temppass",
+			expcod: statusISE,
+			exbody: "",
+			data:   &tmp,
+		},
+		{
+			tn:     "3",
+			login:  "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest" + randomString(),
+			pass:   "temppass",
+			expcod: statusBR,
+			exbody: "",
+			data:   nil,
+		},
+		{
+			tn:     "4",
+			login:  "test" + randomString(),
+			pass:   "testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest",
+			expcod: statusBR,
+			exbody: "",
+			data:   nil,
+		},
+		{
+			tn:     "5",
+			login:  "test" + randomString(),
+			pass:   "temppass",
+			expcod: statusISE,
+			exbody: "",
+			data:   incd,
+		},
+		{
+			tn:     "6",
+			login:  "test" + randomString(),
+			pass:   "temppass",
+			expcod: statusBR,
+			exbody: "",
+			data:   incd1,
+		},
+		{
+			tn:     "7",
+			login:  "",
+			pass:   "",
+			expcod: statusBR,
+			exbody: "",
+			data:   nil,
+		},
+		{
+			tn:     "8",
+			login:  "test",
+			pass:   "test",
+			expcod: statusC,
+			exbody: "",
+			data:   nil,
+		},
+		{
+			tn:     "9",
+			login:  "test",
+			pass:   "test",
+			expcod: statusISE,
+			exbody: "",
+			data:   nil,
+			noEncr: true,
+		},
+	}
+}
+
+func getTestData1() *[]testData {
+	return &[]testData{
+		{
+			tn:     "10",
+			login:  "test",
+			pass:   "test",
+			expcod: statusISE,
+			exbody: "",
+			data:   nil,
+		},
+	}
+}
+
+//nolint:funlen
+func TestRegisterHandler(t *testing.T) {
+	t.Helper()
+	t.Parallel()
+
+	time.Sleep(60 * time.Second)
+
+	attr := &serverpa.ServerProcAttr{}
+
+	err := attr.Init(true)
+	if err != nil {
+		t.Errorf("Init: %v", err)
+
+		return
+	}
+
+	encKey, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("ReadFile: %v", err)
+
+		return
+	}
+
+	err = migrator.UseMigrations(attr)
+	if err != nil {
+		t.Errorf("Init: %v", err)
+
+		return
+	}
+
+	testCases := getTestData(&encKey)
+	testCases1 := getTestData1()
+
+	register1 := register.NewHandler(
+		attr.AuthService, attr.RigsterAttr).RegisterHandler
+
+	for _, test := range *testCases {
+		t.Run(http.MethodPost, func(t *testing.T) {
+			t.Parallel()
+			req(t, &test, register1, encKey)
+		})
+	}
+
+	attr1 := &serverpa.ServerProcAttr{}
+
+	err = attr1.Init(false)
+	if err != nil {
+		t.Errorf("Init: %v", err)
+
+		return
+	}
+
+	attr1.PgxConn.Close()
+
+	register2 := register.NewHandler(
+		attr1.AuthService, attr1.RigsterAttr).RegisterHandler
+
+	for _, test := range *testCases1 {
+		t.Run(http.MethodPost, func(t *testing.T) {
+			t.Parallel()
+			req(t, &test, register2, encKey)
+		})
+	}
+}
+
+func req(t *testing.T,
+	test *testData,
+	handler func(
+		writer http.ResponseWriter,
+		req *http.Request,
+	),
+	encKey []byte,
+) {
+	t.Helper()
+
+	reqData, err := formReqBody(test, &encKey)
+	if err != nil {
+		t.Errorf("formReqBody: %v", err)
+
+		return
+	}
+
+	var bodyReq []byte
+	if test.data != nil {
+		bodyReq = *test.data
+	} else {
+		bodyReq = *reqData
+	}
+
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		url+"/api/user/register", bytes.NewReader(bodyReq))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	newr := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc("/api/user/register",
+		handler)
+	router.ServeHTTP(newr, req)
+	status := newr.Code
+	body, _ := io.ReadAll(newr.Body)
+
+	assert.Equal(t,
+		test.expcod,
+		status, test.tn+": Response code didn't match expected")
+
+	if test.exbody != "" {
+		assert.JSONEq(t, test.exbody, string(body))
+	}
+}
+
+func formReqBody(
+	testd *testData,
+	encKey *[]byte,
+) (*[]byte, error) {
+	data := apim.InLoginUser{}
+	data.Login = testd.login
+	data.Password = testd.pass
+
+	marshal, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("Input->Marshal: %w", err)
+	}
+
+	if testd.noEncr {
+		return &marshal, nil
+	}
+
+	encrypt, err := rsa.Encrypt(&marshal, encKey)
+	if err != nil {
+		return nil, fmt.Errorf("Input->Encrypt: %w", err)
+	}
+
+	return encrypt, nil
+}
+
+func randomString() string {
+	letters := []rune(
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+	b := make([]rune, 5)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return string(b)
+}
+
+//nolint:errchkjson
+func GetIncorrectData() *[]byte {
+	incd := &apim.IncorrectData{}
+	incd.IncorrectData = "IncorrectData"
+	marshal, _ := json.Marshal(incd)
+
+	return &marshal
+}
+
+//nolint:errchkjson
+func GetIncorrectDataWithCrypto(encKey *[]byte) *[]byte {
+	incd := &apim.IncorrectData{}
+	incd.IncorrectData = "IncorrectData"
+	marshal, _ := json.Marshal(incd)
+
+	encrypt, _ := rsa.Encrypt(&marshal, encKey)
+
+	return encrypt
+}

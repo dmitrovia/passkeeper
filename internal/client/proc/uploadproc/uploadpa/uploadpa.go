@@ -1,0 +1,38 @@
+package uploadpa
+
+import (
+	"sync"
+	"time"
+
+	"github.com/dmitrovia/passkeeper/internal/client/proc/clientproc/clientpa"
+	"github.com/dmitrovia/passkeeper/internal/general/models/chunckmeta"
+)
+
+type UploadProcAttr struct {
+	CountWorkersUpload int
+	WorkerChunkWg      *sync.WaitGroup
+	ReqTimeout         time.Duration
+	UploadChan         chan *chunckmeta.ChunkMeta
+	CurrentMetadata    map[string]chunckmeta.ChunkMeta
+	Mutex              *sync.Mutex
+	ErrChan            chan error
+	ServerURL          string
+	CountChunk         int
+	AuthToken          string
+	Aes256keyBytes     []byte
+	ClientProcAttr     *clientpa.ClientProcAttr
+}
+
+func (upa *UploadProcAttr) Init(
+	attr *clientpa.ClientProcAttr,
+) error {
+	upa.Mutex = &sync.Mutex{}
+	upa.ClientProcAttr = attr
+	upa.ReqTimeout = attr.ReqTimeout
+	upa.ServerURL = attr.ServerAddr
+	upa.CountWorkersUpload = attr.CountWorkersUpload
+	upa.AuthToken = attr.AuthToken
+	upa.Aes256keyBytes = attr.Aes256keyBytes
+
+	return nil
+}

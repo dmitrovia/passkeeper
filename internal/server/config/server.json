@@ -1,0 +1,8 @@
+{
+    "dbdsn": "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable",
+    "address" : ":8443",
+    "filesStoragePath" : "../../internal/server/files_server",
+    "cryptoKeyPathPrivate": "../../internal/server/crypto/keys/private.pem",
+    "cryptoKeyPathPublic": "../../internal/server/crypto/keys/public.pem",
+    "secretAuth" : "d043ca6ed392153dc8d40f7bfd36e9a3"
+} 

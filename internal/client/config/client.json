@@ -1,0 +1,10 @@
+{
+    "filesUploadPath" : "../../files_client_upload/",
+    "address" : "https://localhost:8443",
+    "metaPath" : "../../internal/client/meta_client/meta.json",
+    "tokenPath" : "../../internal/client/auth/token.json",
+    "cryptoKeyPathPublic": "../../internal/client/crypto/keys/public.pem",
+    "cryptoKeyPathPrivate": "../../internal/client/crypto/keys/private.pem",
+    "gzipFormats" : ".html,.css,.js,.txt,.xml,.csv,.java,.json,.log,.doc,.pdf",
+    "aes256key" : "gLn2xbvYdE556NYzlaQKPwIFuSAY6NXJ"
+} 
