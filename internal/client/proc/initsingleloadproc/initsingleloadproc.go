@@ -39,7 +39,7 @@ func (proc *InitSingleProc) RunProcess() error {
 	td := proc.attr.AttrClintProc.TestData != nil &&
 		proc.attr.AttrClintProc.TestData.TestFileNameInput != ""
 
-	if !td {
+	if td {
 		fileName = proc.attr.AttrClintProc.TestData.
 			TestFileNameInput
 	} else {

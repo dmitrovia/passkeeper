@@ -3,6 +3,7 @@ package interactionproc
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/dmitrovia/passkeeper/internal/client/proc/buildproc"
 	"github.com/dmitrovia/passkeeper/internal/client/proc/buildproc/buildprocattr"
@@ -171,6 +172,8 @@ func (ip *InteractionProc) SelectOption() bool {
 	if err != nil {
 		loggerf.Log("selectOption", err)
 	}
+
+	time.Sleep(500 * time.Millisecond)
 
 	return false
 }
